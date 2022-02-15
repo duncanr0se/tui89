@@ -1,0 +1,14 @@
+
+- not as easy to make actual windowed TUI as first thought
+
+- only single layout, lots of hidden logic in layout / widgets needed
+  to override. Unclear model.
+
+- failed to understand how to make scroller; interactions between
+  screen / buffer / layout / widget sizes hard to fathom.
+
+- feels like fighting the library; may be built around "modern web
+  approach" but even the modern web has progressed to the box model.
+
+- use asciimatics anyway, but just for the building blocks such as the
+  screen class. Write the rest of the windowing stuff from scratch.
