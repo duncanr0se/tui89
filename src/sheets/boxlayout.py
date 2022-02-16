@@ -15,6 +15,12 @@ class HorizontalLayout(Sheet):
         super().__init__()
         self._columns = columns
 
+    def __repr__(self):
+        (width, height) = self._region
+        tx = self._transform._dx
+        ty = self._transform._dy
+        return "HorizontalLayout({}x{}@{},{}: {} cols)".format(width, height, tx, ty, len(self._columns))
+
     def add_child(self, child):
         super().add_child(child)
 
@@ -49,10 +55,12 @@ class HorizontalLayout(Sheet):
         for child in self._children:
             child.move_to((offset, 0))
             offset += child.width()
+            child.layout()
 
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
+        self.clear((0, 0), self._region)
         for child in self._children:
             child.render()
 
@@ -60,12 +68,18 @@ class HorizontalLayout(Sheet):
 # A layout that arranges its children in rows
 class VerticalLayout(Sheet):
 
-    # list of relative widths or absolute values
+    # list of relative widths (todo: also support absolute values?)
     _rows = None
 
     def __init__(self, rows):
         super().__init__()
         self._rows = rows
+
+    def __repr__(self):
+        (width, height) = self._region
+        tx = self._transform._dx
+        ty = self._transform._dy
+        return "VerticalLayout({}x{}@{},{}: {} rows)".format(width, height, tx, ty, len(self._rows))
 
     def add_child(self, child):
         super().add_child(child)
@@ -88,14 +102,23 @@ class VerticalLayout(Sheet):
         for row in self._rows:
             totalSegments += row
         segmentSize = height // totalSegments
+        # collect rounding errors as surplus
         surplus = height - segmentSize*totalSegments
         for index, child in enumerate(self._children):
             callocy = self._rows[index] * segmentSize
+            # if there is surplous, dole it out to each child until it
+            # is exhausted
             if surplus > 0:
                 callocy += 1
                 surplus -= 1
             child.allocate_space((width, callocy))
 
+    # perhaps this should be the thing that calls compose-space
+    # followed by allocate-space? With compose-space on kids in turn
+    # calling layout? Probably best to follow same pattern as DUIM if
+    # only for consistency in my own stuff...
+    #
+    # maybe allocate_space should call layout() if the region changes?
     def layout(self):
         offset = 0
         for child in self._children:
@@ -106,5 +129,10 @@ class VerticalLayout(Sheet):
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
+        # layouts always clear their background; concrete widgets may
+        # choose to do so if they need to but most will fill their
+        # region anyway and they can rely on empty space being the
+        # default background colour.
+        self.clear((0, 0), self._region)
         for child in self._children:
             child.render()

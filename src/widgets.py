@@ -106,9 +106,9 @@ def make_frame(screen, width, height):
 
     # setting the themes up is really nothing to do with making the
     # frame...
-    THEMES["default"]["borders"] = (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_BLUE)
-    THEMES["default"]["edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_NORMAL, Screen.COLOUR_BLUE)
-    THEMES["default"]["focus_edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN)
+#    THEMES["default"]["borders"] = (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_BLUE)
+#    THEMES["default"]["edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_NORMAL, Screen.COLOUR_BLUE)
+#    THEMES["default"]["focus_edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN)
 
     _frame = Frame(screen, width, height, has_border=False, can_scroll=False)
     layout = BorderLayout([1, 2], title="A title")

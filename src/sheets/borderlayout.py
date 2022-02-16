@@ -17,6 +17,12 @@ class BorderLayout(Sheet):
         super().__init__()
         self._title = title
 
+    def __repr__(self):
+        (width, height) = self._region
+        tx = self._transform._dx
+        ty = self._transform._dy
+        return "BorderLayout({}x{}@{},{}: '{}')".format(width, height, tx, ty, self._title)
+
     def add_child(self, child):
         if self._children:
             raise RuntimeError("BorderLayout supports a single child only")
@@ -63,7 +69,7 @@ class BorderLayout(Sheet):
         right = self.width()-1
         bottom = self.height()-1
 
-        # todo: draw title in bar + deal with long titles
+        # todo: deal with long titles
         # todo: deal with scrolling...
 
         # top border - make allowances for a title

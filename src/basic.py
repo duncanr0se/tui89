@@ -26,6 +26,7 @@ from sheets.boxlayout import VerticalLayout
 #   - button group?
 #   - labels
 #   - scroll bars
+#   - scroller - can border be used for this?
 #   - menu bar
 #   - menu
 #   - status bar
@@ -35,7 +36,15 @@ from sheets.boxlayout import VerticalLayout
 #   - horizontal / vertical separators
 #   - padding
 
+# tidying
+
+# create "pen" to capture colour, attr, bg instead of passing them
+# around everywhere.
+
 # need to do something about events!
+
+# create a "TV" theme in THEMES and use it for these widgets. Then
+# don't need to mess with overriding stuff in toplevel.py
 
 # make existing stuff prettier / more correct (alignment of text in
 # buttons, themes, colours, attributes, etc.)
@@ -44,6 +53,9 @@ from sheets.boxlayout import VerticalLayout
 # and ui to commands.
 
 # drawing is a separate thing altogether...
+
+# more flexibility for borders; DOUBLE, SINGLE, SPACE, NONE... could
+# also combine into a spacing pane.
 
 # look at other stuff asciimatics does (save / restore form state
 # etc.) and decide if that's something that could be useful.Pretty
@@ -55,14 +67,17 @@ def demo(screen):
 
 #    child_sheet = Sheet()
 #    child_sheet = CheckBox(label="PRESS ME!")
-    child_sheet = VerticalLayout([1, 2, 1, 1])
-#    child_sheet = HorizontalLayout([1, 2, 1, 1])
+#    child_sheet = VerticalLayout([1, 2, 1, 1])
+    child_sheet = HorizontalLayout([1, 2, 1, 1])
     border_layout.add_child(child_sheet)
 
     child_sheet.add_child(BorderLayout(title="one"))
-    child_sheet.add_child(BorderLayout(title="two"))
+    inner_bl = BorderLayout(title="two")
+    child_sheet.add_child(inner_bl)
     child_sheet.add_child(BorderLayout(title="three"))
     child_sheet.add_child(BorderLayout(title="four"))
+
+    inner_bl.add_child(Button(label="Press me!"))
 
     # is space allocation part of layout? not sure
     top_level_sheet.allocate_space((screen.width, screen.height))

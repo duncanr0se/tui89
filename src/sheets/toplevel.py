@@ -13,9 +13,14 @@ class TopLevelSheet(Sheet):
         self._screen = screen
         # setting the themes up is really nothing to do with making
         # the top-level-sheet.
-        THEMES["default"]["borders"] = (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_BLUE)
-        THEMES["default"]["edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_NORMAL, Screen.COLOUR_BLUE)
-        THEMES["default"]["focus_edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN)
+#        THEMES["default"]["borders"] = (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_BLUE)
+#        THEMES["default"]["edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_NORMAL, Screen.COLOUR_BLUE)
+#        THEMES["default"]["focus_edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN)
+        THEMES["default"]["button"] = (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN)
+
+    def __repr__(self):
+        (width, height) = self._region
+        return "TopLevelSheet({}x{})".format(width, height)
 
     def theme(self):
         return THEMES["default"]
@@ -28,7 +33,7 @@ class TopLevelSheet(Sheet):
             self._screen.move(x, y + line)
             self._screen.draw(x + w, y + line, u' ', colour=colour, bg=bg)
 
-    def print_at(self, text, coord, colour=None, attr=None, bg=None):
+    def print_at(self, text, coord, colour=7, attr=0, bg=0):
         (x, y) = coord
         self._screen.print_at(text, x, y, colour=colour, attr=attr, bg=bg)
 
@@ -36,7 +41,7 @@ class TopLevelSheet(Sheet):
         (x, y) = coord
         self._screen.move(x, y)
 
-    def draw(self, coord, char, colour=None, bg=None):
+    def draw(self, coord, char, colour=7, bg=0):
         (x, y) = coord
         self._screen.draw(x, y, char, colour=colour, bg=bg)
 

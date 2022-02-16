@@ -29,7 +29,7 @@ class Sheet():
         self._parent.clear(porigin, region)
 
     # drawing
-    def print_at(self, text, coord, colour=None, attr=None, bg=None):
+    def print_at(self, text, coord, colour=7, attr=0, bg=0):
         # transform coords all the way up to the top-level-sheet and
         # invoke print_at on t-l-s. Has to be better than expecting
         # every sheet in the hierarchy to implement the drawing
@@ -43,7 +43,7 @@ class Sheet():
         self._parent.move(parent_coord)
 
     # drawing
-    def draw(self, coord, char, colour=None, bg=None):
+    def draw(self, coord, char, colour=7, bg=0):
         parent_coord = self._transform.apply(coord)
         self._parent.draw(parent_coord, char, colour=colour, bg=bg)
 
