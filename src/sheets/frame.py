@@ -11,6 +11,7 @@ class Frame():
 
     _screen = None
     _top_level_sheet = None
+    _dialog = None
 
     def __init__(self, screen):
         self._screen = screen
@@ -81,6 +82,8 @@ class Frame():
     def _handle_key_event(self, event):
         if chr(event.key_code) in ('Q', 'q'):
             raise StopApplication("User quit")
+        if chr(event.key_code) in ('X', 'x'):
+            self.dialog_quit()
 
     def _handle_mouse_event(self, event):
         # find sheet under mouse, send it the event
@@ -122,6 +125,26 @@ class Frame():
         self._top_level_sheet.allocate_space((self._screen.width, self._screen.height))
         self._top_level_sheet.layout()
 
+    def show_dialog(self, dialog):
+        self._dialog = dialog
+        dwidth = self._screen.width // 2
+        dheight = self._screen.height // 2
+        dx = (self._screen.width - dwidth) // 2
+        dy = (self._screen.height - dheight) // 2
+        dialog.allocate_space((dwidth, dheight))
+        dialog.move_to((dx, dy))
+        dialog.layout()
+        self.render()
+
+    def dialog_quit(self):
+        if self._dialog is not None:
+            self._dialog = None
+            self.render()
+
     def render(self):
+        # clear the screen first? Might be flickery... read the docs,
+        # work out how to do this.
         self._top_level_sheet.render()
+        if self._dialog is not None:
+            self._dialog.render()
         self._screen.refresh()

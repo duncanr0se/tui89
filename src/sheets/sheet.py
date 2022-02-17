@@ -67,6 +67,9 @@ class Sheet():
         child._parent = self
 
     # genealogy
+    def frame(self):
+        return self.top_level_sheet().frame()
+
     def top_level_sheet(self):
         return self._parent.top_level_sheet()
 

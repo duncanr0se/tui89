@@ -70,7 +70,7 @@ class Button(Sheet):
         pass
 
     def _draw_padding(self):
-        (bgc, bga, bgbg) = self.top_level_sheet().frame().theme()["background"]
+        (bgc, bga, bgbg) = self.frame().theme()["background"]
         (width, height) = self._region
         self.move((0, 0))
         self.draw((width-1, 0), ' ', colour=bgc, bg=bgbg)
@@ -79,7 +79,7 @@ class Button(Sheet):
         self.draw((0, 1), ' ', colour=bgc, bg=bgbg)
 
     def _draw_button_background(self):
-        (colour, attr, bg) = self.top_level_sheet().frame().theme()["button"]
+        (colour, attr, bg) = self.frame().theme()["button"]
         (width, height) = self._region
         xoffset = 1 if self._decorated else 0
         yoffset = 1 if self._decorated else 0
@@ -91,7 +91,7 @@ class Button(Sheet):
         self.draw((width, yoffset), ' ', colour=colour, bg=bg)
 
     def _draw_button_dropshadow(self):
-        (scolour, sattr, sbg) = self.top_level_sheet().frame().theme()["shadow"]
+        (scolour, sattr, sbg) = self.frame().theme()["shadow"]
         (width, height) = self._region
         dropshadow_right = u'▄'
         dropshadow_below = u'▀'
@@ -102,7 +102,7 @@ class Button(Sheet):
         self.draw((width-1, 2), dropshadow_below, colour=scolour, bg=sbg)
 
     def _draw_button_label(self):
-        (colour, attr, bg) = self.top_level_sheet().frame().theme()["button"]
+        (colour, attr, bg) = self.frame().theme()["button"]
         (width, height) = self._region
         # assume single-line label, for now
         label_length = len(self._label) if self._label else 2

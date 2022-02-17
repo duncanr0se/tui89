@@ -2,8 +2,10 @@
 from sheets.sheet import Sheet
 from sheets.spacereq import xSpaceReqMax
 from sheets.spacereq import xSpaceReqDesired
+from sheets.spacereq import xSpaceReqMin
 from sheets.spacereq import ySpaceReqMax
 from sheets.spacereq import ySpaceReqDesired
+from sheets.spacereq import ySpaceReqMin
 
 class BorderLayout(Sheet):
 
@@ -41,10 +43,14 @@ class BorderLayout(Sheet):
             child_request = child.compose_space()
             # if desired or max space are less than allocation, reduce allocation to max space
             # else set allocation to desired
-            if xSpaceReqMax(child_request) < calloc_x or xSpaceReqDesired(child_request) < calloc_x:
-                calloc_x = xSpaceReqDesired(child_request)
-            if ySpaceReqMax(child_request) < calloc_y or ySpaceReqDesired(child_request) < calloc_y:
-                calloc_y = ySpaceReqDesired(child_request)
+            # By definition desired space <= max space so no need to check it
+            # Don't allow space allocated to widget to be smaller than
+            # the widget's minimum; it won't all fit on the screen,
+            # but that's the widget's problem...
+            calloc_x = max(xSpaceReqMin(child_request),
+                           min(xSpaceReqDesired(child_request), calloc_x))
+            calloc_y = max(ySpaceReqMin(child_request),
+                           min(ySpaceReqDesired(child_request), calloc_y))
             child.allocate_space((calloc_x, calloc_y))
 
     def layout(self):
@@ -62,7 +68,7 @@ class BorderLayout(Sheet):
             child.render()
 
     def _draw_border(self):
-        (colour, attr, bg) = self.top_level_sheet().frame().theme()["borders"]
+        (colour, attr, bg) = self.frame().theme()["borders"]
 
         (left, top) = (0, 0)
         (width, height) = self._region
@@ -80,12 +86,9 @@ class BorderLayout(Sheet):
             bar_width = right - 1
             title = ' ' + self._title + ' '
             title_width = len(title)
-            extra_needed = False
-            if (bar_width - title_width) % 2 == 1:
-                extra_needed = True
-            side_bar_width = bar_width // 2
+            side_bar_width = (bar_width - title_width) // 2
             self.draw((side_bar_width, top), u'═', colour=colour, bg=bg)
-            self.print_at(' ' + self._title + ' ', (side_bar_width, top), colour=colour, attr=attr, bg=bg)
+            self.print_at(title, (side_bar_width, top), colour=colour, attr=attr, bg=bg)
             self.move((side_bar_width + title_width, top))
             self.draw((right, top), u'═', colour=colour, bg=bg)
         else:

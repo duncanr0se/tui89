@@ -16,27 +16,23 @@ class TopLevelSheet(Sheet):
 
     def clear(self, origin, region):
         (colour, attr, bg) = self._frame.theme()["background"]
-        (x, y) = origin
+        (x, y) = self._transform.apply(origin)
         (w, h) = region
         for line in range(0, h):
             self._frame._screen.move(x, y + line)
             self._frame._screen.draw(x + w, y + line, u' ', colour=colour, bg=bg)
 
     def print_at(self, text, coord, colour=7, attr=0, bg=0):
-        (x, y) = coord
+        (x, y) = self._transform.apply(coord)
         self._frame._screen.print_at(text, x, y, colour=colour, attr=attr, bg=bg)
 
     def move(self, coord):
-        (x, y) = coord
+        (x, y) = self._transform.apply(coord)
         self._frame._screen.move(x, y)
 
     def draw(self, coord, char, colour=7, bg=0):
-        (x, y) = coord
+        (x, y) = self._transform.apply(coord)
         self._frame._screen.draw(x, y, char, colour=colour, bg=bg)
-
-    #def render(self):
-    #    for child in self._children:
-    #        child.render()
 
     def add_child(self, child):
         if self._children:

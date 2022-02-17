@@ -1,0 +1,89 @@
+
+SHEETS
+======
+
+parent
+region
+transform
+
+children
+
+contained in frame
+top level sheet
+
+Drawing
+-------
+have drawing ops: [rename all these to sheet specific things to avoid confusion]
+    clear
+    print_at
+    move
+    draw
+
+render [rename to "paint"?]
+
+Genealogy
+---------
+add child
+top-level-sheet
+frame
+
+Layout
+------
+allocate-space
+layout
+compose-space
+move-to
+width
+height
+
+Other
+-----
+get-screen-transform
+
+Events
+------
+handle-event
+find-highest-sheet-containing-position
+region-contains-position
+
+Specific sheets have specific callbacks when events occur:
+  Button::on_click
+
+
+FRAMES
+======
+top-level-sheet
+theme
+start-frame
+lay-out-frame
+render [move into event loop, doesn't need to be exposed]
+
+show-dialog
+
+  - this breaks top-level-sheet contract of only having a single
+    child. Does that matter? Maybe it should be the frame that manages
+    dialogs... then the render() method renders the top-level-sheet
+    then renders the dialog(s?).
+
+  - dialog is just a border layout really that gets drawn in a funny
+    colour scheme and just shows child widgets. Not quite sure how to
+    get it to return a value though... for now this isn't important.
+
+  - also - dialog needs to be centered on the screen
+
+Perhaps the dialog *should* be a Frame? Or a top level sheet? Can
+always move it later, just make it the same as a border layout for
+now. Make a "FloatingFrame" type?
+
+
+DIALOGS
+=======
+Just a sheet like any other; managed by the frame specially, like the
+top level sheet is.
+
+
+THINK THROUGH AND DOCUMENT
+==========================
+event loop + handling
+painting / drawing updates
+transforms / parents / position in sheet stuff
