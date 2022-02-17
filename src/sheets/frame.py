@@ -5,6 +5,7 @@ from asciimatics.event import KeyboardEvent, MouseEvent
 from asciimatics.exceptions import StopApplication
 
 from sheets.sheet import Sheet
+from dcs.ink import Pen
 
 # should the frame be a sheet? Hrm.
 class Frame():
@@ -20,7 +21,7 @@ class Frame():
             "background": (Screen.COLOUR_BLUE, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "shadow": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "disabled": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_BLUE),
-            "invalid": (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_RED),
+            "invalid": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED),
             "label": (Screen.COLOUR_GREEN, Screen.A_BOLD, Screen.COLOUR_BLUE),
             "borders": (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_BLUE),
             "scroll": (Screen.COLOUR_CYAN, Screen.A_NORMAL, Screen.COLOUR_BLUE),
@@ -52,8 +53,9 @@ class Frame():
     def top_level_sheet(self):
         return self._top_level_sheet
 
-    def theme(self):
-        return THEMES["tv"]
+    def theme(self, ink_name):
+        (fg, attr, bg) = THEMES["tv"][ink_name]
+        return Pen(fg=fg, attr=attr, bg=bg)
 
     def start_frame(self):
         while True:
@@ -80,10 +82,12 @@ class Frame():
                 self._handle_mouse_event(event)
 
     def _handle_key_event(self, event):
-        if chr(event.key_code) in ('Q', 'q'):
-            raise StopApplication("User quit")
-        if chr(event.key_code) in ('X', 'x'):
-            self.dialog_quit()
+        if event.key_code > 0:
+            if chr(event.key_code) in ('Q', 'q'):
+                raise StopApplication("User quit")
+        else:
+            if event.key_code == Screen.KEY_ESCAPE:
+                self.dialog_quit()
 
     def _handle_mouse_event(self, event):
         # find sheet under mouse, send it the event
@@ -126,6 +130,8 @@ class Frame():
         self._top_level_sheet.layout()
 
     def show_dialog(self, dialog):
+        if self._dialog is not None:
+            raise RuntimeError("Can't have multiple dialogs currently")
         self._dialog = dialog
         dwidth = self._screen.width // 2
         dheight = self._screen.height // 2

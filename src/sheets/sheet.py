@@ -5,6 +5,7 @@ from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
 
 from sheets.spacereq import FILL
+from dcs.ink import Pen
 
 # ALL sheets are "drawing sheets". ALL sheets have children. ALL
 # sheets participate in layout.
@@ -31,13 +32,13 @@ class Sheet():
         self._parent.clear(porigin, region)
 
     # drawing
-    def print_at(self, text, coord, colour=7, attr=0, bg=0):
+    def print_at(self, text, coord, pen):
         # transform coords all the way up to the top-level-sheet and
         # invoke print_at on t-l-s. Has to be better than expecting
         # every sheet in the hierarchy to implement the drawing
         # methods... or maybe not. Hrm.
         parent_coord = self._transform.apply(coord)
-        self._parent.print_at(text, parent_coord, colour=colour, attr=attr, bg=bg)
+        self._parent.print_at(text, parent_coord, pen)
 
     # drawing
     def move(self, coord):
@@ -45,9 +46,9 @@ class Sheet():
         self._parent.move(parent_coord)
 
     # drawing
-    def draw(self, coord, char, colour=7, bg=0):
+    def draw(self, coord, char, pen):
         parent_coord = self._transform.apply(coord)
-        self._parent.draw(parent_coord, char, colour=colour, bg=bg)
+        self._parent.draw(parent_coord, char, pen)
 
     # screenpos
     def move_to(self, coord):

@@ -70,16 +70,16 @@ class Button(Sheet):
         pass
 
     def _draw_padding(self):
-        (bgc, bga, bgbg) = self.frame().theme()["background"]
+        pen = self.frame().theme("background")
         (width, height) = self._region
         self.move((0, 0))
-        self.draw((width-1, 0), ' ', colour=bgc, bg=bgbg)
-        self.draw((width-1, height-1), ' ', colour=bgc, bg=bgbg)
-        self.draw((0, height-1), ' ', colour=bgc, bg=bgbg)
-        self.draw((0, 1), ' ', colour=bgc, bg=bgbg)
+        self.draw((width-1, 0), ' ', pen)
+        self.draw((width-1, height-1), ' ', pen)
+        self.draw((0, height-1), ' ', pen)
+        self.draw((0, 1), ' ', pen)
 
     def _draw_button_background(self):
-        (colour, attr, bg) = self.frame().theme()["button"]
+        pen = self.frame().theme("button")
         (width, height) = self._region
         xoffset = 1 if self._decorated else 0
         yoffset = 1 if self._decorated else 0
@@ -88,21 +88,21 @@ class Button(Sheet):
         # when they do and don't draw. Width in "draw" appears not to
         # be inclusive when drawing left to right. Weird.
         width = width-2 if self._decorated else width
-        self.draw((width, yoffset), ' ', colour=colour, bg=bg)
+        self.draw((width, yoffset), ' ', pen)
 
     def _draw_button_dropshadow(self):
-        (scolour, sattr, sbg) = self.frame().theme()["shadow"]
+        pen = self.frame().theme("shadow")
         (width, height) = self._region
         dropshadow_right = u'▄'
         dropshadow_below = u'▀'
-        self.print_at(dropshadow_right, (width-2, 1), colour=scolour, attr=sattr, bg=sbg)
+        self.print_at(dropshadow_right, (width-2, 1), pen)
         self.move((2, 2))
         # x is not included when using "draw" but is when using
         # "print_at". Maybe that's as it should be?
-        self.draw((width-1, 2), dropshadow_below, colour=scolour, bg=sbg)
+        self.draw((width-1, 2), dropshadow_below, pen)
 
     def _draw_button_label(self):
-        (colour, attr, bg) = self.frame().theme()["button"]
+        pen = self.frame().theme("button")
         (width, height) = self._region
         # assume single-line label, for now
         label_length = len(self._label) if self._label else 2
@@ -110,20 +110,11 @@ class Button(Sheet):
         # todo: truncate label if it's too long...
         button_label = self._label or "--"
         yoffset = 1 if self._decorated else 0
-        self.print_at(button_label, (center_x, yoffset), colour=colour, attr=attr, bg=bg)
+        self.print_at(button_label, (center_x, yoffset), pen)
 
     def render(self):
-        # draw rectangle for button, then draw text over the top
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
-
-        # need to think about the drawing model also; is pixel origin
-        # at top-left of pixel, or in the middle? Perhaps should make
-        # it in the middle since we're dealing with text. Does that
-        # support dealing sensibly with boxes 0,0,20,20 and
-        # 0,20,20,40? Maybe "size" needs to be an inner dimension?
-
-        # fixme: add frame() method to Sheet
 
         self._draw_button_background()
 
@@ -133,42 +124,13 @@ class Button(Sheet):
 
         self._draw_button_label()
 
-    # Fixme: need a special version of "region_contains_position" here
-    # so we can account for the strangeness that is decorated buttons.
-    # Currently buttons deal with mouse clicks outside their visible
-    # area (but inside the bounds if padding and shadows are included).
-
     def handle_event(self, event):
         if isinstance(event, MouseEvent):
             return self._handle_mouse_event(event)
 
     def _handle_mouse_event(self, event):
-        # Ignore double click + right click
-
-        # If the event is a button release after a left press - todo,
-        # should record this as a click event at a higher level? -
-        # with no presses or releases between then invoke the button
-        # pressed callback. Not sure quite how to work this out though
-        # so for now just hack it..?
-
         if event.buttons == MouseEvent.LEFT_CLICK:
-            self._left_click_time = time.time()
-            return True
-
-        if event.buttons == 0:
-            # this timing is a bit rubbish; not sure we're getting the
-            # raw events. It's possible asciimatics is doing something
-            # to sythesise double clicks, or the frame's event
-            # handling isn't quite right - try looping until no events
-            # remain before blocking in case that's it.  Tried a tight
-            # loop but behaviour is the same. It might be necessary to
-            # just activate on left-click for consistency although I
-            # hate that. Stick with this for now, see how it goes.
-            if time.time() - self._left_click_time < 0.5:
-                # fixme: Document this callback behaviour and how to
-                # create the callbacks.
-                return self.on_click and self.on_click()
-
+            return self.on_click and self.on_click()
         return False
 
 

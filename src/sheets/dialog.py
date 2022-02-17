@@ -29,6 +29,9 @@ class Dialog(TopLevelSheet):
         self._title = title if title is not None else "unnamed"
         self._layout = BorderLayout(title="[INFO] - " + title)
         self._layout._parent = self
+        # if dialog becomes a frame, move defaults into frame
+        self._default_bg_pen = frame.theme("invalid")
+        self._default_fg_pen = frame.theme("invalid")
 
     def __repr__(self):
         (width, height) = self._region
@@ -60,23 +63,26 @@ class Dialog(TopLevelSheet):
                        min(ySpaceReqDesired(child_request), calloc_y))
         self._layout.allocate_space((calloc_x, calloc_y))
 
-    def clear(self, origin, region):
-        # don't clear anything; border layout will do instead
-        pass
-
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
+
+        # Really, just need to know the fg + bg colours. And it only
+        # matters for clearing layout panes. Stick a "default bg" and
+        # "default pen" in top level sheet, and all child layouts
+        # can't check it. Note that some widgets will override
+        # it. Just not sure which, yet.
+
         self._layout.render()
         self._draw_dropshadow()
 
     def _draw_dropshadow(self):
-        (scolour, sattr, sbg) = self.frame().theme()["shadow"]
+        pen = self.frame().theme("shadow")
         (width, height) = self._region
         dropshadow_right = u'█'
         dropshadow_below = u'█'
         self.move((width-1, 1))
-        self.draw((width-1, height-1), dropshadow_right, colour=scolour, bg=sbg)
+        self.draw((width-1, height-1), dropshadow_right, pen)
         # x is not included when using "draw" but is when using
         # "print_at". Maybe that's as it should be?
-        self.draw((1, height-1), dropshadow_below, colour=scolour, bg=sbg)
+        self.draw((1, height-1), dropshadow_below, pen)

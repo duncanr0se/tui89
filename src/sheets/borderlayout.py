@@ -68,7 +68,9 @@ class BorderLayout(Sheet):
             child.render()
 
     def _draw_border(self):
-        (colour, attr, bg) = self.frame().theme()["borders"]
+        pen = self.top_level_sheet()._default_fg_pen
+        if pen is None:
+            pen = self.frame().theme("borders")
 
         (left, top) = (0, 0)
         (width, height) = self._region
@@ -79,7 +81,7 @@ class BorderLayout(Sheet):
         # todo: deal with scrolling...
 
         # top border - make allowances for a title
-        self.print_at(u'╔', (left, top), colour, attr, bg)
+        self.print_at(u'╔', (left, top), pen)
         self.move((1, top))
         if self._title:
             # LHS of bar + title
@@ -87,27 +89,27 @@ class BorderLayout(Sheet):
             title = ' ' + self._title + ' '
             title_width = len(title)
             side_bar_width = (bar_width - title_width) // 2
-            self.draw((side_bar_width, top), u'═', colour=colour, bg=bg)
-            self.print_at(title, (side_bar_width, top), colour=colour, attr=attr, bg=bg)
+            self.draw((side_bar_width, top), u'═', pen)
+            self.print_at(title, (side_bar_width, top), pen)
             self.move((side_bar_width + title_width, top))
-            self.draw((right, top), u'═', colour=colour, bg=bg)
+            self.draw((right, top), u'═', pen)
         else:
-            self.draw((right, top), u'═', colour=colour, bg=bg)
-        self.print_at(u'╗', (right, top), colour, attr, bg)
+            self.draw((right, top), u'═', pen)
+        self.print_at(u'╗', (right, top), pen)
 
         # left border
         self.move((left, top + 1))
-        self.draw((left, bottom), u'║', colour=colour, bg=bg)
+        self.draw((left, bottom), u'║', pen)
 
         # right border - might be scroll bar
         self.move((right, top + 1))
-        self.draw((right, bottom), u'║', colour=colour, bg=bg)
+        self.draw((right, bottom), u'║', pen)
 
         # bottom border - might be scroll bar
-        self.print_at(u'╚', (left, bottom), colour, attr, bg)
+        self.print_at(u'╚', (left, bottom), pen)
         self.move((1, bottom))
-        self.draw((right-1, bottom), u'═', colour=colour, bg=bg)
+        self.draw((right-1, bottom), u'═', pen)
 #        self.print_at(u'─', (right-1, bottom), colour, attr, bg)
 #        self.print_at(u'┘', (right, bottom), colour, attr, bg)
-        self.print_at(u'═', (right-1, bottom), colour, attr, bg)
-        self.print_at(u'╝', (right, bottom), colour, attr, bg)
+        self.print_at(u'═', (right-1, bottom), pen)
+        self.print_at(u'╝', (right, bottom), pen)

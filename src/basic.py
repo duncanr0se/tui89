@@ -16,13 +16,13 @@ from sheets.dialog import Dialog
 
 # add more widgets
 #   - layouts
-#       - row (tick)
-#       - column (tick)
+#       - row (✔)
+#       - column (✔)
 #       - grid?
 #       - stack?
-#   - buttons (tick)
-#       - radio buttons (tick)
-#       - check boxes (tick)
+#   - buttons (✔)
+#       - radio buttons (✔)
+#       - check boxes (✔)
 #       - menu button
 #   - button group?
 #   - labels
@@ -39,22 +39,19 @@ from sheets.dialog import Dialog
 #   - list
 #   - tree
 
-# Widget sizes: should be large enough to exactly contain
-# content. Think the sizes for border panes are too big by 1
-# unit. Need to investigate how curses / asciimatic measures the
-# terminal dimensions. Is the last column inclusive, or exclusive?
-
 # PRIORITIES:
 #
-# 1. Event handling - decide how to do this, do we want something
+# --1.-- Event handling - decide how to do this, do we want something
 # declarative and semantically high-level for defining event handlers
 # (like DUIM) or is something basic sufficient? Basic for now.  - send
 # event to topmost sheet where event occurred / send keyboard events
 # to current focus.
 #
-# 1.5. Dialogs; need some way to provide feedback without having
+# --1.5.-- Dialogs; need some way to provide feedback without having
 # to throw exceptions everywhere... keep them basic, just a new
 # sheet type.
+#
+# 1.6. extend dialogs so they are actually useful for displaying stuff
 #
 # 2. Once event handling is in place, need to experiment with
 # scrolling / overflowing a screen buffer with content / clipping
@@ -75,8 +72,6 @@ from sheets.dialog import Dialog
 
 # tidying
 
-# add frame() method to sheet
-
 # create "pen" to capture colour, attr, bg instead of passing them
 # around everywhere. Current (fg, attr, bg) approach doesn't work well
 # when dealing with different widgets - adding a border frame to a
@@ -86,9 +81,6 @@ from sheets.dialog import Dialog
 # need to do something about events! - see draw_next_frame() in
 # screen.py
 
-# make existing stuff prettier / more correct (alignment of text in
-# buttons, themes, colours, attributes, etc.)
-
 # and we need command tables or some other way to tie keys
 # and ui to commands.
 
@@ -96,18 +88,16 @@ from sheets.dialog import Dialog
 # other decorated widgets... not sure quite how to do that so that
 # border can be ignored for mouse click location but included for
 # other "does this point inhabit the widget space" queries...
-
-# drawing is a separate thing altogether...
-
-# capture drawing ops when done by sheets and convert into changes on
-# the screen only once per event loop? Have top level sheet mediate
-# between drawn ops in the tui + actual screen manipulations in
-# asciimatics? Problem we need to avoid is that asciimatics model
-# might make scrolling really hard to implement. Let's wait and see
-# what happens when we get around to it.
+# Note if the button was wrapped in a spacing pane, this problem
+# would solve itself I think...
 
 # more flexibility for borders; DOUBLE, SINGLE, SPACE, NONE... could
 # also combine into a spacing pane.
+
+# click detection is really ropey. Have implemented button down =
+# button activate but really don't like it. Will have to write "are
+# you sure?" dialogs all over as a work-around (or investigate button
+# click behaviour, maybe there's some better fix)
 
 # look at other stuff asciimatics does (save / restore form state
 # etc.) and decide if that's something that could be useful.Pretty
@@ -134,9 +124,13 @@ def demo(screen):
 #    button = Button(label="Press me!", decorated=True)
 #    button = RadioButton(label="Press me!", decorated=False)
     button = CheckBox(label="Press me!")
+    dialog = Dialog(frame, title="dialog!")
 
     def btn_cb():
-        raise RuntimeError("** BIG BOOM! **")
+        # sets dialog up, but doesn't draw it. That happens in
+        # render(). Perhaps the dialog layout sould happen in
+        # lay_out_frame()? Maybe it's independent.
+        frame.show_dialog(dialog)
 
     button.on_click = btn_cb
     inner_bl.add_child(button)
@@ -153,15 +147,6 @@ def demo(screen):
     # currently render() method on top sheet calls refresh() but that
     # won't wash now that Frame is introduced.
     frame.render()
-
-    # when the dialog is shown - the main window doesn't handle mouse
-    # events properly. This is expected dialog behaviour except that
-    # behaviour hasn't been written yet!
-    dialog = Dialog(frame, title="dialog!")
-    # sets dialog up, but doesn't draw it. That happens in
-    # render(). Perhaps the dialog layout sould happen in
-    # lay_out_frame()? Maybe it's independent.
-    frame.show_dialog(dialog)
 
     # Should the frame manage a menu and status bar (unless I decide
     # to manage that stuff manually). Need to decide when to call

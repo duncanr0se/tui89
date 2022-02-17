@@ -1,38 +1,45 @@
 
 from sheets.sheet import Sheet
+from dcs.ink import Pen
 
 class TopLevelSheet(Sheet):
 
     _frame = None
+    _default_fg_pen = None
+    _default_bg_pen = None
 
     def __init__(self, frame):
         super().__init__()
         self._frame = frame
         frame.set_top_level_sheet(self)
+        # if dialog becomes a frame, move defaults into frame
+        self._default_bg_pen = frame.theme("background")
+        self._default_fg_pen = frame.theme("borders")
 
     def __repr__(self):
         (width, height) = self._region
         return "TopLevelSheet({}x{})".format(width, height)
 
     def clear(self, origin, region):
-        (colour, attr, bg) = self._frame.theme()["background"]
+        pen = self._default_bg_pen if self._default_bg_pen is not None \
+            else self._frame.theme("background")
         (x, y) = self._transform.apply(origin)
         (w, h) = region
         for line in range(0, h):
             self._frame._screen.move(x, y + line)
-            self._frame._screen.draw(x + w, y + line, u' ', colour=colour, bg=bg)
+            self._frame._screen.draw(x + w, y + line, u' ', colour=pen.fg(), bg=pen.bg())
 
-    def print_at(self, text, coord, colour=7, attr=0, bg=0):
+    def print_at(self, text, coord, pen):
         (x, y) = self._transform.apply(coord)
-        self._frame._screen.print_at(text, x, y, colour=colour, attr=attr, bg=bg)
+        self._frame._screen.print_at(text, x, y, colour=pen.fg(), attr=pen.attr(), bg=pen.bg())
 
     def move(self, coord):
         (x, y) = self._transform.apply(coord)
         self._frame._screen.move(x, y)
 
-    def draw(self, coord, char, colour=7, bg=0):
+    def draw(self, coord, char, pen):
         (x, y) = self._transform.apply(coord)
-        self._frame._screen.draw(x, y, char, colour=colour, bg=bg)
+        self._frame._screen.draw(x, y, char, colour=pen.fg(), bg=pen.bg())
 
     def add_child(self, child):
         if self._children:
