@@ -62,7 +62,7 @@ class BorderLayout(Sheet):
             child.render()
 
     def _draw_border(self):
-        (colour, attr, bg) = self.top_level_sheet().theme()["borders"]
+        (colour, attr, bg) = self.top_level_sheet().frame().theme()["borders"]
 
         (left, top) = (0, 0)
         (width, height) = self._region

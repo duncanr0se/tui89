@@ -1,54 +1,42 @@
 
-from asciimatics.screen import Screen
-from asciimatics.widgets.utilities import THEMES
-
 from sheets.sheet import Sheet
 
 class TopLevelSheet(Sheet):
 
-    _screen = None
+    _frame = None
 
-    def __init__(self, screen):
+    def __init__(self, frame):
         super().__init__()
-        self._screen = screen
-        # setting the themes up is really nothing to do with making
-        # the top-level-sheet.
-#        THEMES["default"]["borders"] = (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_BLUE)
-#        THEMES["default"]["edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_NORMAL, Screen.COLOUR_BLUE)
-#        THEMES["default"]["focus_edit_text"] = (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN)
-        THEMES["default"]["button"] = (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN)
+        self._frame = frame
+        frame.set_top_level_sheet(self)
 
     def __repr__(self):
         (width, height) = self._region
         return "TopLevelSheet({}x{})".format(width, height)
 
-    def theme(self):
-        return THEMES["default"]
-
     def clear(self, origin, region):
-        (colour, attr, bg) = self.theme()["background"]
+        (colour, attr, bg) = self._frame.theme()["background"]
         (x, y) = origin
         (w, h) = region
         for line in range(0, h):
-            self._screen.move(x, y + line)
-            self._screen.draw(x + w, y + line, u' ', colour=colour, bg=bg)
+            self._frame._screen.move(x, y + line)
+            self._frame._screen.draw(x + w, y + line, u' ', colour=colour, bg=bg)
 
     def print_at(self, text, coord, colour=7, attr=0, bg=0):
         (x, y) = coord
-        self._screen.print_at(text, x, y, colour=colour, attr=attr, bg=bg)
+        self._frame._screen.print_at(text, x, y, colour=colour, attr=attr, bg=bg)
 
     def move(self, coord):
         (x, y) = coord
-        self._screen.move(x, y)
+        self._frame._screen.move(x, y)
 
     def draw(self, coord, char, colour=7, bg=0):
         (x, y) = coord
-        self._screen.draw(x, y, char, colour=colour, bg=bg)
+        self._frame._screen.draw(x, y, char, colour=colour, bg=bg)
 
-    def render(self):
-        for child in self._children:
-            child.render()
-        self._screen.refresh()
+    #def render(self):
+    #    for child in self._children:
+    #        child.render()
 
     def add_child(self, child):
         if self._children:
@@ -57,6 +45,9 @@ class TopLevelSheet(Sheet):
 
     def top_level_sheet(self):
         return self;
+
+    def frame(self):
+        return self._frame
 
     # When are things laid out? After space allocation? Or as part of
     # space allocation? When is compose-space called?
@@ -72,3 +63,10 @@ class TopLevelSheet(Sheet):
     def layout(self):
         for child in self._children:
             child.layout()
+
+    def get_screen_transform(self):
+        return self._transform
+
+    def handle_event(self, event):
+        # False == not handled, not that anybody cares at this point
+        return False

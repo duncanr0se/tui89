@@ -1,4 +1,6 @@
 
+from asciimatics.event import MouseEvent
+
 from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
 
@@ -56,7 +58,8 @@ class Sheet():
 
     # drawing / redisplay
     def render(self):
-        pass
+        for child in self._children:
+            child.render()
 
     # genealogy
     def add_child(self, child):
@@ -67,8 +70,43 @@ class Sheet():
     def top_level_sheet(self):
         return self._parent.top_level_sheet()
 
-    # layout
-    # layout types must override this to actually do layout
+    def find_highest_sheet_containing_position(self, parent_coord):
+        # parent coord is in the parent's coordinate system
+        # transform parent coord into this sheet's coord space.
+        coord = self._transform.inverse().apply(parent_coord)
+        # If this sheet's region does not contain the transformed
+        # coord then none of the child sheets will contain it, by
+        # definition. Return false.
+        if self.region_contains_position(coord):
+            # If this sheet has children, recurse through them from last
+            # (highest in z-order) to first and test each one.
+            if len(self._children) > 0:
+                for child in reversed(self._children):
+                    container = child.find_highest_sheet_containing_position(coord)
+                    if container is not None:
+                        return container
+            # no child contains the position, but we know we contain
+            # it. Must be us!
+            return self
+        # If we reached this point we either have no children, or none
+        # of the children contain the position. In any case, we're not
+        # returning a useful result.
+        return None
+
+    def region_contains_position(self, coord):
+        # coord is in the sheet's coordinate system
+        (rx, ry) = self._region
+        (cx, cy) = coord
+        # yes if its on the left or top boundary, no if it's on the
+        # right or bottom boundary.
+        return cx < rx and cy < ry and cx >= 0 and cy >= 0
+
+    def get_screen_transform(self):
+        # navigate parents until get to top level sheet composing
+        # transforms all the way up
+        return self._transform.add_transform(self._parent.get_screen_transform())
+
+    # layout layout types must override this to actually do layout
     def allocate_space(self, allocation):
         """
         Forces width and height onto sheet.
@@ -113,3 +151,13 @@ class Sheet():
             raise RuntimeError("Height queried before region set")
         (width, height) = self._region
         return height
+
+    def handle_event(self, event):
+        # coordinates in event are in the coordinate system of self
+        # default is to decline to handle the event and ask our parent
+        # to handle it. The top level sheet overrides this method and
+        # just returns None.
+        # Sheets that want to do something with the event need to provide
+        # their own overrides for this method.
+        (px, py) = self._transform.apply((event.x, event.y))
+        self._parent.handle_event(MouseEvent(px, py, event.buttons))

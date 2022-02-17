@@ -15,9 +15,11 @@ class Transform():
         (x, y) = coord
         return (x + self._dx, y + self._dy)
 
-    def invert(self):
+    def inverse(self):
         return Transform(-self._dx, -self._dy)
 
+    def add_transform(self, other):
+        return Transform(self._dx + other._dx, self._dy + other._dy)
 
 # no-op transform
 IDENTITY_TRANSFORM = Transform(0, 0)
