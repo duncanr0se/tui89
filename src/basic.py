@@ -16,6 +16,7 @@ from sheets.dialog import Dialog
 
 # add more widgets
 #   - layouts
+#       - border (✔)
 #       - row (✔)
 #       - column (✔)
 #       - grid?
@@ -25,13 +26,13 @@ from sheets.dialog import Dialog
 #       - check boxes (✔)
 #       - menu button
 #   - button group?
-#   - labels
+#   - label
 #   - scroll bars
 #   - scroller - can border be used for this?
 #   - menu bar
 #   - menu
 #   - status bar
-#   - dialog box
+#   - dialog box (✔)
 #   - text entry
 #   - text box
 #   - horizontal / vertical separators
@@ -72,11 +73,7 @@ from sheets.dialog import Dialog
 
 # tidying
 
-# create "pen" to capture colour, attr, bg instead of passing them
-# around everywhere. Current (fg, attr, bg) approach doesn't work well
-# when dealing with different widgets - adding a border frame to a
-# dialog for example doesn't use the dialog bg colour, rather the bg
-# colour is overridden by the frame drawing code. Not good!
+# test / fix screen resize!
 
 # need to do something about events! - see draw_next_frame() in
 # screen.py
@@ -115,15 +112,16 @@ def demo(screen):
     child_sheet = HorizontalLayout([1, 2, 1, 1])
     border_layout.add_child(child_sheet)
 
-    child_sheet.add_child(BorderLayout(title="one"))
-    inner_bl = BorderLayout(title="two")
-    child_sheet.add_child(inner_bl)
-    child_sheet.add_child(BorderLayout(title="three"))
-    child_sheet.add_child(BorderLayout(title="four"))
+    oneb = BorderLayout(title="buttons")
+    child_sheet.add_child(oneb)
 
-#    button = Button(label="Press me!", decorated=True)
-#    button = RadioButton(label="Press me!", decorated=False)
-    button = CheckBox(label="Press me!")
+    one = VerticalLayout([1, 1, 1])
+    oneb.add_child(one)
+
+    # could do with a way to give "pressed" visual feedback but not
+    # sure how. Maybe redraw on button down, and do the click on
+    # button up, if the mouse is still over the button?
+    button = Button(label="Press me!", decorated=True)
     dialog = Dialog(frame, title="dialog!")
 
     def btn_cb():
@@ -133,7 +131,16 @@ def demo(screen):
         frame.show_dialog(dialog)
 
     button.on_click = btn_cb
-    inner_bl.add_child(button)
+    one.add_child(button)
+    one.add_child(RadioButton(label="Radio", decorated=False))
+    one.add_child(CheckBox(label="Check"))
+
+    inner_bl = BorderLayout(title="two")
+    child_sheet.add_child(inner_bl)
+    child_sheet.add_child(BorderLayout(title="three"))
+    child_sheet.add_child(BorderLayout(title="four"))
+
+#    inner_bl.add_child(button)
 
     frame.lay_out_frame()
 

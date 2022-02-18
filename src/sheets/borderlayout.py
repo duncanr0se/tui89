@@ -108,8 +108,7 @@ class BorderLayout(Sheet):
         # bottom border - might be scroll bar
         self.print_at(u'╚', (left, bottom), pen)
         self.move((1, bottom))
-        self.draw((right-1, bottom), u'═', pen)
+        self.draw((right, bottom), u'═', pen)
 #        self.print_at(u'─', (right-1, bottom), colour, attr, bg)
 #        self.print_at(u'┘', (right, bottom), colour, attr, bg)
-        self.print_at(u'═', (right-1, bottom), pen)
         self.print_at(u'╝', (right, bottom), pen)

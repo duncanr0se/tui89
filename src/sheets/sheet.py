@@ -46,6 +46,12 @@ class Sheet():
         self._parent.move(parent_coord)
 
     # drawing
+    # if multiple chars are provided, only the first
+    # is used (except for the last rendering where
+    # other parts of the content are also rendered).
+    # also ignores bottommost/rightmost coordinate.
+    # Not sure if only true when drawing ltr or ttb,
+    # might not occur for rtl / btt.
     def draw(self, coord, char, pen):
         parent_coord = self._transform.apply(coord)
         self._parent.draw(parent_coord, char, pen)

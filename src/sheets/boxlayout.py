@@ -19,7 +19,8 @@ class HorizontalLayout(Sheet):
         (width, height) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "HorizontalLayout({}x{}@{},{}: {} cols)".format(width, height, tx, ty, len(self._columns))
+        return "HorizontalLayout({}x{}@{},{}: {} cols)".format(
+            width, height, tx, ty, len(self._columns))
 
     def add_child(self, child):
         super().add_child(child)
@@ -79,7 +80,8 @@ class VerticalLayout(Sheet):
         (width, height) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "VerticalLayout({}x{}@{},{}: {} rows)".format(width, height, tx, ty, len(self._rows))
+        return "VerticalLayout({}x{}@{},{}: {} rows)".format(
+            width, height, tx, ty, len(self._rows))
 
     def add_child(self, child):
         super().add_child(child)

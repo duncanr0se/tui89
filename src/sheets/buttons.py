@@ -6,6 +6,7 @@ from asciimatics.event import MouseEvent
 from sheets.sheet import Sheet
 from sheets.spacereq import FILL
 
+from dcs.ink import Pen
 
 class Button(Sheet):
 
@@ -27,6 +28,7 @@ class Button(Sheet):
     # single child - todo, complicate this up by making it support
     # scrolling!
 
+    # fixme: add width, align, ... options
     def __init__(self, label=None, decorated=True):
         super().__init__()
         self._label = label
@@ -70,7 +72,7 @@ class Button(Sheet):
         pass
 
     def _draw_padding(self):
-        pen = self.frame().theme("background")
+        pen = self.top_level_sheet()._default_bg_pen
         (width, height) = self._region
         self.move((0, 0))
         self.draw((width-1, 0), ' ', pen)
@@ -91,7 +93,9 @@ class Button(Sheet):
         self.draw((width, yoffset), ' ', pen)
 
     def _draw_button_dropshadow(self):
-        pen = self.frame().theme("shadow")
+        shadow_pen = self.frame().theme("shadow")
+        bg_pen = self.top_level_sheet()._default_bg_pen
+        pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg())
         (width, height) = self._region
         dropshadow_right = u'▄'
         dropshadow_below = u'▀'

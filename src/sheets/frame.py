@@ -111,7 +111,21 @@ class Frame():
         # definition since it takes up the whole of the screen. Ask it
         # for the highest child it knows of that contains the
         # "untransformed" position.
-        sheet = self._top_level_sheet.find_highest_sheet_containing_position((event.x, event.y))
+        # If there's a dialog on screen, look in the dialog for the
+        # sheet that's going to handle the event; otherwise look in
+        # the top level sheet.
+        # Note: this makes dialogs capture the mouse and become modal,
+        # in effect. That's probably ok for a TUI, for now. Might be
+        # good to support multiple dialogs in future so a dialog can
+        # pop up an alert and so on.
+        event_top_level = self._dialog if self._dialog is not None else self._top_level_sheet
+
+        # this is failing to find the button in the dialog; because
+        # the dialog doesn't have sensible 'children', it instead has
+        # the 'layout' slot. Would likely be easier to make dialog
+        # a frame... carry on this way for now.
+
+        sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
         if sheet:
             # fixme: rename to "convert_to_screen_coordinate"?
             transform = sheet.get_screen_transform()
@@ -122,9 +136,6 @@ class Frame():
             # handle all the mouse activity for all of its children.
             sheet.handle_event(MouseEvent(sx, sy, event.buttons))
 
-    # what about resizes and space allocation and layout type stuff?
-    # Does the frame have anything to do with that? Probably should
-    # have a "layout_frame" method that kicks it all off.
     def lay_out_frame(self):
         self._top_level_sheet.allocate_space((self._screen.width, self._screen.height))
         self._top_level_sheet.layout()
@@ -133,6 +144,8 @@ class Frame():
         if self._dialog is not None:
             raise RuntimeError("Can't have multiple dialogs currently")
         self._dialog = dialog
+        # fixme: cleverer space allocation - let dialog make some
+        # adjustments to its desired size!
         dwidth = self._screen.width // 2
         dheight = self._screen.height // 2
         dx = (self._screen.width - dwidth) // 2
