@@ -171,3 +171,8 @@ class Sheet():
         # their own overrides for this method.
         (px, py) = self._transform.apply((event.x, event.y))
         self._parent.handle_event(MouseEvent(px, py, event.buttons))
+
+    def invalidate(self):
+        # add to list of invalidated sheets in frame that will
+        # be redrawn on the next iteration of the event loop
+        self.frame().invalidate(self)

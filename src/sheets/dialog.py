@@ -7,11 +7,16 @@ from sheets.spacereq import xSpaceReqMin
 from sheets.spacereq import ySpaceReqMax
 from sheets.spacereq import ySpaceReqDesired
 from sheets.spacereq import ySpaceReqMin
+from sheets.spacereq import combine_spacereqs
+from sheets.spacereq import add_to_preferred
+from sheets.spacereq import FILL
 
 from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
 from sheets.boxlayout import VerticalLayout
 from sheets.buttons import Button
+
+from dcs.ink import Pen
 
 class Dialog(TopLevelSheet):
 
@@ -26,22 +31,30 @@ class Dialog(TopLevelSheet):
     _wrapper = None
     _title = None
 
-    def __init__(self, frame, title=None):
+    _text = None
+
+    _content_pane = None
+
+    _okButton = None
+
+    def __init__(self, frame, title=None, text=None, style="alert"):
         # Can't call super here or this dialog is set as the frame's
         # top level sheet! Ouch, maybe make this a frame after all...
         #super().__init__(frame=frame)
         self._children = []
         self._frame = frame
-        self._title = title if title is not None else "unnamed"
-        border = BorderLayout(title="[INFO] - " + title)
-        self.add_child(border)
-        self._wrapper = VerticalLayout([4, 1])
-        border.add_child(self._wrapper)
-        self._wrapper.add_child(self._make_content_pane())
-        self._wrapper.add_child(self._make_button_pane())
         # if dialog becomes a frame, move defaults into frame
         self._default_bg_pen = frame.theme("invalid")
         self._default_fg_pen = frame.theme("invalid")
+        self._title = title if title is not None else "unnamed"
+        border = BorderLayout(title="[ALERT] - " + title)
+        self.add_child(border)
+        self._wrapper = VerticalLayout([4, 1])
+        border.add_child(self._wrapper)
+        # fixme: scrolling dialog content?
+        self._wrapper.add_child(self._make_content_pane(text))
+        self._wrapper.add_child(self._make_button_pane())
+        self._text = text
 
     def __repr__(self):
         (width, height) = self._region
@@ -49,18 +62,57 @@ class Dialog(TopLevelSheet):
         ty = self._transform._dy
         return "Dialog({}x{}@{},{}: '{}')".format(width, height, tx, ty, self._title)
 
-    def _make_content_pane(self):
-        return Sheet()
+    def _make_content_pane(self, text):
+        # could instead write "find_content_pane", "find_button_pane" methods...
+        self._content_pane = Sheet()
+        return self._content_pane
 
     def _make_button_pane(self):
-        button = Button("OK", decorated=True)
-        button.allocate_space((11, 4))
+        self._okButton = Button("OK", decorated=True)
+        # fixme: pass preferred size in constructor
+        self._okButton.allocate_space((11, 4))
 
         def callback():
             self._frame.dialog_quit()
 
-        button.on_click = callback
-        return button
+        self._okButton.on_click = callback
+        return self._okButton
+
+    def compose_space(self):
+        # make sufficient space for:
+        # content pane + button pane
+        # + border
+        # + drop shadow
+        #
+        # content pane should be big enough to hold the
+        # text + some padding (fixme: put in a padding
+        # pane when we have one)
+        #
+        # Content pane doesn't actually know the text it
+        # is wrapping (yet!) so frig the size here. Do
+        # this properly (make content pane some widget that
+        # already knows its text) at some point.
+        #
+        # fixme: need to be able to draw to a sheet before
+        # it's attached, or calculate size for text before
+        # it's attached. Going to need this for scrolling
+        # anyway...
+        #
+        # fixme: deal with multi-line text
+        text_size = len(self._text)
+        # fixme: padding shouldn't be present (use spacing
+        # pane) or at least should be configurable...
+        content_pane_size = ((text_size, text_size+4, FILL), (1, 5, FILL))
+        #
+        # Also hard-code the button pane (minimum + preferred)
+        # sizes for now
+        button_pane_size = ((11, 11, FILL), (1, 4, FILL))
+        vbox_pane_size = combine_spacereqs(content_pane_size, button_pane_size)
+        # border adds +1 on each side
+        # shadow adds +1 on right + bottom
+        border_adds = (3, 3)
+        vbox_pane_size = add_to_preferred(vbox_pane_size, border_adds)
+        return vbox_pane_size
 
     # same as space allocation for BorderLayout EXCEPT the dialog also
     # makes space for a drop shadow.  Could just use the one from the
@@ -90,6 +142,12 @@ class Dialog(TopLevelSheet):
 
         for child in self._children:
             child.render()
+
+        fgpen = self._default_fg_pen
+        bgpen = self._default_bg_pen
+        pen = Pen(fgpen.fg(), fgpen.attr(), bgpen.bg())
+        # fixme: use a real pane type to hold the text
+        self._content_pane.print_at(self._text, (2, 2), pen)
 
         self._draw_dropshadow()
 

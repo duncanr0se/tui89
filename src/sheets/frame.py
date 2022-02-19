@@ -1,4 +1,6 @@
 
+from collections import deque
+
 from asciimatics.screen import Screen
 from asciimatics.widgets.utilities import THEMES
 from asciimatics.event import KeyboardEvent, MouseEvent
@@ -7,12 +9,16 @@ from asciimatics.exceptions import StopApplication
 from sheets.sheet import Sheet
 from dcs.ink import Pen
 
+from sheets.spacereq import xSpaceReqDesired
+from sheets.spacereq import ySpaceReqDesired
+
 # should the frame be a sheet? Hrm.
 class Frame():
 
     _screen = None
     _top_level_sheet = None
     _dialog = None
+    _invalidated = None
 
     def __init__(self, screen):
         self._screen = screen
@@ -41,6 +47,7 @@ class Frame():
             "focus_field": (Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "selected_focus_field": (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN),
         }
+        self._invalidated = deque()
 
     def __repr__(self):
         (width, height) = self._region
@@ -80,6 +87,9 @@ class Frame():
             # to handle the event
             if isinstance(event, MouseEvent):
                 self._handle_mouse_event(event)
+
+            # if event has caused widget to need redrawing, do it now
+            self.render_invalidated()
 
     def _handle_key_event(self, event):
         if event.key_code > 0:
@@ -144,13 +154,21 @@ class Frame():
         if self._dialog is not None:
             raise RuntimeError("Can't have multiple dialogs currently")
         self._dialog = dialog
-        # fixme: cleverer space allocation - let dialog make some
-        # adjustments to its desired size!
+
         dwidth = self._screen.width // 2
         dheight = self._screen.height // 2
+
+        dialog_spacereq = self._dialog.compose_space()
+
+        # use dialog desired size if it's smaller than
+        # the default
+        dwidth = min(xSpaceReqDesired(dialog_spacereq), dwidth)
+        dheight = min(ySpaceReqDesired(dialog_spacereq), dheight)
+
+        dialog.allocate_space((dwidth, dheight))
         dx = (self._screen.width - dwidth) // 2
         dy = (self._screen.height - dheight) // 2
-        dialog.allocate_space((dwidth, dheight))
+
         dialog.move_to((dx, dy))
         dialog.layout()
         self.render()
@@ -166,4 +184,13 @@ class Frame():
         self._top_level_sheet.render()
         if self._dialog is not None:
             self._dialog.render()
+        self._screen.refresh()
+
+    def invalidate(self, sheet):
+        self._invalidated.append(sheet)
+
+    def render_invalidated(self):
+        while len(self._invalidated) > 0:
+            sheet = self._invalidated.popleft()
+            sheet.render()
         self._screen.refresh()

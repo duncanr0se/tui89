@@ -33,6 +33,11 @@ from sheets.dialog import Dialog
 #   - menu
 #   - status bar
 #   - dialog box (✔)
+#       - alert
+#       - error
+#       - information
+#       - yes/no
+#       - multivalue
 #   - text entry
 #   - text box
 #   - horizontal / vertical separators
@@ -53,6 +58,9 @@ from sheets.dialog import Dialog
 # sheet type.
 #
 # 1.6. extend dialogs so they are actually useful for displaying stuff
+#     - alert box
+#     - info dialog
+#     - yes / no dialog
 #
 # 2. Once event handling is in place, need to experiment with
 # scrolling / overflowing a screen buffer with content / clipping
@@ -70,6 +78,8 @@ from sheets.dialog import Dialog
 # When a button is created, it should be possible to add an
 # accelerator key to some global / command map and handle that
 # accelerator at the frame level.
+
+# Button pressed / released appearance updates
 
 # tidying
 
@@ -122,7 +132,17 @@ def demo(screen):
     # sure how. Maybe redraw on button down, and do the click on
     # button up, if the mouse is still over the button?
     button = Button(label="Press me!", decorated=True)
-    dialog = Dialog(frame, title="dialog!")
+    # Single line is supported; lines with \n in aren't displayed
+    # properly.
+    # Multiline (as separate lines) isn't supported by the dialog
+    # (yet).
+    # Long lines overflow the dialog (as expected)
+    # fixme: implement clipping
+    # fixme: implement wrapping
+    # fixme: dialog sizing to fit text better, with existing scheme
+    #     as a maximum.
+    dialog = Dialog(frame, title="dialog!",
+                    text="Hello! I like pancakes!!")
 
     def btn_cb():
         # sets dialog up, but doesn't draw it. That happens in

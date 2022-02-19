@@ -28,6 +28,8 @@ class Button(Sheet):
     # single child - todo, complicate this up by making it support
     # scrolling!
 
+    _pressed = False
+
     # fixme: add width, align, ... options
     def __init__(self, label=None, decorated=True):
         super().__init__()
@@ -49,6 +51,7 @@ class Button(Sheet):
     # go smaller than 2x4.
     # How about dealing with multi-line labels? Image buttons?
     def compose_space(self):
+
         # QUERY: should all buttons be a fixed size?
         # Calculate space needed for decorated and vanilla cases
         button_length = len(self._label) + 2 if self._label else 4
@@ -81,7 +84,10 @@ class Button(Sheet):
         self.draw((0, 1), ' ', pen)
 
     def _draw_button_background(self):
-        pen = self.frame().theme("button")
+        if self._pressed:
+            pen = self.frame().theme("selected_focus_field")
+        else:
+            pen = self.frame().theme("button")
         (width, height) = self._region
         xoffset = 1 if self._decorated else 0
         yoffset = 1 if self._decorated else 0
@@ -106,7 +112,10 @@ class Button(Sheet):
         self.draw((width-1, 2), dropshadow_below, pen)
 
     def _draw_button_label(self):
-        pen = self.frame().theme("button")
+        if self._pressed:
+            pen = self.frame().theme("selected_focus_field")
+        else:
+            pen = self.frame().theme("button")
         (width, height) = self._region
         # assume single-line label, for now
         label_length = len(self._label) if self._label else 2
@@ -120,12 +129,20 @@ class Button(Sheet):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
 
-        self._draw_button_background()
+        # fixme: need to know the state of the sheet so if we're asked
+        # to draw ourselves we don't end up actually doing anything.
+        # This would prevent the "dialog exit button redrawn after dialog
+        # already closed" issue being seen currently.
+#        if self.top_level_sheet().is_detached():
+#            return
 
+        # draw decoration first so it doesn't overdraw the
+        # background or label
         if self._decorated:
             self._draw_padding()
             self._draw_button_dropshadow()
 
+        self._draw_button_background()
         self._draw_button_label()
 
     def handle_event(self, event):
@@ -134,7 +151,13 @@ class Button(Sheet):
 
     def _handle_mouse_event(self, event):
         if event.buttons == MouseEvent.LEFT_CLICK:
-            return self.on_click and self.on_click()
+            self._pressed = True
+            self.invalidate()
+        if event.buttons == 0:
+            if self._pressed:
+                self._pressed = False
+                self.invalidate()
+                return self.on_click and self.on_click()
         return False
 
 
