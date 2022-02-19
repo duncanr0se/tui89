@@ -15,6 +15,9 @@ class BorderLayout(Sheet):
     # single child - todo, complicate this up by making it support
     # scrolling!
 
+    _vertical_sb = None
+    _horizontal_sb = None
+
     def __init__(self, title=None):
         super().__init__()
         self._title = title
@@ -29,6 +32,36 @@ class BorderLayout(Sheet):
         if self._children:
             raise RuntimeError("BorderLayout supports a single child only")
         super().add_child(child)
+
+    def set_scrollbars(self, vertical_scrollbar=None, horizontal_scrollbar=None):
+        if vertical_scrollbar is not None:
+            self._vertical_sb = vertical_scrollbar
+            vertical_scrollbar._parent = self
+
+        if horizontal_scrollbar is not None:
+            self._horizontal_sb = horizontal_scrollbar
+            horizontal_scrollbar._parent = self
+
+    # specialise find_highest_sheet... to cater for scroll bars.
+    def find_highest_sheet_containing_position(self, parent_coord):
+        coord = self._transform.inverse().apply(parent_coord)
+        if self.region_contains_position(coord):
+            if self._vertical_sb is not None:
+                container = self._vertical_sb.find_highest_sheet_containing_position(coord)
+                if container is not None:
+                    return container
+                if self._horizontal_sb is not None:
+                    container = self._horizontal_sb.find_highest_sheet_containing_position(coord)
+                    if container is not None:
+                        return container
+            # only 1 child in a border layout
+            for child in self._children:
+                container = child.find_highest_sheet_containing_position(coord)
+                if container is not None:
+                    return container
+            return self
+        # this sheet doesn't contain the position
+        return None
 
     # BorderLayout expects its children to completely fill it, but
     # it's not an arse about it, it's happy for kids to be their
@@ -53,11 +86,29 @@ class BorderLayout(Sheet):
                            min(ySpaceReqDesired(child_request), calloc_y))
             child.allocate_space((calloc_x, calloc_y))
 
+        if self._vertical_sb is not None:
+            child_request = self._vertical_sb.compose_space()
+            # use the minimum width and the border pane's height
+            self._vertical_sb.allocate_space((xSpaceReqMin(child_request), height-2))
+        if self._horizontal_sb is not None:
+            child_request = self._horizontal_sb.compose_space()
+            # use minimum height and border pane's width
+            self._horizontal_sb.allocate_space((width-3, ySpaceReqMin(child_request)))
+
     def layout(self):
         # single child
         for child in self._children:
             child.move_to((1, 1))
             child.layout()
+        (rw, rh) = self._region
+        if self._vertical_sb is not None:
+            self._vertical_sb.move_to((rw-1, 1))
+            self._vertical_sb.layout()
+        if self._horizontal_sb is not None:
+            # how wide should horizontal bars be? turbo vision looks
+            # to give about 50% of the pane width...
+            self._horizontal_sb.move_to((1, rh-1))
+            self._horizontal_sb.layout()
 
     def render(self):
         if not self._region:
@@ -66,6 +117,10 @@ class BorderLayout(Sheet):
         self._draw_border()
         for child in self._children:
             child.render()
+        if self._vertical_sb is not None:
+            self._vertical_sb.render()
+        if self._horizontal_sb is not None:
+            self._horizontal_sb.render()
 
     def _draw_border(self):
         pen = self.top_level_sheet()._default_fg_pen
@@ -78,7 +133,6 @@ class BorderLayout(Sheet):
         bottom = self.height()-1
 
         # todo: deal with long titles
-        # todo: deal with scrolling...
 
         # top border - make allowances for a title
         self.print_at(u'╔', (left, top), pen)
@@ -102,13 +156,20 @@ class BorderLayout(Sheet):
         self.draw((left, bottom), u'║', pen)
 
         # right border - might be scroll bar
-        self.move((right, top + 1))
-        self.draw((right, bottom), u'║', pen)
+        if self._vertical_sb is None:
+            self.move((right, top + 1))
+            self.draw((right, bottom), u'║', pen)
+        else:
+            # scrollbar will draw itself
+            pass
 
         # bottom border - might be scroll bar
         self.print_at(u'╚', (left, bottom), pen)
-        self.move((1, bottom))
-        self.draw((right, bottom), u'═', pen)
-#        self.print_at(u'─', (right-1, bottom), colour, attr, bg)
-#        self.print_at(u'┘', (right, bottom), colour, attr, bg)
-        self.print_at(u'╝', (right, bottom), pen)
+        if self._horizontal_sb is None:
+            self.move((1, bottom))
+            self.draw((right, bottom), u'═', pen)
+            self.print_at(u'╝', (right, bottom), pen)
+        else:
+            self.print_at(u'─', (right-1, bottom), pen)
+            self.print_at(u'┘', (right, bottom), pen)
+            # scrollbar will draw itself

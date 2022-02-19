@@ -13,6 +13,7 @@ from sheets.buttons import CheckBox
 from sheets.boxlayout import HorizontalLayout
 from sheets.boxlayout import VerticalLayout
 from sheets.dialog import Dialog
+from sheets.scrollbar import Scrollbar
 
 # add more widgets
 #   - layouts
@@ -27,8 +28,8 @@ from sheets.dialog import Dialog
 #       - menu button
 #   - button group?
 #   - label
-#   - scroll bars
-#   - scroller - can border be used for this?
+#   - scroll bars (✔)
+#   - viewport
 #   - menu bar
 #   - menu
 #   - status bar
@@ -58,7 +59,7 @@ from sheets.dialog import Dialog
 # sheet type.
 #
 # 1.6. extend dialogs so they are actually useful for displaying stuff
-#     - alert box
+#     - alert box (✔)
 #     - info dialog
 #     - yes / no dialog
 #
@@ -86,7 +87,13 @@ from sheets.dialog import Dialog
 # sizes but space remains), do what? Leave undefined for now, throw
 # on user to make sure it doesn't happen.
 
-# Button pressed / released appearance updates
+# Button pressed / released appearance updates - buttons with shadows
+# should depress into the shadow. Not sure how buttons without
+# decoration should behave. Perhaps need to let the user pick?
+# DEFAULTS ARE OK - BUTTONS WITH NO BORDER BY DEFAULT HAVE VISUAL
+# STATE THAT CAN BE UPDATED (CHECK / RADIO INDICATORS). FLAT PUSH
+# BUTTONS WILL COME ALONG WHEN MENU BUTTONS ARE WRITTEN, WHICH WILL
+# NEED A COLOUR CHANGE ON PRESS.
 
 # tidying
 
@@ -112,6 +119,8 @@ from sheets.dialog import Dialog
 # button activate but really don't like it. Will have to write "are
 # you sure?" dialogs all over as a work-around (or investigate button
 # click behaviour, maybe there's some better fix)
+
+# event handling (button click / release) seems slow. Investigate.
 
 # look at other stuff asciimatics does (save / restore form state
 # etc.) and decide if that's something that could be useful.Pretty
@@ -165,9 +174,29 @@ def demo(screen):
     inner_bl = BorderLayout(title="two")
     child_sheet.add_child(inner_bl)
     child_sheet.add_child(BorderLayout(title="three"))
-    child_sheet.add_child(BorderLayout(title="four"))
 
-#    inner_bl.add_child(button)
+    border4 = BorderLayout(title="scrolling")
+    child_sheet.add_child(border4)
+    # choice: make border layouts be scrollable, maybe by setting
+    # scrollbars on them; or have a specific scrolling pane type.
+    # MAKE THE BORDER LAYOUT WORK AS A SCROLLER, THEN IT CAN BE
+    # WRAPPED AROUND ALL SORTS OF STUFF.
+    vbar = Scrollbar(orientation="vertical")
+    hbar = Scrollbar(orientation="horizontal")
+    # setting bars on the border pane is just a VISUAL thing to
+    # get the bars displayed neatly in the border. The bars could
+    # be anywhere and still control the scrolled pane.
+    border4.set_scrollbars(vbar, hbar)
+    # content pane is the thing being scrolled
+    contentpane = Sheet()
+    # scroller provides the viewport onto the scrolled sheet.
+    # Maybe it should be called "Viewport"?
+    # Use the transform to display different areas of the
+    # contentpane.
+    # Bars passed here are to control the viewport, NOT for
+    # display.
+#    viewport = Viewport(contentpane, vbar, hbar)
+#    border4.add_child(viewport)
 
     frame.lay_out_frame()
 
