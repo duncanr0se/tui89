@@ -77,11 +77,9 @@ class Button(Sheet):
     def _draw_padding(self):
         pen = self.top_level_sheet()._default_bg_pen
         (width, height) = self._region
-        self.move((0, 0))
-        self.draw((width-1, 0), ' ', pen)
-        self.draw((width-1, height-1), ' ', pen)
-        self.draw((0, height-1), ' ', pen)
-        self.draw((0, 1), ' ', pen)
+        for y in range(0, height-1):
+            self.move((0, y))
+            self.draw((width, y), ' ', pen)
 
     def _draw_button_background(self):
         if self._pressed:
@@ -164,3 +162,12 @@ class CheckBox(Button):
 
     def __init__(self, label="--", decorated=False):
         super().__init__(label="[ ] " + label, decorated=decorated)
+
+    def _handle_mouse_event(self, event):
+        if event.buttons == MouseEvent.LEFT_CLICK:
+            if self._label[:3] == "[ ]":
+                self._label = "[X]" + self._label[3:]
+            else:
+                self._label = "[ ]" + self._label[3:]
+            self.invalidate()
+        return False

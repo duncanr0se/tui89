@@ -1,4 +1,5 @@
 from asciimatics.screen import Screen
+from asciimatics.exceptions import ResizeScreenError
 
 from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
@@ -15,13 +16,13 @@ from sheets.boxlayout import VerticalLayout
 from sheets.dialog import Dialog
 from sheets.scrollbar import Scrollbar
 
+import sys
+
 # add more widgets
 #   - layouts
 #       - border (✔)
 #       - row (✔)
 #       - column (✔)
-#       - grid?
-#       - stack?
 #   - buttons (✔)
 #       - radio buttons (✔)
 #       - check boxes (✔)
@@ -41,7 +42,8 @@ from sheets.scrollbar import Scrollbar
 #       - multivalue
 #   - text entry
 #   - text box
-#   - horizontal / vertical separators
+#   - horizontal separator
+#   - vertical separator
 #   - padding
 #   - list
 #   - tree
@@ -86,6 +88,9 @@ from sheets.scrollbar import Scrollbar
 # over specified ratios. If there's free space left (all specified
 # sizes but space remains), do what? Leave undefined for now, throw
 # on user to make sure it doesn't happen.
+#
+# First pass: fixed sizes
+# Second pass: percentages
 
 # Button pressed / released appearance updates - buttons with shadows
 # should depress into the shadow. Not sure how buttons without
@@ -97,7 +102,7 @@ from sheets.scrollbar import Scrollbar
 
 # tidying
 
-# test / fix screen resize!
+# test / fix screen resize! See docs from asciimatics
 
 # need to do something about events! - see draw_next_frame() in
 # screen.py
@@ -115,10 +120,8 @@ from sheets.scrollbar import Scrollbar
 # more flexibility for borders; DOUBLE, SINGLE, SPACE, NONE... could
 # also combine into a spacing pane.
 
-# click detection is really ropey. Have implemented button down =
-# button activate but really don't like it. Will have to write "are
-# you sure?" dialogs all over as a work-around (or investigate button
-# click behaviour, maybe there's some better fix)
+# click detection is really ropey. Maybe asciimatics is not reporting
+# them like it should?
 
 # event handling (button click / release) seems slow. Investigate.
 
@@ -132,9 +135,6 @@ def demo(screen):
     border_layout = BorderLayout(title="Basic")
     top_level_sheet.add_child(border_layout)
 
-#    child_sheet = Sheet()
-#    child_sheet = CheckBox(label="PRESS ME!")
-#    child_sheet = VerticalLayout([1, 2, 1, 1])
     child_sheet = HorizontalLayout([1, 2, 1, 1])
     border_layout.add_child(child_sheet)
 
@@ -144,9 +144,6 @@ def demo(screen):
     one = VerticalLayout([1, 1, 1])
     oneb.add_child(one)
 
-    # could do with a way to give "pressed" visual feedback but not
-    # sure how. Maybe redraw on button down, and do the click on
-    # button up, if the mouse is still over the button?
     button = Button(label="Press me!", decorated=True)
     # Single line is supported; lines with \n in aren't displayed
     # properly.
@@ -162,7 +159,7 @@ def demo(screen):
 
     def btn_cb():
         # sets dialog up, but doesn't draw it. That happens in
-        # render(). Perhaps the dialog layout sould happen in
+        # render(). Perhaps the dialog layout should happen in
         # lay_out_frame()? Maybe it's independent.
         frame.show_dialog(dialog)
 
@@ -177,8 +174,6 @@ def demo(screen):
 
     border4 = BorderLayout(title="scrolling")
     child_sheet.add_child(border4)
-    # choice: make border layouts be scrollable, maybe by setting
-    # scrollbars on them; or have a specific scrolling pane type.
     # MAKE THE BORDER LAYOUT WORK AS A SCROLLER, THEN IT CAN BE
     # WRAPPED AROUND ALL SORTS OF STUFF.
     vbar = Scrollbar(orientation="vertical")
@@ -187,7 +182,16 @@ def demo(screen):
     # get the bars displayed neatly in the border. The bars could
     # be anywhere and still control the scrolled pane.
     border4.set_scrollbars(vbar, hbar)
-    # content pane is the thing being scrolled
+    # Content pane is the thing being scrolled
+
+    # Need a sheet mode to deal with stuff that doesn't fit. Clip for
+    # usual sheets, overflow for children of viewports. Scrolling just
+    # changes the transform of the scrolled child and calls "redraw"
+    # on the viewport to show the new area. How to store stuff that's
+    # drawn so these calculations can be performed?
+
+    # viewport clips, content pane overflows. How to copy from content
+    # pane to viewport?
     contentpane = Sheet()
     # scroller provides the viewport onto the scrolled sheet.
     # Maybe it should be called "Viewport"?
@@ -216,10 +220,16 @@ def demo(screen):
     # refresh() / redraw() in that case... but then need to decide how
     # to deal with the events. And focus. And input. Etc., etc.
 
-    # The frame needs to be sure to direct events to the dialog, if there
-    # is one, in preference to any other sheet (conceptually the dialog
-    # is always highest in z-order)
+    # The frame directs events to the dialog, if there is one, in
+    # preference to any other sheet (conceptually the dialog is always
+    # highest in z-order)
     frame.start_frame()
 
-
-Screen.wrapper(demo, unicode_aware=True)
+# This isn't working, not sure why. Maybe there's a better way to deal
+# with screen resize...
+while True:
+    try:
+        Screen.wrapper(demo, unicode_aware=True)
+        sys.exit(0)
+    except ResizeScreenError:
+        pass
