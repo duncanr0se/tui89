@@ -33,7 +33,7 @@ from sheets.dialog import Dialog
 #   - menu
 #   - status bar
 #   - dialog box (✔)
-#       - alert
+#       - alert (✔)
 #       - error
 #       - information
 #       - yes/no
@@ -78,6 +78,13 @@ from sheets.dialog import Dialog
 # When a button is created, it should be possible to add an
 # accelerator key to some global / command map and handle that
 # accelerator at the frame level.
+
+# Box layouts:
+# Should support explicit sizes for kids as well as ratios. Allow
+# space for explicitly specified sizes, then split remaining space
+# over specified ratios. If there's free space left (all specified
+# sizes but space remains), do what? Leave undefined for now, throw
+# on user to make sure it doesn't happen.
 
 # Button pressed / released appearance updates
 

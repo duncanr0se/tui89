@@ -19,6 +19,10 @@ class Sheet():
     # first)
     _children = None
 
+    # really this should be False by default and should be updated
+    # when the sheet's top-level-sheet is attached to the display
+    _attached = True
+
     def __init__(self):
         self._children = []
 
@@ -173,6 +177,22 @@ class Sheet():
         self._parent.handle_event(MouseEvent(px, py, event.buttons))
 
     def invalidate(self):
+        # Invalidated = dirty, in need of redraw
         # add to list of invalidated sheets in frame that will
         # be redrawn on the next iteration of the event loop
         self.frame().invalidate(self)
+
+    # attached / detached = linked to frame, available to be
+    # displayed
+    def is_detached(self):
+        return not self._attached
+
+    def detach(self):
+        for child in self._children:
+            child.detach()
+        self._attached = False
+
+    def attach(self):
+        self._attached = True
+        for child in self._children:
+            child.attach()

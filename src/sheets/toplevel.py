@@ -73,3 +73,19 @@ class TopLevelSheet(Sheet):
     def handle_event(self, event):
         # False == not handled, not that anybody cares at this point
         return False
+
+    # attach from lowest z-order up
+    def attach(self, frame):
+        self._frame = frame
+        for child in self._children:
+            child.attach()
+
+    # detach from highest z-order down
+    def detach(self):
+        # fixme: sheet lifecycle events? (mapped, detached, etc)
+        for child in self._children:
+            child.detach()
+        self._frame = None
+
+    def is_detached(self):
+        return self._frame is None

@@ -153,7 +153,21 @@ class Frame():
     def show_dialog(self, dialog):
         if self._dialog is not None:
             raise RuntimeError("Can't have multiple dialogs currently")
+        # Rename this method to "attach_dialog", or "graft_dialog" or
+        # similar.
+        # When a top-level-sheet has attach(frame) called on it, it
+        # recursively calls attach on all its kids (could use an event
+        # for this?). When the t-l-s has the frame reference removed,
+        # it recursively calls detach on all its kids.
         self._dialog = dialog
+
+        # Allow top level sheets to be grafted / detached from the
+        # frame. This allows sheet hierarchies to be shown, hidden
+        # then shown again.
+        # For now this only works for dialogs, should have proper
+        # "graft / detach / attach" methods that work for all top
+        # levels, if not for all sheets.
+        dialog.attach(self)
 
         dwidth = self._screen.width // 2
         dheight = self._screen.height // 2
@@ -175,6 +189,9 @@ class Frame():
 
     def dialog_quit(self):
         if self._dialog is not None:
+            # detach will also recursively move all children into a
+            # detached state
+            self._dialog.detach()
             self._dialog = None
             self.render()
 
@@ -192,5 +209,6 @@ class Frame():
     def render_invalidated(self):
         while len(self._invalidated) > 0:
             sheet = self._invalidated.popleft()
-            sheet.render()
+            if not sheet.is_detached():
+                sheet.render()
         self._screen.refresh()

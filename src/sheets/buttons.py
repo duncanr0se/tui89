@@ -129,13 +129,6 @@ class Button(Sheet):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
 
-        # fixme: need to know the state of the sheet so if we're asked
-        # to draw ourselves we don't end up actually doing anything.
-        # This would prevent the "dialog exit button redrawn after dialog
-        # already closed" issue being seen currently.
-#        if self.top_level_sheet().is_detached():
-#            return
-
         # draw decoration first so it doesn't overdraw the
         # background or label
         if self._decorated:
