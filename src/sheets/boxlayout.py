@@ -6,24 +6,30 @@ from sheets.spacereq import ySpaceReqMax
 from sheets.spacereq import ySpaceReqDesired
 
 # A layout that arranges its children in columns
-class HorizontalLayout(Sheet):
+class BoxLayout(Sheet):
 
     # list of relative widths or absolute values
-    _columns = None
+    _portions = None
+
+    def __init__(self, portions):
+        super().__init__()
+        self._portions = portions
+
+    def add_child(self, child):
+        super().add_child(child)
+
+
+class HorizontalLayout(BoxLayout):
 
     def __init__(self, columns):
-        super().__init__()
-        self._columns = columns
+        super().__init__(columns)
 
     def __repr__(self):
         (width, height) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
         return "HorizontalLayout({}x{}@{},{}: {} cols)".format(
-            width, height, tx, ty, len(self._columns))
-
-    def add_child(self, child):
-        super().add_child(child)
+            width, height, tx, ty, len(self._portions))
 
     # Box layouts don't need to be full of children; they leave empty
     # space at the end if the children are exhausted before the
@@ -40,12 +46,12 @@ class HorizontalLayout(Sheet):
         self._region = allocation
         (width, height) = allocation
         totalSegments = 0
-        for column in self._columns:
+        for column in self._portions:
             totalSegments += column
         segmentSize = width // totalSegments
         surplus = width - segmentSize*totalSegments
         for index, child in enumerate(self._children):
-            callocx = self._columns[index] * segmentSize
+            callocx = self._portions[index] * segmentSize
             if surplus > 0:
                 callocx += 1
                 surplus -= 1
@@ -67,24 +73,17 @@ class HorizontalLayout(Sheet):
 
 
 # A layout that arranges its children in rows
-class VerticalLayout(Sheet):
-
-    # list of relative widths (todo: also support absolute values?)
-    _rows = None
+class VerticalLayout(BoxLayout):
 
     def __init__(self, rows):
-        super().__init__()
-        self._rows = rows
+        super().__init__(rows)
 
     def __repr__(self):
         (width, height) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
         return "VerticalLayout({}x{}@{},{}: {} rows)".format(
-            width, height, tx, ty, len(self._rows))
-
-    def add_child(self, child):
-        super().add_child(child)
+            width, height, tx, ty, len(self._portions))
 
     # Box layouts don't need to be full of children; they leave empty
     # space at the end if the children are exhausted before the
@@ -101,13 +100,13 @@ class VerticalLayout(Sheet):
         self._region = allocation
         (width, height) = allocation
         totalSegments = 0
-        for row in self._rows:
+        for row in self._portions:
             totalSegments += row
         segmentSize = height // totalSegments
         # collect rounding errors as surplus
         surplus = height - segmentSize*totalSegments
         for index, child in enumerate(self._children):
-            callocy = self._rows[index] * segmentSize
+            callocy = self._portions[index] * segmentSize
             # if there is surplous, dole it out to each child until it
             # is exhausted
             if surplus > 0:
