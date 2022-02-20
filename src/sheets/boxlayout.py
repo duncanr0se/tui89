@@ -51,6 +51,13 @@ class BoxLayout(Sheet):
     def major_size_component(self, sheet):
         pass
 
+    def minor_size_component(self, sheet):
+        pass
+
+    # x-offset for horizontal box; y-offset for vertical box
+    def move_to_major_offset(self, sheet, offset):
+        pass
+
     # perhaps this should be the thing that calls compose-space
     # followed by allocate-space? With compose-space on kids in turn
     # calling layout? Probably best to follow same pattern as DUIM if
@@ -60,7 +67,7 @@ class BoxLayout(Sheet):
     def layout(self):
         offset = 0
         for child in self._children:
-            child.move_to((offset, 0))
+            self.move_to_major_offset(child, offset)
             offset += self.major_size_component(child)
             child.layout()
 
@@ -121,6 +128,9 @@ class HorizontalLayout(BoxLayout):
     def minor_size_component(self, sheet):
         return sheet.height()
 
+    def move_to_major_offset(self, sheet, offset):
+        sheet.move_to((offset, 0))
+
 
 # A layout that arranges its children in rows
 class VerticalLayout(BoxLayout):
@@ -169,3 +179,6 @@ class VerticalLayout(BoxLayout):
 
     def minor_size_component(self, sheet):
         return sheet.width()
+
+    def move_to_major_offset(self, sheet, offset):
+        sheet.move_to((0, offset))
