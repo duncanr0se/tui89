@@ -68,9 +68,7 @@ class Dialog(TopLevelSheet):
         return self._content_pane
 
     def _make_button_pane(self):
-        self._okButton = Button("OK", decorated=True)
-        # fixme: pass preferred size in constructor
-        self._okButton.allocate_space((11, 4))
+        self._okButton = Button("OK", decorated=True, width=11)
 
         def callback():
             self._frame.dialog_quit()
@@ -106,7 +104,9 @@ class Dialog(TopLevelSheet):
         #
         # Also hard-code the button pane (minimum + preferred)
         # sizes for now
-        button_pane_size = ((11, 11, FILL), (1, 4, FILL))
+        # FIXME: hardcoded index
+        button_pane = self._wrapper._children[1]
+        button_pane_size = button_pane.compose_space()
         vbox_pane_size = combine_spacereqs(content_pane_size, button_pane_size)
         # border adds +1 on each side
         # shadow adds +1 on right + bottom

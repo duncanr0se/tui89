@@ -5,17 +5,28 @@ from asciimatics.event import MouseEvent
 
 from sheets.sheet import Sheet
 from sheets.spacereq import FILL
+from sheets.spacereq import xSpaceReqMin
+from sheets.spacereq import xSpaceReqDesired
 
 from dcs.ink import Pen
 
 class Button(Sheet):
     """Push button sheet.
 
+    Init params:
+        - label
+        - decorated
+        - label_align
+        - width
     Buttons have a label;
     can be decorated, or not;
     have no children;
+
+    Can be aligned left, center, or right.
+    Can have fixed width forced using "width".
     """
     _label = None
+    _label_align = None
 
     # event support
 
@@ -26,10 +37,16 @@ class Button(Sheet):
 
     _pressed = False
 
-    def __init__(self, label=None, decorated=True):
+    _width = None
+
+    def __init__(self, label="--", decorated=True, label_align="center", width=None):
         super().__init__()
         self._label = label
         self._decorated = decorated
+        if label_align != "center":
+            raise RuntimeError("Only center alignment supported for button labels currently")
+        self._label_align = label_align
+        self._width = width
 
     def __repr__(self):
         (width, height) = self._region
@@ -49,23 +66,36 @@ class Button(Sheet):
     # buttons?
     def compose_space(self):
 
-        # QUERY: should all buttons be a fixed size?
-        # Calculate space needed for decorated and vanilla cases
-        button_length = len(self._label) + 2 if self._label else 4
+        # Undecorated buttons can shrink to 1x1; decorated buttons
+        # also, but they retain space for the decoration.
+
+        button_length = len(self._label) + 2
         button_height = 1
 
+        # decoration includes 1 unit wide border around the button
+        # + dropshadow.
         if self._decorated:
-            # 2 for padding + dropshadow
+            # 2 for padding + 1 for dropshadow
             button_length += 3
             button_height += 3
 
-        # Undecorated buttons can shrink to 1x1; decorated buttons
-        # also, but they retain space for the decoration.
-        return ((button_height, button_length, FILL), (button_height, button_height, FILL))
+        # supplied width overrides calculated size
+        if self._width is not None:
+            fw = self._width
+            return ((fw, fw, fw), (button_height, button_height, FILL))
+        else:
+            return ((button_height, button_length, FILL),
+                    (button_height, button_height, FILL))
 
     def allocate_space(self, allocation):
-        # todo: check region > minimum composed space
-        self._region = allocation
+        # todo: cache space requirement
+        sr = self.compose_space()
+        # force region to be within the sheet's space composition. If
+        # this causes the sheet render to overflow its bounds, so be
+        # it.
+        (aw, ah) = allocation
+        aw = max(xSpaceReqMin(sr), min(xSpaceReqDesired(sr), aw))
+        self._region = (aw, ah)
 
     def layout(self):
         # default Button has no children
@@ -108,7 +138,7 @@ class Button(Sheet):
         label_length = len(self._label) if self._label else 2
         center_x = (width - label_length) // 2
         # todo: truncate label if it's too long...
-        button_label = self._label or "--"
+        button_label = self._label
         yoffset = 1 if self._decorated else 0
         self.print_at(button_label, (center_x, yoffset), pen)
 
