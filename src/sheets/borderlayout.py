@@ -32,7 +32,7 @@ class BorderLayout(Sheet):
     def __init__(self, title=None, style="double"):
         super().__init__()
         self._title = title
-        supported = ["double", "single"]
+        supported = ["double", "single", "spacing"]
         if style not in supported:
             raise NotImplementedError("Border layout only supports {} style currently"
                                       .format(supported))
@@ -148,6 +148,11 @@ class BorderLayout(Sheet):
             "nw":   u'┌', "top": u'─',    "ne": u'┐',
             "left": u'│',              "right": u'│',
             "sw":   u'└', "bottom": u'─', "se": u'┘'
+        },
+        "spacing": {
+            "nw":   ' ', "top": ' ',    "ne": ' ',
+            "left": ' ',              "right": ' ',
+            "sw":   ' ', "bottom": ' ', "se": ' '
         }
     }
 

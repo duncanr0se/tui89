@@ -98,7 +98,7 @@ GENERAL / CODING
 ================
 tidying
 
-more flexibility for borders; DOUBLE, SINGLE, SPACE, NONE... could
+more flexibility for borders; SPACE, NONE... could
 also combine into a spacing pane.
 
 DIFFERENT TYPES OF BORDERS

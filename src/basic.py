@@ -62,7 +62,7 @@ def demo(screen):
     border2 = BorderLayout(title="two", style="single")
     child_sheet.add_child(border2)
 
-    child_sheet.add_child(BorderLayout(title="three"))
+    child_sheet.add_child(BorderLayout(title="three", style="spacing"))
 
     border4 = BorderLayout(title="scrolling")
     child_sheet.add_child(border4)
