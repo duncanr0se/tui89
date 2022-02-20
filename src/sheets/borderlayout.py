@@ -23,7 +23,7 @@ class BorderLayout(Sheet):
     #     - single :: draw border using single bars; will draw title;
     #     - spacing :: draw border using spaces;
     #     - scrolling :: border only on bottom and rhs, and populated
-    #           with scroll bars in that case;
+    #           with scroll bars if they are provided; no title
     #     - title :: border only on top; will draw title;
     #     - None :: no border? Not sure this is useful... maybe if
     #           a spacer is needed that could draw bars later?

@@ -15,6 +15,7 @@ from sheets.boxlayout import HorizontalLayout
 from sheets.boxlayout import VerticalLayout
 from sheets.dialog import Dialog
 from sheets.scrollbar import Scrollbar
+from sheets.viewport import Viewport
 from dcs.ink import Pen
 
 import sys
@@ -93,8 +94,17 @@ def demo(screen):
     # contentpane.
     # Bars passed here are to control the viewport, NOT for
     # display.
-#    viewport = Viewport(contentpane, vbar, hbar)
-#    border4.add_child(viewport)
+    viewport = Viewport(contentpane, vertical_bar=vbar, horizontal_bar=hbar)
+    border4.add_child(viewport)
+
+    # these are not appearing, perhaps because the "render" method is
+    # causing it to be immediately overdrawn?
+    def draw():
+        pen = frame.theme("selected_focus_control")
+        contentpane.print_at("Hello, world!", (0, 0), pen)
+        contentpane.print_at("What's the world coming to?", (10, 30), pen)
+        contentpane.print_at("Goodbye, cruel world!", (100, 60), pen)
+    contentpane.render = draw
 
     frame.lay_out_frame()
 

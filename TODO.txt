@@ -67,6 +67,10 @@ ACCELERATORS + MNEMONICS - for buttons and generic commands
 and we need command tables or some other way to tie keys and ui to
 commands.
 
+Instead of frigging pens for different purposes, put them in the theme
+definition as specific pens. Move all direct Pen instantiations into
+frame.
+
 
 LAYOUT IMPROVEMENTS
 ===================
@@ -96,8 +100,6 @@ test / fix screen resize! See docs from asciimatics
 
 GENERAL / CODING
 ================
-tidying
-
 more flexibility for borders; SPACE, NONE... could
 also combine into a spacing pane.
 
@@ -115,6 +117,10 @@ ETC.
 
 BORDERLAYOUT CLEAR METHOD ISN'T SETTING BACKGROUND COLOUR PROPERLY
 (SEE "green" BORDER IN BASIC.PY)
+
+Unit tests, documentation, project setup. Make it more professional,
+push to gitlab. Maybe people will use it... given the chance.
+
 
 EVENT HANDLING
 ==============
@@ -136,9 +142,6 @@ point inhabit the widget space" queries...  Note if the button was
 wrapped in a spacing pane, this problem would solve itself I think...
 
 ===============================================
-
-
-
 
 EXAMPLE WIDGET APP - MAKE IT SHOW ALL THE OPTIONS FOR ALL THE WIDGETS.
 
@@ -165,7 +168,7 @@ DRAW TO TAKE START POSITION AS WELL AS END POSITION, AND RENAME "DRAW"
 TRANSFORM. FOR SHEETS THAT DO NOT CLIP, JUST DRAW ALL THE THINGS,
 SOMEHOW. THINK ABOUT HOW THIS WILL WORK. - Investigate asciimatics
 double buffering to see how that works. Maybe it's enough for what we
-want.
+want (pretty sure it isn't)
 
 Unfortunately the asciimetrics double buffer is associated with the
 SCREEN, not an arbitrary REGION like we want. Perhaps it can be
@@ -182,3 +185,33 @@ Track:
   - drawing ops + their regions
 The do "region intersects region" to work out what needs drawing, and
 draw that during "redraw".
+
+
+OVERVIEW OF SCROLLING
+=====================
+
+Multiple components:
+
+    - scroll bars provide ability to represent scrolled area
+      proportionality (size of viewport to size of scrolled area)
+
+Scroll bars can be displayed anywhere, and are linked to the scrolled
+area by being connected to a Viewport
+
+    - scrolled sheet
+
+The scrolled sheet is the region that is too big to fit on the display
+and that the user wants to be able to navigate to different parts of.
+
+    - viewport
+
+The viewport is displayed in the UI. It links the scrolled sheet and
+the scroll bars. When it is drawn, it displays the contents of the
+scrolled sheet that "show through" the viewport at the current time as
+dictated by the values of the scrollbars.
+
+The viewport intercepts drawing operations from its children (or
+made on it directly) and calculates a bounding rectangle for the
+operation. When it needs to draw itself, it finds all rectangles
+intersecting the region being drawn and renders the recorded ops. So
+it's a bit like a recording pane.

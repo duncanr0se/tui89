@@ -12,6 +12,12 @@ class Scrollbar(Sheet):
     # one of "origin" or "terminal"
     _highlight = None
 
+    _scrolled_sheet_extent = None
+    _slug_size = None
+    _slug_offset = None
+
+    _viewport = None
+
     def __init__(self, orientation="vertical"):
         super().__init__()
         self._orientation = orientation
@@ -72,6 +78,16 @@ class Scrollbar(Sheet):
                 pen = save_pen
             else:
                 self.print_at(terminal_arrow, (0, size-1), pen)
+        # draw slug
+        if self._slug_size is not None:
+            if self._slug_offset is None:
+                self._slug_offset = 0
+            if self._orientation == "horizontal":
+                self.move((1 + self._slug_offset, 0))
+                self.draw((1 + self._slug_offset + self._slug_size, 0), slug, pen)
+            else:
+                self.move((0, 1 + self._slug_offset))
+                self.draw((0, 1 + self._slug_offset + self._slug_size), slug, pen)
 
     def compose_space(self):
         absolute_min = 2
@@ -83,25 +99,107 @@ class Scrollbar(Sheet):
         else:
             return ((absolute_min, preferred, max), (1, 1, 1))
 
-    # fixme: scroll bar button press event action
+    # fixme: use right-click in gutter to jump to offset directly
     def handle_event(self, event):
         if isinstance(event, MouseEvent):
             if event.x == 0 and event.y == 0 and event.buttons == MouseEvent.LEFT_CLICK:
                 # (0, 0) is always a button
                 self._highlight = "origin"
+                if self._orientation == "vertical":
+                    self._viewport.scroll_up_line()
+                if self._orientation == "horizontal":
+                    self._viewport.scroll_left_line()
                 self.invalidate()
+                return
             if self._orientation == "vertical":
                 if event.x == 0 and event.y == self.height()-1 \
                    and event.buttons == MouseEvent.LEFT_CLICK:
                     self._highlight = "terminal"
+                    self._viewport.scroll_down_line()
                     self.invalidate()
+                    return
             if self._orientation == "horizontal":
                 if event.y == 0 and event.x == self.width()-1 \
                    and event.buttons == MouseEvent.LEFT_CLICK:
                     self._highlight = "terminal"
+                    self._viewport.scroll_right_line()
                     self.invalidate()
+                    return
+            # fixme: if click in the gutter invoke "scroll_left|up|right|down_page"
+            #     - use the slug_offset and slug_size to work out whether click
+            #       was ahead of slug or behind slug
+            if self._orientation == "vertical" and event.buttons == MouseEvent.LEFT_CLICK:
+                # was click in the gutter above the slug?
+                if event.x == 0 and event.y < self._slug_offset:
+                    self._viewport.scroll_up_page()
+                    self.invalidate()
+                    return
+                # was click in the gutter below the slug?
+                if event.x == 0 and event.y > self._slug_offset+self._slug_size:
+                    self._viewport.scroll_down_page()
+                    self.invalidate()
+                    return
+            if self._orientation == "horizontal" and event.buttons == MouseEvent.LEFT_CLICK:
+                # was click in the gutter left of the slug?
+                if event.y == 0 and event.x < self._slug_offset:
+                    self._viewport.scroll_left_page()
+                    self.invalidate()
+                    return
+                # was click in the gutter right of the slug?
+                if event.y == 0 and event.x > self._slug_offset+self._slug_size:
+                    self._viewport.scroll_right_page()
+                    self.invalidate()
+                    return
             if event.buttons == 0:
                 # fixme: invoke the "scroll" callback
                 self._highlight = None
                 self.invalidate()
+                return
             return False
+
+    # something in either the extents update or the offset update is
+    # not right because the further to the right you scroll, the less
+    # the scroll affects the display.
+
+    # fixme: I think that the extents are being updated when the sheet
+    # is scrolled to the left, when it should not be. Need to be sure
+    # to hold extents in the coords of the SCROLLED SHEET, not of the
+    # VIEWPORT which is what we're doing currently.
+    def update_extents(self, scrolled_sheet_extent, viewport_extent):
+        # normalise extents
+        self._scrolled_sheet_extent = scrolled_sheet_extent
+        if viewport_extent < scrolled_sheet_extent:
+            # input: bar length, scrolled sheet extent, viewport extent
+            (w, h) = self._region
+            bar_length = w-2 if self._orientation == "horizontal" else h-2
+            slug_ratio = (viewport_extent / scrolled_sheet_extent)
+            self._slug_size = max(slug_ratio * bar_length, 1)
+        else:
+            self._slug_size = None
+
+    def update_scroll_offset(self, scrolled_sheet):
+        # fixme: work out how far to offset slug in bar based on size
+        # of viewport, size of scrolled sheet, and length of scroll
+        # bar
+        # -ve transform moves bar down / right. But how far?
+
+        # transform is in LINES. _slug_size is a ratio of viewport
+        # size to scrolled sheet size scaled so that slug to bar
+        # length ratio matches viewport to scrolled sheet size.
+
+        # In this scenario bar length is proportional to size of
+        # scrolled sheet. bar length / scrolled sheet extent
+        # gives how far to move the slug per line of the scrolled
+        # sheet.
+
+        # This is close, but the slug size has to be deducted from
+        # the available bar size, we don't have the whole bar to
+        # work with...
+        extent = self._scrolled_sheet_extent
+        (rw, rh) = self._region
+        size = rw if self._orientation == "horizontal" else rh
+        size -= self._slug_size
+        lines_per_bar_unit = size / extent
+        transform = scrolled_sheet._transform
+        delta = transform._dy if self._orientation == "vertical" else transform._dx
+        self._slug_offset = int(abs(delta) * lines_per_bar_unit)
