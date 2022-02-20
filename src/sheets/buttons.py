@@ -9,28 +9,23 @@ from sheets.spacereq import FILL
 from dcs.ink import Pen
 
 class Button(Sheet):
+    """Push button sheet.
 
+    Buttons have a label;
+    can be decorated, or not;
+    have no children;
+    """
     _label = None
 
     # event support
-    _left_click_time = 0
 
     on_click = None
     # on_button_down?
     # on_button_up?
     # on_double_click?
 
-    # todo: work out how underlying library calculates double click,
-    # think it might be screwing our single click! Quck single click
-    # doesn't register.
-
-    # simple class that draws a border around itself and manages a
-    # single child - todo, complicate this up by making it support
-    # scrolling!
-
     _pressed = False
 
-    # fixme: add width, align, ... options
     def __init__(self, label=None, decorated=True):
         super().__init__()
         self._label = label
@@ -42,14 +37,16 @@ class Button(Sheet):
         ty = self._transform._dy
         return "Button({}x{}@{},{}: '{}')".format(width, height, tx, ty, self._label)
 
+    ####
+
     def add_child(self, child):
         # default Button has no children
         pass
 
-    # default button expects to be able to fit its label + < and >, as
-    # well as some padding. It can grow as big as you like, but won't
-    # go smaller than 2x4.
-    # How about dealing with multi-line labels? Image buttons?
+    # default button expects to be able to fit its label + some
+    # padding. It can grow as big as you like, but won't go smaller
+    # than 2x4.  How about dealing with multi-line labels? Image
+    # buttons?
     def compose_space(self):
 
         # QUERY: should all buttons be a fixed size?
@@ -82,10 +79,7 @@ class Button(Sheet):
             self.draw((width, y), ' ', pen)
 
     def _draw_button_background(self):
-        if self._pressed:
-            pen = self.frame().theme("selected_focus_field")
-        else:
-            pen = self.frame().theme("button")
+        pen = self._get_pen()
         (width, height) = self._region
         xoffset = 1 if self._decorated else 0
         yoffset = 1 if self._decorated else 0
@@ -105,15 +99,10 @@ class Button(Sheet):
         dropshadow_below = u'▀'
         self.print_at(dropshadow_right, (width-2, 1), pen)
         self.move((2, 2))
-        # x is not included when using "draw" but is when using
-        # "print_at". Maybe that's as it should be?
         self.draw((width-1, 2), dropshadow_below, pen)
 
     def _draw_button_label(self):
-        if self._pressed:
-            pen = self.frame().theme("selected_focus_field")
-        else:
-            pen = self.frame().theme("button")
+        pen = self._get_pen()
         (width, height) = self._region
         # assume single-line label, for now
         label_length = len(self._label) if self._label else 2
@@ -123,10 +112,13 @@ class Button(Sheet):
         yoffset = 1 if self._decorated else 0
         self.print_at(button_label, (center_x, yoffset), pen)
 
+    def _get_pen(self):
+        style = "selected_focus_field" if self._pressed else "button"
+        return self.frame().theme(style)
+
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
-
         # draw decoration first so it doesn't overdraw the
         # background or label
         if self._decorated:
@@ -156,6 +148,8 @@ class RadioButton(Button):
 
     def __init__(self, label="--", decorated=False):
         super().__init__(label="( ) " + label, decorated=decorated)
+
+    # needs to be part of a button group to be useful
 
 
 class CheckBox(Button):
