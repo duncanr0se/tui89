@@ -59,8 +59,9 @@ def demo(screen):
     one.add_child(RadioButton(label="Radio", decorated=False))
     one.add_child(CheckBox(label="Check"))
 
-    inner_bl = BorderLayout(title="two")
-    child_sheet.add_child(inner_bl)
+    border2 = BorderLayout(title="two", style="single")
+    child_sheet.add_child(border2)
+
     child_sheet.add_child(BorderLayout(title="three"))
 
     border4 = BorderLayout(title="scrolling")

@@ -18,9 +18,25 @@ class BorderLayout(Sheet):
     _vertical_sb = None
     _horizontal_sb = None
 
-    def __init__(self, title=None):
+    # One of "double", "spacing", "single", "scrolling", "title"
+    #     - double :: draw border using double bars; will draw title;
+    #     - single :: draw border using single bars; will draw title;
+    #     - spacing :: draw border using spaces;
+    #     - scrolling :: border only on bottom and rhs, and populated
+    #           with scroll bars in that case;
+    #     - title :: border only on top; will draw title;
+    #     - None :: no border? Not sure this is useful... maybe if
+    #           a spacer is needed that could draw bars later?
+    _border = None
+
+    def __init__(self, title=None, style="double"):
         super().__init__()
         self._title = title
+        supported = ["double", "single"]
+        if style not in supported:
+            raise NotImplementedError("Border layout only supports {} style currently"
+                                      .format(supported))
+        self._border = style
 
     def __repr__(self):
         (width, height) = self._region
@@ -122,6 +138,19 @@ class BorderLayout(Sheet):
         if self._horizontal_sb is not None:
             self._horizontal_sb.render()
 
+    border_chars = {
+        "double": {
+            "nw":   u'╔', "top": u'═',    "ne": u'╗',
+            "left": u'║',              "right": u'║',
+            "sw":   u'╚', "bottom": u'═', "se": u'╝'
+        },
+        "single": {
+            "nw":   u'┌', "top": u'─',    "ne": u'┐',
+            "left": u'│',              "right": u'│',
+            "sw":   u'└', "bottom": u'─', "se": u'┘'
+        }
+    }
+
     def _draw_border(self):
         pen = self.top_level_sheet()._default_fg_pen
         if pen is None:
@@ -133,9 +162,9 @@ class BorderLayout(Sheet):
         bottom = self.height()-1
 
         # todo: deal with long titles
-
+        charset = self.border_chars[self._border]
         # top border - make allowances for a title
-        self.print_at(u'╔', (left, top), pen)
+        self.print_at(charset["nw"], (left, top), pen)
         self.move((1, top))
         if self._title:
             # LHS of bar + title
@@ -143,32 +172,32 @@ class BorderLayout(Sheet):
             title = ' ' + self._title + ' '
             title_width = len(title)
             side_bar_width = (bar_width - title_width) // 2
-            self.draw((side_bar_width, top), u'═', pen)
+            self.draw((side_bar_width, top), charset["top"], pen)
             self.print_at(title, (side_bar_width, top), pen)
             self.move((side_bar_width + title_width, top))
-            self.draw((right, top), u'═', pen)
+            self.draw((right, top), charset["top"], pen)
         else:
-            self.draw((right, top), u'═', pen)
-        self.print_at(u'╗', (right, top), pen)
+            self.draw((right, top), charset["top"], pen)
+        self.print_at(charset["ne"], (right, top), pen)
 
         # left border
         self.move((left, top + 1))
-        self.draw((left, bottom), u'║', pen)
+        self.draw((left, bottom), charset["left"], pen)
 
         # right border - might be scroll bar
         if self._vertical_sb is None:
             self.move((right, top + 1))
-            self.draw((right, bottom), u'║', pen)
+            self.draw((right, bottom), charset["right"], pen)
         else:
             # scrollbar will draw itself
             pass
 
         # bottom border - might be scroll bar
-        self.print_at(u'╚', (left, bottom), pen)
+        self.print_at(charset["sw"], (left, bottom), pen)
         if self._horizontal_sb is None:
             self.move((1, bottom))
-            self.draw((right, bottom), u'═', pen)
-            self.print_at(u'╝', (right, bottom), pen)
+            self.draw((right, bottom), charset["bottom"], pen)
+            self.print_at(charset["se"], (right, bottom), pen)
         else:
             self.print_at(u'─', (right-1, bottom), pen)
             self.print_at(u'┘', (right, bottom), pen)
