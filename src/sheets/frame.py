@@ -57,6 +57,7 @@ class Frame():
     def set_top_level_sheet(self, sheet):
         self._top_level_sheet = sheet
         sheet._frame = self
+        sheet._default_pen = self.theme("borders")
 
     def top_level_sheet(self):
         return self._top_level_sheet
@@ -169,6 +170,9 @@ class Frame():
         # "graft / detach / attach" methods that work for all top
         # levels, if not for all sheets.
         dialog.attach(self)
+
+        # if dialog becomes a frame, move defaults into frame
+        dialog._default_pen = self.theme("invalid")
 
         dwidth = self._screen.width // 2
         dheight = self._screen.height // 2

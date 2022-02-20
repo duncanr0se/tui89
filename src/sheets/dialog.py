@@ -43,9 +43,6 @@ class Dialog(TopLevelSheet):
         #super().__init__(frame=frame)
         self._children = []
         self._frame = frame
-        # if dialog becomes a frame, move defaults into frame
-        self._default_bg_pen = frame.theme("invalid")
-        self._default_fg_pen = frame.theme("invalid")
         self._title = title if title is not None else "unnamed"
         border = BorderLayout(title="[ALERT] - " + title)
         self.add_child(border)
@@ -143,9 +140,7 @@ class Dialog(TopLevelSheet):
         for child in self._children:
             child.render()
 
-        fgpen = self._default_fg_pen
-        bgpen = self._default_bg_pen
-        pen = Pen(fgpen.fg(), fgpen.attr(), bgpen.bg())
+        pen = self.default_pen()
         # fixme: use a real pane type to hold the text
         self._content_pane.print_at(self._text, (2, 2), pen)
 

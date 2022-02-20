@@ -102,7 +102,8 @@ class Button(Sheet):
         pass
 
     def _draw_padding(self):
-        pen = self.top_level_sheet()._default_bg_pen
+        pen = self.default_pen()
+        pen = Pen(pen.bg(), pen.attr(), pen.bg())
         (width, height) = self._region
         for y in range(0, height-1):
             self.move((0, y))
@@ -122,7 +123,7 @@ class Button(Sheet):
 
     def _draw_button_dropshadow(self):
         shadow_pen = self.frame().theme("shadow")
-        bg_pen = self.top_level_sheet()._default_bg_pen
+        bg_pen = self.default_pen()
         pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg())
         (width, height) = self._region
         dropshadow_right = u'▄'

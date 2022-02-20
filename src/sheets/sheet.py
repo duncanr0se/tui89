@@ -23,12 +23,23 @@ class Sheet():
     # when the sheet's top-level-sheet is attached to the display
     _attached = True
 
-    def __init__(self):
+    _default_pen = None
+
+    def __init__(self, default_pen=None):
         self._children = []
+        if default_pen is not None:
+            self._default_pen = default_pen
 
     def __repr__(self):
         (width, height) = self._region
         return "Sheet({}x{})".format(width, height)
+
+    # drawing
+    def default_pen(self):
+        if self._default_pen is None:
+            return self._parent.default_pen()
+        else:
+            return self._default_pen
 
     # drawing
     def clear(self, origin, region):

@@ -29,8 +29,8 @@ class BorderLayout(Sheet):
     #           a spacer is needed that could draw bars later?
     _border = None
 
-    def __init__(self, title=None, style="double"):
-        super().__init__()
+    def __init__(self, title=None, style="double", default_pen=None):
+        super().__init__(default_pen)
         self._title = title
         supported = ["double", "single", "spacing"]
         if style not in supported:
@@ -157,10 +157,7 @@ class BorderLayout(Sheet):
     }
 
     def _draw_border(self):
-        pen = self.top_level_sheet()._default_fg_pen
-        if pen is None:
-            pen = self.frame().theme("borders")
-
+        pen = self.default_pen()
         (left, top) = (0, 0)
         (width, height) = self._region
         right = self.width()-1

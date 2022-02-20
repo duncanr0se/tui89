@@ -15,6 +15,7 @@ from sheets.boxlayout import HorizontalLayout
 from sheets.boxlayout import VerticalLayout
 from sheets.dialog import Dialog
 from sheets.scrollbar import Scrollbar
+from dcs.ink import Pen
 
 import sys
 
@@ -62,7 +63,8 @@ def demo(screen):
     border2 = BorderLayout(title="two", style="single")
     child_sheet.add_child(border2)
 
-    child_sheet.add_child(BorderLayout(title="three", style="spacing"))
+    green_bg = Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_GREEN)
+    child_sheet.add_child(BorderLayout(title="green", style="spacing", default_pen=green_bg))
 
     border4 = BorderLayout(title="scrolling")
     child_sheet.add_child(border4)

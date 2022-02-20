@@ -5,29 +5,23 @@ from dcs.ink import Pen
 class TopLevelSheet(Sheet):
 
     _frame = None
-    _default_fg_pen = None
-    _default_bg_pen = None
 
     def __init__(self, frame):
         super().__init__()
         self._frame = frame
         frame.set_top_level_sheet(self)
-        # if dialog becomes a frame, move defaults into frame
-        self._default_bg_pen = frame.theme("background")
-        self._default_fg_pen = frame.theme("borders")
 
     def __repr__(self):
         (width, height) = self._region
         return "TopLevelSheet({}x{})".format(width, height)
 
     def clear(self, origin, region):
-        pen = self._default_bg_pen if self._default_bg_pen is not None \
-            else self._frame.theme("background")
+        pen = self.default_pen()
         (x, y) = self._transform.apply(origin)
         (w, h) = region
         for line in range(0, h):
             self._frame._screen.move(x, y + line)
-            self._frame._screen.draw(x + w, y + line, u' ', colour=pen.fg(), bg=pen.bg())
+            self._frame._screen.draw(x + w, y + line, u' ', colour=pen.bg(), bg=pen.bg())
 
     def print_at(self, text, coord, pen):
         (x, y) = self._transform.apply(coord)
