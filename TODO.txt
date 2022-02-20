@@ -59,48 +59,49 @@
 
 5. Menus / command tables / status bars
 
-When a button is created, it should be possible to add an accelerator
-key to some global / command map and handle that accelerator at the
-frame level.
 
-Box layouts:
+USABILITY
+=========
+ACCELERATORS + MNEMONICS - for buttons and generic commands
+
+and we need command tables or some other way to tie keys and ui to
+commands.
+
+
+LAYOUT IMPROVEMENTS
+===================
+
+Box layouts
+-----------
 Should support explicit sizes for kids as well as ratios. Allow space
 for explicitly specified sizes, then split remaining space over
 specified ratios. If there's free space left (all specified sizes but
 space remains), do what? Leave undefined for now, throw on user to
 make sure it doesn't happen.
-
 First pass: fixed sizes
 Second pass: percentages
 
+TEXT ALIGNMENT ON BUTTONS / BORDER TITLES
+
+
+VISUAL FEEDBACK
+===============
 DEFAULTS ARE OK - BUTTONS WITH NO BORDER BY DEFAULT HAVE VISUAL STATE
 THAT CAN BE UPDATED (CHECK / RADIO INDICATORS). FLAT PUSH BUTTONS WILL
 COME ALONG WHEN MENU BUTTONS ARE WRITTEN, WHICH WILL NEED A COLOUR
 CHANGE ON PRESS.
 
-tidying
-
 test / fix screen resize! See docs from asciimatics
 
-need to do something about events! - see draw_next_frame() in
-screen.py
 
-and we need command tables or some other way to tie keys and ui to
-commands.
-
-specialise "region_contains_position" for decorated buttons and other
-decorated widgets... not sure quite how to do that so that border can
-be ignored for mouse click location but included for other "does this
-point inhabit the widget space" queries...  Note if the button was
-wrapped in a spacing pane, this problem would solve itself I think...
+GENERAL / CODING
+================
+tidying
 
 more flexibility for borders; DOUBLE, SINGLE, SPACE, NONE... could
 also combine into a spacing pane.
 
-click detection is really ropey. Maybe asciimatics is not reporting
-them like it should?
-
-event handling (button click / release) seems slow. Investigate.
+DIFFERENT TYPES OF BORDERS
 
 look at other stuff asciimatics does (save / restore form state etc.)
 and decide if that's something that could be useful.Pretty sure it
@@ -108,9 +109,30 @@ isn't...
 
 DOCUMENTATION - write some
 
-TEXT ALIGNMENT ON BUTTONS / BORDER TITLES
 
-DIFFERENT TYPES OF BORDERS
+EVENT HANDLING
+==============
+need to do something about events! - see draw_next_frame() in
+screen.py
+
+event handling (button click / release) seems slow. Investigate.
+
+click detection is really ropey. Maybe asciimatics is not reporting
+them like it should?
+
+
+SCROLLING
+=========
+specialise "region_contains_position" for decorated buttons and other
+decorated widgets... not sure quite how to do that so that border can
+be ignored for mouse click location but included for other "does this
+point inhabit the widget space" queries...  Note if the button was
+wrapped in a spacing pane, this problem would solve itself I think...
+
+===============================================
+
+
+
 
 EXAMPLE WIDGET APP - MAKE IT SHOW ALL THE OPTIONS FOR ALL THE WIDGETS.
 
@@ -123,7 +145,6 @@ EVENT HANDLING - HOW MUCH IS NEEDED?
   - on_double_click
 
 BUTTON LABEL ALIGNMENT - do with label
-BUTTON EXPLICIT WIDTH
 
 Replace button hard-coded label with label sheet, implement alignments
 in that type so it doesn't need to be done all over. Use in other
