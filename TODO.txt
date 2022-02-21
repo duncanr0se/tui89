@@ -1,5 +1,5 @@
 
- add more widgets
+ add more widgets:
    - layouts
        - border (✔)
        - row (✔)
@@ -9,7 +9,7 @@
        - check boxes (✔)
        - menu button
    - button group?
-   - label
+   - label (✔)
    - scroll bars (✔)
    - viewport (✔)
    - menu bar
@@ -27,7 +27,12 @@
    - vertical separator
    - padding
    - list
-   - tree
+
+add controls:
+   - tree control
+   - multivalue dialog box (dialog box containing other widgets)
+   - file save
+   - file open
 
  PRIORITIES:
 
@@ -59,6 +64,10 @@
 
 5. Menus / command tables / status bars
 
+6. Layouts - make it pretty, make it functional
+
+7. File explorer - local fs, archives, s3
+
 
 USABILITY
 =========
@@ -87,6 +96,12 @@ Second pass: percentages
 
 TEXT ALIGNMENT ON BUTTONS / BORDER TITLES
 
+Label needs to support alignments and truncation.
+
+Multiline labels
+
+Measuring text needs to be better; len(str) might not be effective for
+multibyte characters.
 
 VISUAL FEEDBACK
 ===============
@@ -100,9 +115,6 @@ test / fix screen resize! See docs from asciimatics
 
 GENERAL / CODING
 ================
-more flexibility for borders; SPACE, NONE... could
-also combine into a spacing pane.
-
 DIFFERENT TYPES OF BORDERS
 
 look at other stuff asciimatics does (save / restore form state etc.)
@@ -162,6 +174,7 @@ SOMEHOW. THINK ABOUT HOW THIS WILL WORK. - Investigate asciimatics
 double buffering to see how that works. Maybe it's enough for what we
 want (pretty sure it isn't)
 
+CLIPPING IN VIEWPORTS!
 
 OVERVIEW OF SCROLLING
 =====================

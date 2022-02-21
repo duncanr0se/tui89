@@ -16,6 +16,8 @@ from sheets.boxlayout import VerticalLayout
 from sheets.dialog import Dialog
 from sheets.scrollbar import Scrollbar
 from sheets.viewport import Viewport
+from sheets.label import Label
+
 from dcs.ink import Pen
 
 import sys
@@ -63,6 +65,8 @@ def demo(screen):
 
     border2 = BorderLayout(title="two", style="single")
     child_sheet.add_child(border2)
+    label = Label("A label")
+    border2.add_child(label)
 
     green_bg = Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_GREEN)
     child_sheet.add_child(BorderLayout(title="green", style="spacing", default_pen=green_bg))
