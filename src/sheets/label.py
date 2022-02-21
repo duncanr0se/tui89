@@ -20,13 +20,11 @@ class Label(Sheet):
         (width, height) = self._region
         return "Label({}x{}, '{}')".format(width, height, self._label_text)
 
+    def add_child(self):
+        raise RuntimeError("children not allowed")
+
     # drawing / redisplay
     def render(self):
-        self._draw_label()
-        for child in self._children:
-            child.render()
-
-    def _draw_label(self):
         # todo: label alignment
         # todo: label truncation
         pen = self.frame().theme("label")
