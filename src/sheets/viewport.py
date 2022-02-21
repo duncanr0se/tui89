@@ -78,6 +78,9 @@ class Viewport(Sheet):
 #        # this sheet doesn't contain the position
 #        return None
 
+    # FIXME: experiment with scrolling layout containing widgets,
+    # esp. when it comes to dealing with events...
+
     # Viewport has no view of how much space it needs. Just pick some
     # not-unreasonable default.
 
@@ -97,12 +100,49 @@ class Viewport(Sheet):
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
+        self.clear((0, 0), self._region)
         for child in self._children:
             child.render()
-        # fixme: how to get scroller extents?
-        # fixme: how to update the scrollbars?
-        # fixme: how to update the transforms?
         # fixme: how to deal with events?
+
+    # FIME: this seems often to be over-eager to clip the text
+    def _clip_text(self, coord, text):
+        # measure text, cut off any that would be rendered before x=0
+        # + cut off any that would be rendered after 'width'
+        # coord is fixed elsewhere
+
+        text_len = len(text)
+        (x, y) = coord
+        (w, h) = self._region
+
+        if x < 0:
+            text = text[abs(x):]
+        if x > w:
+            text = None
+        if y < 0:
+            text = None
+        if y > h:
+            text = None
+
+        if text is not None:
+            overflow = x+len(text) - w
+            if overflow > 0:
+                # change overflow to represent just the portion of the
+                # text that is overflowing
+                overflow -= x
+                text = text[:overflow]
+
+        if text == "":
+            text = None
+
+        return text
+
+    def _clip(self, coord):
+        (x, y) = coord
+        (w, h) = self._region
+        cx = max(min(x, w), 0)
+        cy = max(min(y, h), 0)
+        return (cx, cy)
 
     # drawing
     def clear(self, origin, region):
@@ -111,13 +151,19 @@ class Viewport(Sheet):
 
     # drawing
     def print_at(self, text, coord, pen):
+        # capture full extents of print
         self._capture_print_at(text, coord)
-        parent_coord = self._transform.apply(coord)
-        self._parent.print_at(text, parent_coord, pen)
+        # clip to region prior to drawing
+        text = self._clip_text(coord, text)
+        if text is not None:
+            coord = self._clip(coord)
+            parent_coord = self._transform.apply(coord)
+            self._parent.print_at(text, parent_coord, pen)
 
     # drawing
     def move(self, coord):
         self._capture_move(coord)
+        coord = self._clip(coord)
         parent_coord = self._transform.apply(coord)
         self._parent.move(parent_coord)
 
@@ -128,6 +174,7 @@ class Viewport(Sheet):
     # characters. Perhaps.
     def draw(self, coord, char, pen):
         self._capture_draw(coord, char)
+        coord = self._clip(coord)
         parent_coord = self._transform.apply(coord)
         self._parent.draw(parent_coord, char, pen)
 

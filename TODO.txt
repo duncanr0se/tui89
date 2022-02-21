@@ -5,17 +5,17 @@
        - row (✔)
        - column (✔)
        - list (✔)
-   - buttons (✔)
+   - buttons
        - push button (✔)
        - radio buttons (✔)
        - check boxes (✔)
        - menu button (✔)
-   - button group? - base on listlayout
+   - button group?
    - label (✔)
    - scroll bars (✔)
    - viewport (✔)
    - menu bar (✔)
-   - menu - base on listlayout - like a button group but without grouping
+   - menu
    - status bar
    - dialog box (✔)
        - alert (✔)
