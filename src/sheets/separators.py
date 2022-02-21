@@ -43,11 +43,12 @@ class HorizontalSeparator(Separator):
         pen = self.frame().theme("borders")
         (w, h) = self._region
         self.move((0, 0))
-        self.draw((w, 0), self._line_chars[self._style], pen)
+        self.draw((w, 0), HorizontalSeparator._line_chars[self._style], pen)
 
     # layout
     def compose_space(self):
-        return ((0, len(self._label_text), FILL), (0, 1, 1))
+        length = FILL if self._size is None else self._size
+        return ((0, length, FILL), (0, 1, 1))
 
 
 class VerticalSeparator(Separator):
@@ -72,10 +73,11 @@ class VerticalSeparator(Separator):
         pen = self.frame().theme("borders")
         (w, h) = self._region
         self.move((0, 0))
-        self.draw((0, h), self._line_chars[self._style], pen)
+        self.draw((0, h), VerticalSeparator._line_chars[self._style], pen)
 
     # layout
     def compose_space(self):
         # Prefer enough room for the label. Can take as much room as offered.
         # Can shrink to 0 although that's probably not useful...
-        return ((0, 1, 1), (0, len(self._label_text), FILL))
+        length = FILL if self._size is None else self._size
+        return ((0, 1, 1), (0, length, FILL))
