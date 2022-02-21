@@ -4,10 +4,12 @@
        - border (✔)
        - row (✔)
        - column (✔)
+       - list (✔)
    - buttons (✔)
+       - push button (✔)
        - radio buttons (✔)
        - check boxes (✔)
-       - menu button
+       - menu button - how is this different to an undecorated push button?
    - button group?
    - label (✔)
    - scroll bars (✔)
@@ -26,13 +28,15 @@
    - horizontal separator (✔)
    - vertical separator (✔)
    - padding
-   - list
 
 add controls:
    - tree control
    - multivalue dialog box (dialog box containing other widgets)
    - file save
    - file open
+
+Look at other toolkits, work out if there are any other controls or
+widgets that could be useful.
 
  PRIORITIES:
 

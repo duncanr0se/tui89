@@ -19,6 +19,7 @@ from sheets.viewport import Viewport
 from sheets.label import Label
 from sheets.separators import HorizontalSeparator
 from sheets.separators import VerticalSeparator
+from sheets.listlayout import ListLayout
 
 from dcs.ink import Pen
 
@@ -65,16 +66,16 @@ def demo(screen):
     one.add_child(RadioButton(label="Radio", decorated=False))
     one.add_child(CheckBox(label="Check"))
 
-    border2 = BorderLayout(title="two", style="single")
+    border2 = BorderLayout(title="list", style="single")
     child_sheet.add_child(border2)
-    vlayout = VerticalLayout([1, 1, 1])
-    border2.add_child(vlayout)
+    listlayout = ListLayout()
+    border2.add_child(listlayout)
     label = Label("A label")
-    vlayout.add_child(label)
+    listlayout.add_child(label)
     hseparator = HorizontalSeparator(style="single", size=8)
-    vlayout.add_child(hseparator)
+    listlayout.add_child(hseparator)
     vseparator = VerticalSeparator(style="double", size=8)
-    vlayout.add_child(vseparator)
+    listlayout.add_child(vseparator)
 
     green_bg = Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_GREEN)
     child_sheet.add_child(BorderLayout(title="green", style="spacing", default_pen=green_bg))
