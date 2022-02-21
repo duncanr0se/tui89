@@ -15,19 +15,13 @@ from sheets.spacereq import ySpaceReqDesired
 # should the frame be a sheet? Hrm.
 class Frame():
 
-    _screen = None
-    _top_level_sheet = None
-    _dialog = None
-    _invalidated = None
-
-    def __init__(self, screen):
-        self._screen = screen
-
-        THEMES["tv"] = {
+    THEMES = {
+        "tv": {
             "background": (Screen.COLOUR_BLUE, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "shadow": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "scroll": (Screen.COLOUR_CYAN, Screen.A_REVERSE, Screen.COLOUR_BLUE),
             "button": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_GREEN),
+            "menubar": (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_MAGENTA),
 
             "disabled": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_BLUE),
             "invalid": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED),
@@ -48,6 +42,16 @@ class Frame():
             "focus_field": (Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "selected_focus_field": (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN),
         }
+    }
+
+    _screen = None
+    _top_level_sheet = None
+    _dialog = None
+    _invalidated = None
+
+    def __init__(self, screen):
+        self._screen = screen
+
         self._invalidated = deque()
 
     def __repr__(self):
@@ -63,7 +67,7 @@ class Frame():
         return self._top_level_sheet
 
     def theme(self, ink_name):
-        (fg, attr, bg) = THEMES["tv"][ink_name]
+        (fg, attr, bg) = Frame.THEMES["tv"][ink_name]
         return Pen(fg=fg, attr=attr, bg=bg)
 
     def start_frame(self):

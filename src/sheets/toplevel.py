@@ -16,12 +16,19 @@ class TopLevelSheet(Sheet):
         return "TopLevelSheet({}x{})".format(width, height)
 
     def clear(self, origin, region):
+        # FIXME: top level sheet *always* has a default pen
+        # associated, so this is no good - it can't be overridden :/
         pen = self.default_pen()
         (x, y) = self._transform.apply(origin)
         (w, h) = region
         for line in range(0, h):
             self._frame._screen.move(x, y + line)
             self._frame._screen.draw(x + w, y + line, u' ', colour=pen.bg(), bg=pen.bg())
+
+    def default_pen(self):
+        if not self._default_pen:
+            raise RuntimeError("top sheet must have default pen set")
+        return super().default_pen()
 
     def print_at(self, text, coord, pen):
         (x, y) = self._transform.apply(coord)

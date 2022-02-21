@@ -196,3 +196,9 @@ class CheckBox(Button):
                 self._label = "[ ]" + self._label[3:]
             self.invalidate()
         return False
+
+
+class MenuButton(Button):
+
+    def __init__(self, label="--", decorated=False):
+        super().__init__(label=label, decorated=decorated)

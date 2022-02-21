@@ -9,13 +9,13 @@
        - push button (✔)
        - radio buttons (✔)
        - check boxes (✔)
-       - menu button - how is this different to an undecorated push button?
-   - button group?
+       - menu button (✔)
+   - button group? - base on listlayout
    - label (✔)
    - scroll bars (✔)
    - viewport (✔)
-   - menu bar
-   - menu
+   - menu bar (✔)
+   - menu - base on listlayout - like a button group but without grouping
    - status bar
    - dialog box (✔)
        - alert (✔)
@@ -27,7 +27,10 @@
    - text box
    - horizontal separator (✔)
    - vertical separator (✔)
+   - option box
+   - combo box
    - padding
+   - progress bar
 
 add controls:
    - tree control
@@ -40,37 +43,16 @@ widgets that could be useful.
 
  PRIORITIES:
 
---1.-- Event handling - decide how to do this, do we want something
-  declarative and semantically high-level for defining event handlers
-  (like DUIM) or is something basic sufficient? Basic for now.  - send
-  event to topmost sheet where event occurred / send keyboard events
-  to current focus.
+*. Menus / status bars
 
---1.5.-- Dialogs; need some way to provide feedback without having to
- throw exceptions everywhere... keep them basic, just a new sheet
- type.
+*. command tables
 
-1.6. extend dialogs so they are actually useful for displaying stuff
-     - alert box (✔)
-     - info dialog
-     - yes / no dialog
+*. Layouts - make it pretty, make it functional
 
---2.-- Once event handling is in place, need to experiment with scrolling
- / overflowing a screen buffer with content / clipping etc. and work
- out how scrolling is actually going to work in tandem with
- asciimetrics handling of the screen / buffers.
-
---3.-- Implement scrolling. Make all border panes handle scrolling
- transparently.
-
-4. Then - more widgets, event handling, focus, input, tab order.
+*. Then - more widgets, event handling, focus, input, tab order.
       - how about having a widget that shows the event stream?
 
-5. Menus / command tables / status bars
-
-6. Layouts - make it pretty, make it functional
-
-7. File explorer - local fs, archives, s3
+*. File explorer - local fs, archives, s3
 
 
 USABILITY

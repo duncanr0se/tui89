@@ -11,6 +11,7 @@ from sheets.borderlayout import BorderLayout
 from sheets.buttons import Button
 from sheets.buttons import RadioButton
 from sheets.buttons import CheckBox
+from sheets.buttons import MenuButton
 from sheets.boxlayout import HorizontalLayout
 from sheets.boxlayout import VerticalLayout
 from sheets.dialog import Dialog
@@ -20,6 +21,7 @@ from sheets.label import Label
 from sheets.separators import HorizontalSeparator
 from sheets.separators import VerticalSeparator
 from sheets.listlayout import ListLayout
+from sheets.menubar import MenubarLayout
 
 from dcs.ink import Pen
 
@@ -78,7 +80,21 @@ def demo(screen):
     listlayout.add_child(vseparator)
 
     green_bg = Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_GREEN)
-    child_sheet.add_child(BorderLayout(title="green", style="spacing", default_pen=green_bg))
+    green_border = BorderLayout(title="green", style="spacing", default_pen=green_bg)
+    child_sheet.add_child(green_border)
+    menubar = MenubarLayout()
+    green_border.add_child(menubar)
+
+    menu1 = MenuButton(label="File")
+    menu2 = MenuButton(label="Edit")
+    menu3 = MenuButton(label="View")
+    menu4 = MenuButton(label="Help")
+
+    # Colours are all screwy :/
+    menubar.add_child(menu1)
+    menubar.add_child(menu2)
+    menubar.add_child(menu3)
+    menubar.add_child(menu4)
 
     border4 = BorderLayout(title="scrolling")
     child_sheet.add_child(border4)
