@@ -194,82 +194,111 @@ class Viewport(Sheet):
             if self._horizontal_sb is not None:
                 self._horizontal_sb.update_extents(ew, rw)
 
+    # 0,0
+    #  +----------+----------------+
+    #  |          |                |
+    #  |          |                |
+    #  ...
+
+    #       sheet_max-viewport_width,0
+    #  +----------------+----------+
+    #  |                |          |
+    #  |                |          |
+    #  ...
+
+    # slug offset
+    #      v
+    #  +---+----------+------------+
+    #  |<t>|          |            |
+    #  |   |<  slug  >|            |
+    #  ...     size
+    #   <    bar size / width     >
+
     def scroll_left_line(self):
         # scrolling LEFT moves scrolled sheet to the RIGHT.
         # if LHS of scrolled sheet is already showing, don't allow
         # scrolling in this direction.
         # LHS will be showing if transform is >= 0.
+        delta = 1
         trans = self._scrolled_sheet._transform
-        x = trans._dx
-        if x < 0:
-            self._scrolled_sheet._transform = Transform(x+1, trans._dy)
-            # invalidate self, or invalidate scrolled sheet?
-            self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
-            self.invalidate()
+        x = min(0, trans._dx+delta)
+        # fixme: don't update transform if it doesn't change
+        self._scrolled_sheet._transform = Transform(x, trans._dy)
+        # invalidate self, or invalidate scrolled sheet?
+        self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
+        self.invalidate()
 
-    # fixme: disallow scrolling if already displaying max extent of
-    # scroller
     def scroll_right_line(self):
+        #
+        # FIXME: +definitely coming in here but scrolling by a page; why?
+        #
+        delta = 1
         trans = self._scrolled_sheet._transform
-        x = trans._dx
-        self._scrolled_sheet._transform = Transform(x-1, trans._dy)
+        # 0,0
+        (sw, sh) = self._scroll_extents[1]
+        tmax = self.width() - sw
+        # -89
+        x = max(tmax, trans._dx-delta)
+        # -1
+        # fixme: don't update transform if it doesn't change
+        self._scrolled_sheet._transform = Transform(x, trans._dy)
         self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
         self.invalidate()
 
     def scroll_up_line(self):
+        delta = 1
         trans = self._scrolled_sheet._transform
-        y = trans._dy
-        if y < 0:
-            self._scrolled_sheet._transform = Transform(trans._dx, y+1)
-            self._vertical_sb.update_scroll_offset(self._scrolled_sheet)
-            self.invalidate()
-
-    # fixme: disallow scrolling if already displaying max extent of
-    # scroller
-    def scroll_down_line(self):
-        trans = self._scrolled_sheet._transform
-        y = trans._dy
-        self._scrolled_sheet._transform = Transform(trans._dx, y-1)
+        y = min(0, trans._dy+delta)
+        self._scrolled_sheet._transform = Transform(trans._dx, y)
         self._vertical_sb.update_scroll_offset(self._scrolled_sheet)
         self.invalidate()
 
-    # fixme: when scrolling by the page, need to just set the transform
-    # to 0 / max depending on which way being scrolled when reach the
-    # end of the scroll range.
-    def scroll_left_page(self):
+    def scroll_down_line(self):
+        delta = 1
         trans = self._scrolled_sheet._transform
-        x = trans._dx
+        (sw, sh) = self._scroll_extents[1]
+        # -1 is a hack, work out why the drawing position is wrong...
+        tmax = self.height()-1 - sh
+        y = max(tmax, trans._dy-delta)
+        self._scrolled_sheet._transform = Transform(trans._dx, y)
+        self._vertical_sb.update_scroll_offset(self._scrolled_sheet)
+        self.invalidate()
+
+    def scroll_left_page(self):
         delta = self.width()-1
-        if x < 0:
-            self._scrolled_sheet._transform = Transform(x+delta, trans._dy)
+        trans = self._scrolled_sheet._transform
+        x = min(0, trans._dx+delta)
+        # fixme: don't update transform if it doesn't change
+        self._scrolled_sheet._transform = Transform(x, trans._dy)
+        # invalidate self, or invalidate scrolled sheet?
         self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
         self.invalidate()
 
-    # fixme: disallow scrolling if already displaying max extent of
-    # scroller
     def scroll_right_page(self):
-        trans = self._scrolled_sheet._transform
-        x = trans._dx
         delta = self.width()-1
-        self._scrolled_sheet._transform = Transform(x-delta, trans._dy)
+        trans = self._scrolled_sheet._transform
+        (sw, sh) = self._scroll_extents[1]
+        tmax = self.width() - sw
+        x = max(tmax, trans._dx-delta)
+        # fixme: don't update transform if it doesn't change
+        self._scrolled_sheet._transform = Transform(x, trans._dy)
         self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
         self.invalidate()
 
     def scroll_up_page(self):
-        trans = self._scrolled_sheet._transform
-        y = trans._dy
         delta = self.height()-1
-        if y < 0:
-            self._scrolled_sheet._transform = Transform(trans._dx, y+delta)
+        trans = self._scrolled_sheet._transform
+        y = min(0, trans._dy+delta)
+        self._scrolled_sheet._transform = Transform(trans._dx, y)
         self._vertical_sb.update_scroll_offset(self._scrolled_sheet)
         self.invalidate()
 
-    # fixme: disallow scrolling if already displaying max extent of
-    # scroller
     def scroll_down_page(self):
-        trans = self._scrolled_sheet._transform
-        y = trans._dy
         delta = self.height()-1
-        self._scrolled_sheet._transform = Transform(trans._dx, y-delta)
+        trans = self._scrolled_sheet._transform
+        (sw, sh) = self._scroll_extents[1]
+        tmax = self.height()-1 - sh
+        y = max(tmax, trans._dy-delta)
+        self._scrolled_sheet._transform = Transform(trans._dx, y)
         self._vertical_sb.update_scroll_offset(self._scrolled_sheet)
         self.invalidate()

@@ -83,11 +83,15 @@ class Scrollbar(Sheet):
             if self._slug_offset is None:
                 self._slug_offset = 0
             if self._orientation == "horizontal":
+                # move past button
                 self.move((1 + self._slug_offset, 0))
-                self.draw((1 + self._slug_offset + self._slug_size, 0), slug, pen)
+                # draw up to other button
+                self.draw((self._slug_offset + self._slug_size, 0), slug, pen)
             else:
+                # move past buttons
                 self.move((0, 1 + self._slug_offset))
-                self.draw((0, 1 + self._slug_offset + self._slug_size), slug, pen)
+                # draw up to other button
+                self.draw((0, self._slug_offset + self._slug_size), slug, pen)
 
     def compose_space(self):
         absolute_min = 2
@@ -125,9 +129,9 @@ class Scrollbar(Sheet):
                     self._viewport.scroll_right_line()
                     self.invalidate()
                     return
-            # fixme: if click in the gutter invoke "scroll_left|up|right|down_page"
-            #     - use the slug_offset and slug_size to work out whether click
-            #       was ahead of slug or behind slug
+            # if click in the gutter invoke "scroll_left|up|right|down_page"
+            # - use the slug_offset and slug_size to work out whether click
+            #   was ahead of slug or behind slug
             if self._orientation == "vertical" and event.buttons == MouseEvent.LEFT_CLICK:
                 # was click in the gutter above the slug?
                 if event.x == 0 and event.y < self._slug_offset:
@@ -166,7 +170,8 @@ class Scrollbar(Sheet):
     # to hold extents in the coords of the SCROLLED SHEET, not of the
     # VIEWPORT which is what we're doing currently.
     def update_extents(self, scrolled_sheet_extent, viewport_extent):
-        # normalise extents
+        # normalise extents; this method is responsible for setting
+        # the slug size
         self._scrolled_sheet_extent = scrolled_sheet_extent
         if viewport_extent < scrolled_sheet_extent:
             # input: bar length, scrolled sheet extent, viewport extent
@@ -178,28 +183,25 @@ class Scrollbar(Sheet):
             self._slug_size = None
 
     def update_scroll_offset(self, scrolled_sheet):
-        # fixme: work out how far to offset slug in bar based on size
-        # of viewport, size of scrolled sheet, and length of scroll
-        # bar
-        # -ve transform moves bar down / right. But how far?
-
-        # transform is in LINES. _slug_size is a ratio of viewport
-        # size to scrolled sheet size scaled so that slug to bar
-        # length ratio matches viewport to scrolled sheet size.
-
-        # In this scenario bar length is proportional to size of
-        # scrolled sheet. bar length / scrolled sheet extent
-        # gives how far to move the slug per line of the scrolled
-        # sheet.
-
-        # This is close, but the slug size has to be deducted from
-        # the available bar size, we don't have the whole bar to
-        # work with...
+        # position slug in scrollbar
         extent = self._scrolled_sheet_extent
         (rw, rh) = self._region
-        size = rw if self._orientation == "horizontal" else rh
-        size -= self._slug_size
-        lines_per_bar_unit = size / extent
+        bar_size = rw if self._orientation == "horizontal" else rh
+        lines_per_bar_unit = bar_size / extent
         transform = scrolled_sheet._transform
         delta = transform._dy if self._orientation == "vertical" else transform._dx
-        self._slug_offset = int(abs(delta) * lines_per_bar_unit)
+        offset = abs(delta) * lines_per_bar_unit
+        # if not at end of scroll range make sure sb reflects there
+        # are remaining lines, don't abut the slug + button unless
+        # there is no scroll in that direction remaining - good idea,
+        # but this isn't working as it stands. Fix it.
+        offset_min = 0
+        offset_max = bar_size - 1 - self._slug_size
+        if offset == offset_min and delta > offset_min:
+            offset = 1
+        if offset == offset_max and delta < offset_max:
+            offset = offset_max-1
+        self._slug_offset = int(offset)
+
+    # fixme: display scroll sheet transform / extents somewhere! Would be
+    # a useful indicator. In bottom border of containing border pane.

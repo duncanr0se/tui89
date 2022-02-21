@@ -11,7 +11,7 @@
    - button group?
    - label
    - scroll bars (✔)
-   - viewport
+   - viewport (✔)
    - menu bar
    - menu
    - status bar
@@ -46,12 +46,12 @@
      - info dialog
      - yes / no dialog
 
-2. Once event handling is in place, need to experiment with scrolling
+--2.-- Once event handling is in place, need to experiment with scrolling
  / overflowing a screen buffer with content / clipping etc. and work
  out how scrolling is actually going to work in tandem with
  asciimetrics handling of the screen / buffers.
 
-3. Implement scrolling. Make all border panes handle scrolling
+--3.-- Implement scrolling. Make all border panes handle scrolling
  transparently.
 
 4. Then - more widgets, event handling, focus, input, tab order.
@@ -133,14 +133,6 @@ click detection is really ropey. Maybe asciimatics is not reporting
 them like it should?
 
 
-SCROLLING
-=========
-specialise "region_contains_position" for decorated buttons and other
-decorated widgets... not sure quite how to do that so that border can
-be ignored for mouse click location but included for other "does this
-point inhabit the widget space" queries...  Note if the button was
-wrapped in a spacing pane, this problem would solve itself I think...
-
 ===============================================
 
 EXAMPLE WIDGET APP - MAKE IT SHOW ALL THE OPTIONS FOR ALL THE WIDGETS.
@@ -170,22 +162,6 @@ SOMEHOW. THINK ABOUT HOW THIS WILL WORK. - Investigate asciimatics
 double buffering to see how that works. Maybe it's enough for what we
 want (pretty sure it isn't)
 
-Unfortunately the asciimetrics double buffer is associated with the
-SCREEN, not an arbitrary REGION like we want. Perhaps it can be
-repurposed, not sure. Possibly we NEED "mirrored" sheets, which have
-the double buffer. For now can just put on scroll content windows,
-somehow. Really don't want to be actually drawing the stuff, just
-record where things should be drawn, and call drawing methods for
-things that are in the visible portion of the viewport. Scrolling
-needs to redo this whole calculation which is maybe not
-great. Although really, how much scrolling are we going to want to do?
-Track:
-  - min extent
-  - max extent :: for scrollbar visual
-  - drawing ops + their regions
-The do "region intersects region" to work out what needs drawing, and
-draw that during "redraw".
-
 
 OVERVIEW OF SCROLLING
 =====================
@@ -210,8 +186,7 @@ the scroll bars. When it is drawn, it displays the contents of the
 scrolled sheet that "show through" the viewport at the current time as
 dictated by the values of the scrollbars.
 
-The viewport intercepts drawing operations from its children (or
-made on it directly) and calculates a bounding rectangle for the
-operation. When it needs to draw itself, it finds all rectangles
-intersecting the region being drawn and renders the recorded ops. So
-it's a bit like a recording pane.
+The viewport intercepts drawing operations from its children (or made
+on it directly) and calculates a bounding rectangle for the operation
+in the coordinate space of the scrolling pane. These extents are used
+to calculate scrollbar sizes and slug sizes.
