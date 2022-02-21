@@ -6,6 +6,8 @@ from sheets.spacereq import xSpaceReqMin
 from sheets.spacereq import ySpaceReqMax
 from sheets.spacereq import ySpaceReqDesired
 from sheets.spacereq import ySpaceReqMin
+from dcs.ink import Pen
+from sheets.frame import Frame
 
 class BorderLayout(Sheet):
 

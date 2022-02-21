@@ -12,19 +12,18 @@ from dcs.ink import Pen
 # packed as closely as possible to its siblings
 class MenubarLayout(Sheet):
 
-    def __init__(self, default_pen=None):
-        super().__init__()
-        if default_pen is None:
-            (fg, attr, bg) = Frame.THEMES["tv"]["menubar"]
-            default_pen = Pen(fg=fg, attr=attr, bg=bg)
-        self._default_pen = default_pen
-
     def layout(self):
         offset = 0
         for child in self._children:
             child.move_to((offset, 0))
             offset += child.width()
             child.layout()
+
+    def default_pen(self):
+        if self._default_pen is None:
+            (fg, attr, bg) = Frame.THEMES["tv"]["menubar"]
+            return Pen(fg=fg, attr=attr, bg=bg)
+        return super().default_pen()
 
     def render(self):
         if not self._region:

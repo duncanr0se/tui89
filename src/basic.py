@@ -90,7 +90,6 @@ def demo(screen):
     menu3 = MenuButton(label="View")
     menu4 = MenuButton(label="Help")
 
-    # Colours are all screwy :/
     menubar.add_child(menu1)
     menubar.add_child(menu2)
     menubar.add_child(menu3)

@@ -6,8 +6,8 @@ class TopLevelSheet(Sheet):
 
     _frame = None
 
-    def __init__(self, frame):
-        super().__init__()
+    def __init__(self, frame, default_pen=None):
+        super().__init__(default_pen=default_pen)
         self._frame = frame
         frame.set_top_level_sheet(self)
 
@@ -16,8 +16,6 @@ class TopLevelSheet(Sheet):
         return "TopLevelSheet({}x{})".format(width, height)
 
     def clear(self, origin, region):
-        # FIXME: top level sheet *always* has a default pen
-        # associated, so this is no good - it can't be overridden :/
         pen = self.default_pen()
         (x, y) = self._transform.apply(origin)
         (w, h) = region
@@ -26,8 +24,8 @@ class TopLevelSheet(Sheet):
             self._frame._screen.draw(x + w, y + line, u' ', colour=pen.bg(), bg=pen.bg())
 
     def default_pen(self):
-        if not self._default_pen:
-            raise RuntimeError("top sheet must have default pen set")
+        if self._default_pen is None:
+            return self.frame().default_pen()
         return super().default_pen()
 
     def print_at(self, text, coord, pen):

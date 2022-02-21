@@ -15,6 +15,7 @@ from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
 from sheets.boxlayout import VerticalLayout
 from sheets.buttons import Button
+from sheets.frame import Frame
 
 from dcs.ink import Pen
 
@@ -37,14 +38,24 @@ class Dialog(TopLevelSheet):
 
     _okButton = None
 
-    def __init__(self, frame, title=None, text=None, style="alert"):
+    _style = None
+
+    prefix = {
+        "alert": "[ALERT] - ",
+        "info": "[INFO] - ",
+        "yes/no": "[YES or NO] - ",
+        "composite": ""
+    }
+
+    def __init__(self, frame, title=None, text=None, style="info", default_pen=None):
         # Can't call super here or this dialog is set as the frame's
         # top level sheet! Ouch, maybe make this a frame after all...
         #super().__init__(frame=frame)
         self._children = []
         self._frame = frame
         self._title = title if title is not None else "unnamed"
-        border = BorderLayout(title="[ALERT] - " + title)
+        self._style = style
+        border = BorderLayout(title=Dialog.prefix[style] + title)
         self.add_child(border)
         self._wrapper = VerticalLayout([4, 1])
         border.add_child(self._wrapper)
@@ -52,6 +63,7 @@ class Dialog(TopLevelSheet):
         self._wrapper.add_child(self._make_content_pane(text))
         self._wrapper.add_child(self._make_button_pane())
         self._text = text
+        self._default_pen = default_pen
 
     def __repr__(self):
         (width, height) = self._region
@@ -72,6 +84,13 @@ class Dialog(TopLevelSheet):
 
         self._okButton.on_click = callback
         return self._okButton
+
+    def default_pen(self):
+        if self._default_pen is None:
+            # FIXME: make constructing pens easier!
+            (fg, attr, bg) = Frame.THEMES["tv"][self._style]
+            return Pen(fg=fg, attr=attr, bg=bg)
+        return self._default_pen;
 
     def compose_space(self):
         # make sufficient space for:

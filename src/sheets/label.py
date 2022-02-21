@@ -20,6 +20,11 @@ class Label(Sheet):
         (width, height) = self._region
         return "Label({}x{}, '{}')".format(width, height, self._label_text)
 
+    def default_pen(self):
+        if self._default_pen is None:
+            return Frame.THEME["tv"]["label"]
+        return super().default_pen()
+
     def add_child(self):
         raise RuntimeError("children not allowed")
 

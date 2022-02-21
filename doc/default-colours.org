@@ -1,0 +1,42 @@
+
+* Default Pen
+All sheets accept a "default_pen" initarg. If no default pen is
+specified for a sheet the pen used for drawing will be the default pen
+of the sheet's parent.
+
+Note on background drawing; if it is necessary to draw the background,
+for example when clearing a widget background, the Pen's background
+(bg()) value can be used to construct a new pen that will paint in
+that background colour.
+
+** Top Level Sheet
+ If no default pen is set on the top level sheet and no sheet between
+ the top level sheet and the current sheet have a default pen value set
+ then the frame is queried for the framework default pen, which is
+ taken from the "tv" theme "borders" value.
+
+** Dialog Sheet
+ Dialog frames take their default pen from the THEME "tv" depending on
+ the style of dialog. The following dialog styles are defined:
+
+     - alert
+     - info
+     - yes/no
+     - composite
+
+ The dialog's "default_pen" initarg can be used to override these
+ defaults with a pen defined by the caller.
+
+** Menubar
+The menubar uses the "tv" theme's "menubar" pen by default, unless
+overridden.
+
+** Buttons
+Use the "tv" theme's "button" style by default, and the
+"pushed_button" style when the button is pressed.
+
+Buttons with no "pressed" style (radio buttons, check box buttons) use
+the "button" default.
+
+Menu buttons inherit the default colours from their parent (either
+menu bar or menu box) and use an inverse of this colour when pressed.

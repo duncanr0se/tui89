@@ -39,8 +39,9 @@ class Button(Sheet):
 
     _width = None
 
-    def __init__(self, label="--", decorated=True, label_align="center", width=None):
-        super().__init__()
+    def __init__(self, label="--", decorated=True, label_align="center", width=None,
+                 default_pen=None):
+        super().__init__(default_pen=default_pen)
         self._label = label
         self._decorated = decorated
         if label_align != "center":
@@ -102,7 +103,7 @@ class Button(Sheet):
         pass
 
     def _draw_padding(self):
-        pen = self.default_pen()
+        pen = self._parent.default_pen()
         pen = Pen(pen.bg(), pen.attr(), pen.bg())
         (width, height) = self._region
         for y in range(0, height-1):
@@ -123,7 +124,7 @@ class Button(Sheet):
 
     def _draw_button_dropshadow(self):
         shadow_pen = self.frame().theme("shadow")
-        bg_pen = self.default_pen()
+        bg_pen = self._parent.default_pen()
         pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg())
         (width, height) = self._region
         dropshadow_right = u'▄'
@@ -144,8 +145,16 @@ class Button(Sheet):
         self.print_at(button_label, (center_x, yoffset), pen)
 
     def _get_pen(self):
-        style = "selected_focus_field" if self._pressed else "button"
+        return self.pressed_pen() if self._pressed else self.default_pen()
         return self.frame().theme(style)
+
+    def default_pen(self):
+        if self._default_pen is None:
+            return self.frame().theme("button")
+        return super().default_pen()
+
+    def pressed_pen(self):
+        return self.frame().theme("selected_focus_field")
 
     def render(self):
         if not self._region:
@@ -177,16 +186,16 @@ class Button(Sheet):
 
 class RadioButton(Button):
 
-    def __init__(self, label="--", decorated=False):
-        super().__init__(label="( ) " + label, decorated=decorated)
+    def __init__(self, label="--", decorated=False, default_pen=None):
+        super().__init__(label="( ) " + label, decorated=decorated, default_pen=default_pen)
 
     # needs to be part of a button group to be useful
 
 
 class CheckBox(Button):
 
-    def __init__(self, label="--", decorated=False):
-        super().__init__(label="[ ] " + label, decorated=decorated)
+    def __init__(self, label="--", decorated=False, default_pen=None):
+        super().__init__(label="[ ] " + label, decorated=decorated, default_pen=default_pen)
 
     def _handle_mouse_event(self, event):
         if event.buttons == MouseEvent.LEFT_CLICK:
@@ -200,5 +209,14 @@ class CheckBox(Button):
 
 class MenuButton(Button):
 
-    def __init__(self, label="--", decorated=False):
-        super().__init__(label=label, decorated=decorated)
+    def __init__(self, label="--", decorated=False, default_pen=None):
+        super().__init__(label=label, decorated=decorated, default_pen=default_pen)
+
+    def default_pen(self):
+        if self._default_pen is None:
+            return self._parent.default_pen()
+        return super().default_pen()
+
+    def pressed_pen(self):
+        pen = self.default_pen()
+        return Pen(fg=pen.bg(), attr=pen.attr(), bg=pen.fg())
