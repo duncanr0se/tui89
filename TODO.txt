@@ -23,8 +23,8 @@
        - multivalue
    - text entry
    - text box
-   - horizontal separator
-   - vertical separator
+   - horizontal separator (✔)
+   - vertical separator (✔)
    - padding
    - list
 
@@ -80,6 +80,7 @@ Instead of frigging pens for different purposes, put them in the theme
 definition as specific pens. Move all direct Pen instantiations into
 frame.
 
+Replace magenta with some kind of grey?
 
 LAYOUT IMPROVEMENTS
 ===================
@@ -132,6 +133,9 @@ BORDERLAYOUT CLEAR METHOD ISN'T SETTING BACKGROUND COLOUR PROPERLY
 
 Unit tests, documentation, project setup. Make it more professional,
 push to gitlab. Maybe people will use it... given the chance.
+
+Migrate everything that displays text into having a contained Label
+that contains the text instead.
 
 
 EVENT HANDLING
