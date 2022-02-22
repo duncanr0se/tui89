@@ -45,6 +45,7 @@ class MenubarLayout(Sheet):
         # height = 1
         # width = sum of all widths
 
+        # make scrollbar as wide as its parent allows
         self._region = allocation
         (width, height) = allocation
 

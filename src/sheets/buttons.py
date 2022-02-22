@@ -7,6 +7,8 @@ from sheets.sheet import Sheet
 from sheets.spacereq import FILL
 from sheets.spacereq import xSpaceReqMin
 from sheets.spacereq import xSpaceReqDesired
+from sheets.spacereq import ySpaceReqMin
+from sheets.spacereq import ySpaceReqDesired
 
 from dcs.ink import Pen
 
@@ -90,20 +92,26 @@ class Button(Sheet):
         # supplied width overrides calculated size
         if self._width is not None:
             fw = self._width
-            return ((fw, fw, fw), (button_height, button_height, FILL))
+            return ((fw, fw, fw), (button_height, button_height, button_height))
         else:
             return ((button_height, button_length, FILL),
-                    (button_height, button_height, FILL))
+                    (button_height, button_height, button_height))
 
-    def allocate_space(self, allocation):
-        # todo: cache space requirement
-        sr = self.compose_space()
-        # force region to be within the sheet's space composition. If
-        # this causes the sheet render to overflow its bounds, so be
-        # it.
-        (aw, ah) = allocation
-        aw = max(xSpaceReqMin(sr), min(xSpaceReqDesired(sr), aw))
-        self._region = (aw, ah)
+    def allocate_space(self, allocation, force=False):
+        if force:
+            self._region = allocation
+        else:
+            # how much space to take? Does allocation need
+            # restricting? Is it ok to say "thanks but no thanks" when
+            # given space?  todo: cache space requirement
+            sr = self.compose_space()
+            # force region to be within the sheet's space
+            # composition. If this causes the sheet render to overflow
+            # its bounds, so be it.
+            (aw, ah) = allocation
+            aw = max(xSpaceReqMin(sr), min(xSpaceReqDesired(sr), aw))
+            ah = max(ySpaceReqMin(sr), min(ySpaceReqDesired(sr), aw))
+            self._region = (aw, ah)
 
     def layout(self):
         # default Button has no children

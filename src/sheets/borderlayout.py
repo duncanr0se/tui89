@@ -6,6 +6,7 @@ from sheets.spacereq import xSpaceReqMin
 from sheets.spacereq import ySpaceReqMax
 from sheets.spacereq import ySpaceReqDesired
 from sheets.spacereq import ySpaceReqMin
+from sheets.spacereq import FILL
 from dcs.ink import Pen
 from sheets.frame import Frame
 
@@ -83,11 +84,31 @@ class BorderLayout(Sheet):
         # this sheet doesn't contain the position
         return None
 
+    # Ask children how much space it needs, add in the border, use
+    # that as the space allocation
+    def compose_space(self):
+        # FIXME: make proper space requirement type
+        sr = ((1, 10, FILL), (1, 10, FILL))
+        for child in self._children:
+            sr = child.compose_space()
+        # minimum = desired, max = FILL
+        xmin = min(xSpaceReqMin(sr)+2, FILL)
+        xdes = min(xSpaceReqDesired(sr)+2, FILL)
+        xmax = min(xSpaceReqMax(sr), FILL)
+
+        ymin = min(ySpaceReqMin(sr)+2, FILL)
+        ydes = min(ySpaceReqDesired(sr)+2, FILL)
+        ymax = min(ySpaceReqMax(sr)+2, FILL)
+        return ((xmin, xdes, xmax), (ymin, ydes, ymax))
+
+        
     # BorderLayout expects its children to completely fill it, but
     # it's not an arse about it, it's happy for kids to be their
     # preferred size if they want to be. However, it does insist on
     # their origin being (0, 0). For more flexibility add a different
     # layout type as the child of the border box.
+    # FIXME: this doesn't seem to do the business for contained list
+    # layouts.
     def allocate_space(self, allocation):
         self._region = allocation
         (width, height) = allocation

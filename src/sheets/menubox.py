@@ -2,12 +2,16 @@
 from sheets.sheet import Sheet
 from sheets.spacereq import xSpaceReqMax
 from sheets.spacereq import xSpaceReqDesired
+from sheets.spacereq import xSpaceReqMin
 from sheets.spacereq import ySpaceReqMax
 from sheets.spacereq import ySpaceReqDesired
+from sheets.spacereq import ySpaceReqMin
 from sheets.spacereq import FILL
 from sheets.borderlayout import BorderLayout
 from sheets.listlayout import ListLayout
 from sheets.toplevel import TopLevelSheet
+from sheets.separators import Separator
+from sheets.separators import HorizontalSeparator
 
 # A layout that arranges its children in a column. Each child is
 # packed as closely as possible to its siblings. Layout takes minimum
@@ -15,6 +19,9 @@ from sheets.toplevel import TopLevelSheet
 class MenuBox(TopLevelSheet):
 
     def __init__(self, default_pen=None, pen=None):
+        # fixme: TopLevelSheet constructor does some nasty stuff with
+        # frames - do not call it for othre top level sheet
+        # types. Rework TopLevelSheet to make it safe.
         #super().__init__(default_pen=default_pen, pen=pen)
         self._children = []
         self._border = BorderLayout(style="single")
@@ -42,24 +49,36 @@ class MenuBox(TopLevelSheet):
         for child in self._children:
             child.render()
 
+    # allocate smallest space possible to fit children - probably need
+    # some extra parameter to say we're trying to minimise
     def allocate_space(self, allocation):
-
-        self._region = allocation
-        (width, height) = allocation
-
+        (awidth, aheight) = allocation
+        cw = awidth
+        ch = aheight
         for child in self._children:
             sr = child.compose_space()
             ch = ySpaceReqDesired(sr)
-            child.allocate_space((width, ch))
+            cw = xSpaceReqDesired(sr)
+            child.allocate_space((cw, ch))
+            self._region = (min(cw, awidth), min(ch, aheight))
 
     def compose_space(self):
-        reqheight = 0
+        # Sheet hierarchy is:
+        #
+        # menubox
+        #   + borderlayout - how does this know to minimise region?
+        #       + listlayout
+        #           + button
+        #           + button
+        #           + separator
+        #           + button
         reqwidth = 0
+        reqheight = 0
         for child in self._children:
             sr = child.compose_space()
             reqwidth = max(reqwidth, xSpaceReqDesired(sr))
             reqheight += ySpaceReqDesired(sr)
-        return ((1, reqwidth, FILL), (reqheight, reqheight, FILL))
+        return ((reqwidth, reqwidth, reqwidth), (reqheight, reqheight, reqheight))
 
     def set_items(self, items):
         self._item_pane.set_children(items)

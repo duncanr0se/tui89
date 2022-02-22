@@ -142,7 +142,17 @@ class Frame():
         # in effect. That's probably ok for a TUI, for now. Might be
         # good to support multiple dialogs in future so a dialog can
         # pop up an alert and so on.
-        event_top_level = self._dialog if self._dialog is not None else self._top_level_sheet
+
+        # TODO: check for clicks over the menu; if none, check for any
+        # clicks elsewhere and close the menu if found, and then redo
+        # the event distribution for the other top level types.
+        event_top_level = None
+        if self._menu is not None:
+            event_top_level = self._menu
+        if event_top_level is None and self._dialog is not None:
+            event_top_level = self._dialog
+        if event_top_level is None:
+            event_top_level = self._top_level_sheet
 
         # this is failing to find the button in the dialog; because
         # the dialog doesn't have sensible 'children', it instead has

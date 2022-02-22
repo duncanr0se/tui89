@@ -154,3 +154,22 @@ None
 Not a sheet
 
     - screen : mandatory constructor param
+
+* Space Composition and Allocation
+3 components for how widget can consume space in the x and y
+directions.
+
+    - minimum : the smallest amount of space within which the widget
+      can be displayed. This might take into account removing borders
+      or other decorations where the widget can still be displayed
+      with all its components in a potentially smaller space then
+      would otherwise be possible
+    - desired : the amount the widget will consume given the
+      opportunity including decoration
+    - maxiumum : the largest amount of space the widget can be
+      displayed in. For most widgets this is the value FILL,
+      indicating the widget can take as much space as it is given.
+
+If the parent sheet allocates a size smaller than the minimum size the
+widget can be displayed in then the child widget will overflow the
+bounds of the parent sheet (and will be clipped).

@@ -1,8 +1,10 @@
 
 from sheets.sheet import Sheet
 from sheets.spacereq import xSpaceReqMax
+from sheets.spacereq import xSpaceReqMin
 from sheets.spacereq import xSpaceReqDesired
 from sheets.spacereq import ySpaceReqMax
+from sheets.spacereq import ySpaceReqMin
 from sheets.spacereq import ySpaceReqDesired
 from sheets.spacereq import FILL
 
@@ -49,13 +51,20 @@ class ListLayout(Sheet):
         for child in self._children:
             sr = child.compose_space()
             ch = ySpaceReqDesired(sr)
-            child.allocate_space((width, ch))
+            child.allocate_space((width, ch), force=True)
 
     def compose_space(self):
         reqheight = 0
         reqwidth = 0
+        minwidth = 0
+        minheight = 0
         for child in self._children:
             sr = child.compose_space()
-            reqwidth = max(reqwidth, xSpaceReqDesired(sr))
+            minwidth = max(minwidth, xSpaceReqMin(sr))
+            # horizontal separators have their desired space set to
+            # FILL, which is probably not ideal...
+            if xSpaceReqDesired(sr) != FILL:
+                reqwidth = max(reqwidth, xSpaceReqDesired(sr))
+            minheight += ySpaceReqMin(sr)
             reqheight += ySpaceReqDesired(sr)
-        return ((1, reqwidth, FILL), (1, reqheight, FILL))
+        return ((minwidth, reqwidth, FILL), (minheight, reqheight, FILL))
