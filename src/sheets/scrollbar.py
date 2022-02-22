@@ -8,24 +8,16 @@ from asciimatics.screen import Screen
 
 class Scrollbar(Sheet):
 
-    #_orientation = None
-    # one of "origin" or "terminal"
-    #_highlight = None
-
-    #_scrolled_sheet_extent = None
-    #_slug_size = None
-    #_slug_offset = None
-
-    #_viewport = None
-
-    # fixme: pens here are all over the place in this source file; fix
     def __init__(self, orientation="vertical", default_pen=None, pen=None):
         super().__init__(default_pen=default_pen, pen=pen)
-        self._orientation = orientation
+        # one of {"origin", "terminal"}
         self._highlight = None
+        # one of {"horizontal", "vertical"}
+        self._orientation = orientation
         self._scrolled_sheet_extent = None
-        self._slug_size = None
+        # the offset of the slug from the scrollbar origin
         self._slug_offset = None
+        self._slug_size = None
         self._viewport = None
 
     def pen(self):
