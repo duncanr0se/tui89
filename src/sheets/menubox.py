@@ -1,17 +1,9 @@
 
 from sheets.sheet import Sheet
-from sheets.spacereq import xSpaceReqMax
-from sheets.spacereq import xSpaceReqDesired
-from sheets.spacereq import xSpaceReqMin
-from sheets.spacereq import ySpaceReqMax
-from sheets.spacereq import ySpaceReqDesired
-from sheets.spacereq import ySpaceReqMin
-from sheets.spacereq import FILL
+from sheets.spacereq import FILL, SpaceReq
 from sheets.borderlayout import BorderLayout
 from sheets.listlayout import ListLayout
 from sheets.toplevel import TopLevelSheet
-from sheets.separators import Separator
-from sheets.separators import HorizontalSeparator
 
 # A layout that arranges its children in a column. Each child is
 # packed as closely as possible to its siblings. Layout takes minimum
@@ -57,8 +49,8 @@ class MenuBox(TopLevelSheet):
         ch = aheight
         for child in self._children:
             sr = child.compose_space()
-            ch = ySpaceReqDesired(sr)
-            cw = xSpaceReqDesired(sr)
+            ch = sr.y_preferred()
+            cw = sr.x_preferred()
             child.allocate_space((cw, ch))
             self._region = (min(cw, awidth), min(ch, aheight))
 
@@ -76,9 +68,9 @@ class MenuBox(TopLevelSheet):
         reqheight = 0
         for child in self._children:
             sr = child.compose_space()
-            reqwidth = max(reqwidth, xSpaceReqDesired(sr))
-            reqheight += ySpaceReqDesired(sr)
-        return ((reqwidth, reqwidth, reqwidth), (reqheight, reqheight, reqheight))
+            reqwidth = max(reqwidth, sr.x_preferred())
+            reqheight += sr.y_preferred()
+        return SpaceReq(reqwidth, reqwidth, reqwidth, reqheight, reqheight, reqheight)
 
     def set_items(self, items):
         self._item_pane.set_children(items)

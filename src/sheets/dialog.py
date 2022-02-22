@@ -1,15 +1,7 @@
 
 from sheets.sheet import Sheet
 
-from sheets.spacereq import xSpaceReqMax
-from sheets.spacereq import xSpaceReqDesired
-from sheets.spacereq import xSpaceReqMin
-from sheets.spacereq import ySpaceReqMax
-from sheets.spacereq import ySpaceReqDesired
-from sheets.spacereq import ySpaceReqMin
-from sheets.spacereq import combine_spacereqs
-from sheets.spacereq import add_to_preferred
-from sheets.spacereq import FILL
+from sheets.spacereq import SpaceReq, FILL, combine_spacereqs
 
 from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
@@ -118,7 +110,7 @@ class Dialog(TopLevelSheet):
         text_size = len(self._text)
         # fixme: padding shouldn't be present (use spacing
         # pane) or at least should be configurable...
-        content_pane_size = ((text_size, text_size+4, FILL), (1, 5, FILL))
+        content_pane_size = SpaceReq(text_size, text_size+4, FILL, 1, 5, FILL)
         #
         # Also hard-code the button pane (minimum + preferred)
         # sizes for now
@@ -128,8 +120,8 @@ class Dialog(TopLevelSheet):
         vbox_pane_size = combine_spacereqs(content_pane_size, button_pane_size)
         # border adds +1 on each side
         # shadow adds +1 on right + bottom
-        border_adds = (3, 3)
-        vbox_pane_size = add_to_preferred(vbox_pane_size, border_adds)
+        border_adds = SpaceReq(0, 3, 0, 0, 3, 0)
+        vbox_pane_size = combine_spacereqs(vbox_pane_size, border_adds)
         return vbox_pane_size
 
     # same as space allocation for BorderLayout EXCEPT the dialog also
@@ -148,10 +140,10 @@ class Dialog(TopLevelSheet):
         # Don't allow space allocated to widget to be smaller than
         # the widget's minimum; it won't all fit on the screen,
         # but that's the widget's problem...
-        calloc_x = max(xSpaceReqMin(border_request),
-                       min(xSpaceReqDesired(border_request), calloc_x))
-        calloc_y = max(ySpaceReqMin(border_request),
-                       min(ySpaceReqDesired(border_request), calloc_y))
+        calloc_x = max(border_request.x_min(),
+                       min(border_request.x_preferred(), calloc_x))
+        calloc_y = max(border_request.y_min(),
+                       min(border_request.y_preferred(), calloc_y))
         border_layout.allocate_space((calloc_x, calloc_y))
 
     def render(self):

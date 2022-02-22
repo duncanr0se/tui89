@@ -1,12 +1,7 @@
 
 from sheets.sheet import Sheet
-from sheets.spacereq import xSpaceReqMax
-from sheets.spacereq import xSpaceReqDesired
-from sheets.spacereq import xSpaceReqMin
-from sheets.spacereq import ySpaceReqMax
-from sheets.spacereq import ySpaceReqDesired
-from sheets.spacereq import ySpaceReqMin
-from sheets.spacereq import FILL
+from sheets.spacereq import SpaceReq, FILL
+
 from dcs.ink import Pen
 from sheets.frame import Frame
 
@@ -101,18 +96,17 @@ class BorderLayout(Sheet):
     # Ask children how much space it needs, add in the border, use
     # that as the space allocation
     def compose_space(self):
-        # FIXME: make proper space requirement type
-        sr = ((1, 10, FILL), (1, 10, FILL))
+        sr = SpaceReq(1, 10, FILL, 1, 10, FILL)
         for child in self._children:
             sr = child.compose_space()
-        xmin = min(xSpaceReqMin(sr)+2, FILL)
-        xdes = min(xSpaceReqDesired(sr)+2, FILL)
-        xmax = min(xSpaceReqMax(sr), FILL)
+        xmin = min(sr.x_min()+2, FILL)
+        xdes = min(sr.x_preferred()+2, FILL)
+        xmax = min(sr.x_max()+2, FILL)
 
-        ymin = min(ySpaceReqMin(sr)+2, FILL)
-        ydes = min(ySpaceReqDesired(sr)+2, FILL)
-        ymax = min(ySpaceReqMax(sr)+2, FILL)
-        return ((xmin, xdes, xmax), (ymin, ydes, ymax))
+        ymin = min(sr.y_min()+2, FILL)
+        ydes = min(sr.y_preferred()+2, FILL)
+        ymax = min(sr.y_max()+2, FILL)
+        return SpaceReq(xmin, xdes, xmax, ymin, ydes, ymax)
 
         
     # BorderLayout expects its children to completely fill it, but
@@ -132,20 +126,20 @@ class BorderLayout(Sheet):
             # Don't allow space allocated to widget to be smaller than
             # the widget's minimum; it won't all fit on the screen,
             # but that's the widget's problem...
-            calloc_x = max(xSpaceReqMin(child_request),
-                           min(xSpaceReqDesired(child_request), calloc_x))
-            calloc_y = max(ySpaceReqMin(child_request),
-                           min(ySpaceReqDesired(child_request), calloc_y))
+            calloc_x = max(child_request.x_min(),
+                           min(child_request.x_preferred(), calloc_x))
+            calloc_y = max(child_request.y_min(),
+                           min(child_request.y_preferred(), calloc_y))
             child.allocate_space((calloc_x, calloc_y))
 
         if self._vertical_sb is not None:
             child_request = self._vertical_sb.compose_space()
             # use the minimum width and the border pane's height
-            self._vertical_sb.allocate_space((xSpaceReqMin(child_request), height-2))
+            self._vertical_sb.allocate_space((child_request.x_min(), height-2))
         if self._horizontal_sb is not None:
             child_request = self._horizontal_sb.compose_space()
             # use minimum height and border pane's width
-            self._horizontal_sb.allocate_space((width-3, ySpaceReqMin(child_request)))
+            self._horizontal_sb.allocate_space((width-3, child_request.y_min()))
 
     def layout(self):
         # single child

@@ -4,11 +4,7 @@ import time
 from asciimatics.event import MouseEvent
 
 from sheets.sheet import Sheet
-from sheets.spacereq import FILL
-from sheets.spacereq import xSpaceReqMin
-from sheets.spacereq import xSpaceReqDesired
-from sheets.spacereq import ySpaceReqMin
-from sheets.spacereq import ySpaceReqDesired
+from sheets.spacereq import SpaceReq, FILL
 
 from dcs.ink import Pen
 
@@ -92,10 +88,11 @@ class Button(Sheet):
         # supplied width overrides calculated size
         if self._width is not None:
             fw = self._width
-            return ((fw, fw, fw), (button_height, button_height, button_height))
+            return SpaceReq(fw, fw, fw,
+                            button_height, button_height, button_height)
         else:
-            return ((button_height, button_length, FILL),
-                    (button_height, button_height, button_height))
+            return SpaceReq(button_height, button_length, FILL,
+                            button_height, button_height, button_height)
 
     def allocate_space(self, allocation, force=False):
         if force:
@@ -109,8 +106,8 @@ class Button(Sheet):
             # composition. If this causes the sheet render to overflow
             # its bounds, so be it.
             (aw, ah) = allocation
-            aw = max(xSpaceReqMin(sr), min(xSpaceReqDesired(sr), aw))
-            ah = max(ySpaceReqMin(sr), min(ySpaceReqDesired(sr), aw))
+            aw = max(sr.x_min(), min(sr.x_preferred(), aw))
+            ah = max(sr.y_min(), min(sr.y_preferred(), aw))
             self._region = (aw, ah)
 
     def layout(self):

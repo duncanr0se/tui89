@@ -5,7 +5,7 @@ from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
 
 from sheets.sheet import Sheet
-from sheets.spacereq import FILL
+from sheets.spacereq import SpaceReq, FILL
 from dcs.ink import Pen
 
 class Label(Sheet):
@@ -38,5 +38,5 @@ class Label(Sheet):
     # layout
     def compose_space(self):
         # Prefer enough room for the label. Can take as much room as offered.
-        # Can shrink to 0 although that's probably not useful...
-        return ((0, len(self._label_text), FILL), (0, 1, FILL))
+        # todo: check if this needs a smaller minimum (3 chars + "..."?)
+        return SpaceReq(len(self._label_text), len(self._label_text), FILL, 1, 1, FILL)

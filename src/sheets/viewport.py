@@ -1,11 +1,5 @@
 
 from sheets.sheet import Sheet
-from sheets.spacereq import xSpaceReqMax
-from sheets.spacereq import xSpaceReqDesired
-from sheets.spacereq import xSpaceReqMin
-from sheets.spacereq import ySpaceReqMax
-from sheets.spacereq import ySpaceReqDesired
-from sheets.spacereq import ySpaceReqMin
 from sheets.spacereq import FILL
 from geometry.transforms import Transform
 

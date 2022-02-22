@@ -7,38 +7,42 @@ sr_min = 0
 sr_pref = 1
 sr_max = 2
 
-def xSpaceReqMax(space_req):
-    return space_req[0][2]
+class SpaceReq():
 
-def xSpaceReqDesired(space_req):
-    return space_req[0][1]
+    def __init__(self, minx, desx, maxx, miny, desy, maxy):
+        self._xmax = maxx
+        self._xmin = minx
+        self._xpref = desx
+        self._ymax = maxy
+        self._ymin = miny
+        self._ypref = desy
 
-def xSpaceReqMin(space_req):
-    return space_req[0][0]
+    def x_max(self):
+        return self._xmax
 
-def ySpaceReqMax(space_req):
-    return space_req[1][2]
+    def x_preferred(self):
+        return self._xpref
 
-def ySpaceReqDesired(space_req):
-    return space_req[1][1]
+    def x_min(self):
+        return self._xmin
 
-def ySpaceReqMin(space_req):
-    return space_req[1][0]
+    def y_max(self):
+        return self._ymax
+
+    def y_preferred(self):
+        return self._ypref
+
+    def y_min(self):
+        return self._ymin
+
 
 def combine_spacereqs(sr1, sr2):
-    min_x = sr1[sr_x][sr_min] + sr2[sr_x][sr_min]
-    pref_x = sr1[sr_x][sr_pref] + sr2[sr_x][sr_pref]
-    max_x = sr1[sr_x][sr_max] + sr2[sr_x][sr_max]
+    min_x = sr1._xmin + sr2._xmin
+    pref_x = sr1._xpref + sr2._xpref
+    max_x = sr1._xmax + sr2._xmax
 
-    min_y = sr1[sr_y][sr_min] + sr2[sr_y][sr_min]
-    pref_y = sr1[sr_y][sr_pref] + sr2[sr_y][sr_pref]
-    max_y = sr1[sr_y][sr_max] + sr2[sr_y][sr_max]
+    min_y = sr1._ymin + sr2._ymin
+    pref_y = sr1._ypref + sr2._ypref
+    max_y = sr1._ymax + sr2._ymax
 
-    return ((min_x, pref_x, max_x), (min_y, pref_y, max_y))
-
-def add_to_preferred(sr, adds):
-    pref_x = sr[sr_x][sr_pref] + adds[sr_x]
-    pref_y = sr[sr_y][sr_pref] + adds[sr_y]
-
-    return ((sr[sr_x][sr_min], pref_x, sr[sr_x][sr_max]),
-            (sr[sr_y][sr_min], pref_y, sr[sr_y][sr_max]))
+    return SpaceReq(min_x, pref_x, max_x, min_y, pref_y, max_y)

@@ -1,10 +1,7 @@
 
 from sheets.sheet import Sheet
-from sheets.spacereq import xSpaceReqMax
-from sheets.spacereq import xSpaceReqDesired
-from sheets.spacereq import ySpaceReqMax
-from sheets.spacereq import ySpaceReqDesired
-from sheets.spacereq import FILL
+
+from sheets.spacereq import FILL, SpaceReq
 from sheets.frame import Frame
 from dcs.ink import Pen
 
@@ -55,12 +52,12 @@ class MenubarLayout(Sheet):
 
         for child in self._children:
             sr = child.compose_space()
-            cw = xSpaceReqDesired(sr)
+            cw = sr.x_preferred()
             # fixme: take the minimum of the button
             child.allocate_space((cw, 1))
 
     def compose_space(self):
-        return ((1, FILL, FILL), (1, 1, 1))
+        return SpaceReq(1, FILL, FILL, 1, 1, 1)
 
     # fixme: add some functions to take a bunch of labels and
     # callbacks and build menus out of them?

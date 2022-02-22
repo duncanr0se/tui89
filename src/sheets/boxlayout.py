@@ -1,9 +1,5 @@
 
 from sheets.sheet import Sheet
-from sheets.spacereq import xSpaceReqMax
-from sheets.spacereq import xSpaceReqDesired
-from sheets.spacereq import ySpaceReqMax
-from sheets.spacereq import ySpaceReqDesired
 
 # A layout that arranges its children in columns
 class BoxLayout(Sheet):

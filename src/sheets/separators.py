@@ -5,7 +5,7 @@ from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
 
 from sheets.sheet import Sheet
-from sheets.spacereq import FILL
+from sheets.spacereq import FILL, SpaceReq
 from dcs.ink import Pen
 
 class Separator(Sheet):
@@ -48,7 +48,7 @@ class HorizontalSeparator(Separator):
     # layout
     def compose_space(self):
         length = FILL if self._size is None else self._size
-        return ((0, length, FILL), (0, 1, 1))
+        return SpaceReq(1, length, FILL, 1, 1, 1)
 
 
 class VerticalSeparator(Separator):
@@ -80,4 +80,4 @@ class VerticalSeparator(Separator):
         # Prefer enough room for the label. Can take as much room as offered.
         # Can shrink to 0 although that's probably not useful...
         length = FILL if self._size is None else self._size
-        return ((0, 1, 1), (0, length, FILL))
+        return SpaceReq(1, 1, 1, 1, length, FILL)

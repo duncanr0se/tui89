@@ -1,7 +1,7 @@
 
 from sheets.sheet import Sheet
 from dcs.ink import Pen
-from sheets.spacereq import FILL
+from sheets.spacereq import FILL, SpaceReq
 
 from asciimatics.event import MouseEvent
 from asciimatics.screen import Screen
@@ -105,9 +105,9 @@ class Scrollbar(Sheet):
         max = FILL
 
         if self._orientation == "vertical":
-            return ((1, 1, 1), (absolute_min, preferred, max))
+            return SpaceReq(1, 1, 1, absolute_min, preferred, max)
         else:
-            return ((absolute_min, preferred, max), (1, 1, 1))
+            return SpaceReq(absolute_min, preferred, max, 1, 1, 1)
 
     # fixme: use right-click in gutter to jump to offset directly
     def handle_event(self, event):

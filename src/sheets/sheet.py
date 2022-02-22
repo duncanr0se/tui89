@@ -4,7 +4,7 @@ from asciimatics.event import MouseEvent
 from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
 
-from sheets.spacereq import FILL
+from sheets.spacereq import FILL, SpaceReq
 from dcs.ink import Pen
 
 # ALL sheets are "drawing sheets". ALL sheets have children. ALL
@@ -165,7 +165,7 @@ class Sheet():
 
         Returns a tuple of 2 tuples of (MINIMUM, DESIRED, MAXIUMUM)
         """
-        return ((0, FILL, FILL), (0, FILL, FILL))
+        return SpaceReq(1, FILL, FILL, 1, FILL, FILL)
 
     # layout
     def layout(self):

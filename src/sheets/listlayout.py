@@ -1,12 +1,7 @@
 
 from sheets.sheet import Sheet
-from sheets.spacereq import xSpaceReqMax
-from sheets.spacereq import xSpaceReqMin
-from sheets.spacereq import xSpaceReqDesired
-from sheets.spacereq import ySpaceReqMax
-from sheets.spacereq import ySpaceReqMin
-from sheets.spacereq import ySpaceReqDesired
-from sheets.spacereq import FILL
+
+from sheets.spacereq import FILL, SpaceReq
 
 # A layout that arranges its children in a column. Each child is
 # packed as closely as possible to its siblings
@@ -50,7 +45,7 @@ class ListLayout(Sheet):
 
         for child in self._children:
             sr = child.compose_space()
-            ch = ySpaceReqDesired(sr)
+            ch = sr.y_preferred()
             child.allocate_space((width, ch), force=True)
 
     def compose_space(self):
@@ -60,11 +55,11 @@ class ListLayout(Sheet):
         minheight = 0
         for child in self._children:
             sr = child.compose_space()
-            minwidth = max(minwidth, xSpaceReqMin(sr))
+            minwidth = max(minwidth, sr.x_min())
             # horizontal separators have their desired space set to
             # FILL, which is probably not ideal...
-            if xSpaceReqDesired(sr) != FILL:
-                reqwidth = max(reqwidth, xSpaceReqDesired(sr))
-            minheight += ySpaceReqMin(sr)
-            reqheight += ySpaceReqDesired(sr)
-        return ((minwidth, reqwidth, FILL), (minheight, reqheight, FILL))
+            if sr.x_preferred() != FILL:
+                reqwidth = max(reqwidth, sr.x_preferred())
+            minheight += sr.y_min()
+            reqheight += sr.y_preferred()
+        return SpaceReq(minwidth, reqwidth, FILL, minheight, reqheight, FILL)

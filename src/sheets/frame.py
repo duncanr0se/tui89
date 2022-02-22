@@ -9,10 +9,6 @@ from asciimatics.exceptions import StopApplication
 from sheets.sheet import Sheet
 from dcs.ink import Pen
 
-from sheets.spacereq import xSpaceReqDesired
-from sheets.spacereq import ySpaceReqDesired
-
-# should the frame be a sheet? Hrm.
 class Frame():
 
     THEMES = {
@@ -213,8 +209,8 @@ class Frame():
 
         # use dialog desired size if it's smaller than
         # the default
-        dwidth = min(xSpaceReqDesired(dialog_spacereq), dwidth)
-        dheight = min(ySpaceReqDesired(dialog_spacereq), dheight)
+        dwidth = min(dialog_spacereq.x_preferred(), dwidth)
+        dheight = min(dialog_spacereq.y_preferred(), dheight)
 
         dialog.allocate_space((dwidth, dheight))
         dx = (self._screen.width - dwidth) // 2
@@ -258,8 +254,8 @@ class Frame():
 
         # use dialog desired size if it's smaller than
         # the default
-        dwidth = min(xSpaceReqDesired(menu_spacereq), dwidth)
-        dheight = min(ySpaceReqDesired(menu_spacereq), dheight)
+        dwidth = min(menu_spacereq.x_preferred(), dwidth)
+        dheight = min(menu_spacereq.y_preferred(), dheight)
 
         menu.allocate_space((dwidth, dheight))
 
