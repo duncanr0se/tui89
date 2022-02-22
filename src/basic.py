@@ -151,9 +151,9 @@ def demo(screen):
     # causing it to be immediately overdrawn?
     def draw():
         pen = frame.theme("selected_focus_control")
-        contentpane.print_at("Hello, world!", (0, 0), pen)
-        contentpane.print_at("What's the world coming to?", (10, 30), pen)
-        contentpane.print_at("Goodbye, cruel world!", (100, 60), pen)
+        contentpane.display_at((0, 0), "Hello, world!", pen)
+        contentpane.display_at((10, 30), "What's the world coming to?", pen)
+        contentpane.display_at((100, 60), "Goodbye, cruel world!", pen)
     contentpane.render = draw
 
     frame.lay_out_frame()

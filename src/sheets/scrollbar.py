@@ -59,31 +59,31 @@ class Scrollbar(Sheet):
         if self._highlight == "origin":
             save_pen = pen
             pen = button_click_pen
-            self.print_at(origin_arrow, (0, 0), pen)
+            self.display_at((0, 0), origin_arrow, pen)
             pen = save_pen
         else:
-            self.print_at(origin_arrow, (0, 0), pen)
+            self.display_at((0, 0), origin_arrow, pen)
 
         if self._orientation == "horizontal":
             self.move((1, 0))
-            self.draw((size-1, 0), trough, pen)
+            self.draw_to((size-1, 0), trough, pen)
             if self._highlight == "terminal":
                 save_pen = pen
                 pen = button_click_pen
-                self.print_at(terminal_arrow, (size-1, 0), pen)
+                self.display_at((size-1, 0), terminal_arrow, pen)
                 pen = save_pen
             else:
-                self.print_at(terminal_arrow, (size-1, 0), pen)
+                self.display_at((size-1, 0), terminal_arrow, pen)
         else:
             self.move((0, 1))
-            self.draw((0, size-1), trough, pen)
+            self.draw_to((0, size-1), trough, pen)
             if self._highlight == "terminal":
                 save_pen = pen
                 pen = button_click_pen
-                self.print_at(terminal_arrow, (0, size-1), pen)
+                self.display_at((0, size-1), terminal_arrow, pen)
                 pen = save_pen
             else:
-                self.print_at(terminal_arrow, (0, size-1), pen)
+                self.display_at((0, size-1), terminal_arrow, pen)
         # draw slug
         if self._slug_size is not None:
             if self._slug_offset is None:
@@ -92,12 +92,12 @@ class Scrollbar(Sheet):
                 # move past button
                 self.move((1 + self._slug_offset, 0))
                 # draw up to other button
-                self.draw((self._slug_offset + self._slug_size, 0), slug, pen)
+                self.draw_to((self._slug_offset + self._slug_size, 0), slug, pen)
             else:
                 # move past buttons
                 self.move((0, 1 + self._slug_offset))
                 # draw up to other button
-                self.draw((0, self._slug_offset + self._slug_size), slug, pen)
+                self.draw_to((0, self._slug_offset + self._slug_size), slug, pen)
 
     def compose_space(self):
         absolute_min = 2

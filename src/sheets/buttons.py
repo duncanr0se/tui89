@@ -121,7 +121,7 @@ class Button(Sheet):
         (width, height) = self._region
         for y in range(0, height-1):
             self.move((0, y))
-            self.draw((width, y), ' ', pen)
+            self.draw_to((width, y), ' ', pen)
 
     def _draw_button_background(self):
         # fixme: method on Pen to return a "draw in bg colour" pen
@@ -135,7 +135,7 @@ class Button(Sheet):
         # when they do and don't draw. Width in "draw" appears not to
         # be inclusive when drawing left to right. Weird.
         width = width-2 if self._decorated else width
-        self.draw((width, yoffset), ' ', pen)
+        self.draw_to((width, yoffset), ' ', pen)
 
     def _draw_button_dropshadow(self):
         shadow_pen = self.frame().theme("shadow")
@@ -144,9 +144,9 @@ class Button(Sheet):
         (width, height) = self._region
         dropshadow_right = u'▄'
         dropshadow_below = u'▀'
-        self.print_at(dropshadow_right, (width-2, 1), pen)
+        self.display_at((width-2, 1), dropshadow_right, pen)
         self.move((2, 2))
-        self.draw((width-1, 2), dropshadow_below, pen)
+        self.draw_to((width-1, 2), dropshadow_below, pen)
 
     def _draw_button_label(self):
         pen = self.pen()
@@ -157,7 +157,7 @@ class Button(Sheet):
         # todo: truncate label if it's too long...
         button_label = self._label
         yoffset = 1 if self._decorated else 0
-        self.print_at(button_label, (center_x, yoffset), pen)
+        self.display_at((center_x, yoffset), button_label, pen)
 
     def pen(self):
         if self._pressed:

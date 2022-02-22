@@ -43,6 +43,9 @@ widgets that could be useful.
 
  PRIORITIES:
 
+*. scroller clipping (text rhs) + scrollbar slug offset (not showing
+   as scrolled when still parts of scrolled sheet off screen
+
 *. status bars
 
 *. command tables
@@ -81,6 +84,10 @@ space remains), do what? Leave undefined for now, throw on user to
 make sure it doesn't happen.
 First pass: fixed sizes
 Second pass: percentages
+
+Box layout not working now buttons refuse to take space allocation
+that is over the space composed. Layout needs to hold the offsets
+instead of relying on having them in the child widgets.
 
 TEXT ALIGNMENT ON BUTTONS / BORDER TITLES
 
@@ -154,11 +161,4 @@ places also, such as when drawing text for borders.
 
 PUSH BUTTONS: CENTER ALIGN BY DEFAULT
 RADIO + CHECK BUTTONS: LEFT ALIGN BY DEFAULT
-
-CHANGE DRAWING METHODS, FIRSTLY TO ALWAYS TAKE COORDS FIRST AND CHANGE
-DRAW TO TAKE START POSITION AS WELL AS END POSITION, AND RENAME "DRAW"
-→ "DRAW_TO". FOR SHEETS THAT CLIP, CLIP TO SHEET BOUNDS THEN
-TRANSFORM. FOR SHEETS THAT DO NOT CLIP, JUST DRAW ALL THE THINGS,
-SOMEHOW. THINK ABOUT HOW THIS WILL WORK.
-
 

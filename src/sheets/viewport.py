@@ -145,7 +145,7 @@ class Viewport(Sheet):
         self._parent.clear(porigin, region)
 
     # drawing
-    def print_at(self, text, coord, pen):
+    def display_at(self, coord, text, pen):
         # capture full extents of print
         self._capture_print_at(text, coord)
         # clip to region prior to drawing
@@ -153,7 +153,7 @@ class Viewport(Sheet):
         if text is not None:
             coord = self._clip(coord)
             parent_coord = self._transform.apply(coord)
-            self._parent.print_at(text, parent_coord, pen)
+            self._parent.display_at(parent_coord, text, pen)
 
     # drawing
     def move(self, coord):
@@ -167,11 +167,11 @@ class Viewport(Sheet):
     # graphic characters are required; there may be
     # multiple characters in the string for multibyte
     # characters. Perhaps.
-    def draw(self, coord, char, pen):
+    def draw_to(self, coord, char, pen):
         self._capture_draw(coord, char)
         coord = self._clip(coord)
         parent_coord = self._transform.apply(coord)
-        self._parent.draw(parent_coord, char, pen)
+        self._parent.draw_to(parent_coord, char, pen)
 
     def _capture_print_at(self, text, coord):
         # capture scroller extents in the coord system of the scrolled

@@ -11,24 +11,29 @@ from dcs.ink import Pen
 # sheets participate in layout.
 class Sheet():
 
-    _parent = None
-    _region = None  # width x height allocated to the sheet, at 0,0
-    _transform = IDENTITY_TRANSFORM  # sheet coords -> parent coords
+    #_parent = None
+    #_region = None  # width x height allocated to the sheet, at 0,0
+    #_transform = IDENTITY_TRANSFORM  # sheet coords -> parent coords
 
     # children at the front are lower in the z-order (get rendered
     # first)
-    _children = None
+    #_children = None
 
     # really this should be False by default and should be updated
     # when the sheet's top-level-sheet is attached to the display
-    _attached = True
+    #_attached = True
 
 #    _default_pen = None
 
     def __init__(self, default_pen=None, pen=None):
+        # Fixme: should default to False
+        self._attached = True
         self._children = []
         self._default_pen = default_pen
         self._pen = pen
+        self._parent = None
+        self._region = None
+        self._transform = IDENTITY_TRANSFORM
 
     def __repr__(self):
         (width, height) = self._region
@@ -55,13 +60,13 @@ class Sheet():
         self._parent.clear(porigin, region)
 
     # drawing
-    def print_at(self, text, coord, pen):
+    def display_at(self, coord, text, pen):
         # transform coords all the way up to the top-level-sheet and
         # invoke print_at on t-l-s. Has to be better than expecting
         # every sheet in the hierarchy to implement the drawing
         # methods... or maybe not. Hrm.
         parent_coord = self._transform.apply(coord)
-        self._parent.print_at(text, parent_coord, pen)
+        self._parent.display_at(parent_coord, text, pen)
 
     # drawing
     def move(self, coord):
@@ -75,9 +80,9 @@ class Sheet():
     # also ignores bottommost/rightmost coordinate.
     # Not sure if only true when drawing ltr or ttb,
     # might not occur for rtl / btt.
-    def draw(self, coord, char, pen):
+    def draw_to(self, coord, char, pen):
         parent_coord = self._transform.apply(coord)
-        self._parent.draw(parent_coord, char, pen)
+        self._parent.draw_to(parent_coord, char, pen)
 
     # screenpos
     def move_to(self, coord):

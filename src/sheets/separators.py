@@ -43,7 +43,7 @@ class HorizontalSeparator(Separator):
         pen = self.pen()
         (w, h) = self._region
         self.move((0, 0))
-        self.draw((w, 0), HorizontalSeparator._line_chars[self._style], pen)
+        self.draw_to((w, 0), HorizontalSeparator._line_chars[self._style], pen)
 
     # layout
     def compose_space(self):
@@ -73,7 +73,7 @@ class VerticalSeparator(Separator):
         pen = self.pen()
         (w, h) = self._region
         self.move((0, 0))
-        self.draw((0, h), VerticalSeparator._line_chars[self._style], pen)
+        self.draw_to((0, h), VerticalSeparator._line_chars[self._style], pen)
 
     # layout
     def compose_space(self):

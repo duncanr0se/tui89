@@ -29,7 +29,7 @@ class TopLevelSheet(Sheet):
             return self.frame().default_pen()
         return super().default_pen()
 
-    def print_at(self, text, coord, pen):
+    def display_at(self, coord, text, pen):
         (x, y) = self._transform.apply(coord)
         self._frame._screen.print_at(text, x, y, colour=pen.fg(), attr=pen.attr(), bg=pen.bg())
 
@@ -37,7 +37,9 @@ class TopLevelSheet(Sheet):
         (x, y) = self._transform.apply(coord)
         self._frame._screen.move(x, y)
 
-    def draw(self, coord, char, pen):
+    def draw_to(self, coord, char, pen):
+        if len(char) > 1:
+            raise RuntimeError("draw_to accepts single drawing char", char)
         (x, y) = self._transform.apply(coord)
         self._frame._screen.draw(x, y, char, colour=pen.fg(), bg=pen.bg())
 

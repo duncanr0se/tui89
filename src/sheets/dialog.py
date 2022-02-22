@@ -155,7 +155,7 @@ class Dialog(TopLevelSheet):
 
         pen = self.pen()
         # fixme: use a real pane type to hold the text
-        self._content_pane.print_at(self._text, (2, 2), pen)
+        self._content_pane.display_at((2, 2), self._text, pen)
 
         self._draw_dropshadow()
 
@@ -165,10 +165,10 @@ class Dialog(TopLevelSheet):
         dropshadow_right = u'█'
         dropshadow_below = u'█'
         self.move((width-1, 1))
-        self.draw((width-1, height-1), dropshadow_right, pen)
+        self.draw_to((width-1, height-1), dropshadow_right, pen)
         # x is not included when using "draw" but is when using
         # "print_at". Maybe that's as it should be?
-        self.draw((1, height-1), dropshadow_below, pen)
+        self.draw_to((1, height-1), dropshadow_below, pen)
 
 
 

@@ -33,7 +33,7 @@ class MenubarLayout(Sheet):
         (w, h) = self._region
         self.clear((0, 0), self._region)
         self.move((0, 0))
-        self.draw((w, 0), ' ', self.pen())
+        self.draw_to((w, 0), ' ', self.pen())
         for child in self._children:
             child.render()
 

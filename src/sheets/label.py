@@ -33,7 +33,7 @@ class Label(Sheet):
         # todo: label alignment
         # todo: label truncation
         pen = self.frame().theme("label")
-        self.print_at(self._label_text, (0, 0), pen)
+        self.display_at((0, 0), self._label_text, pen)
 
     # layout
     def compose_space(self):
