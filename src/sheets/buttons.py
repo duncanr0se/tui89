@@ -254,8 +254,7 @@ class MenuButton(Button):
         return super().pen()
 
     # returns inverse of standard pen to show visual difference unless
-    # overridden by initarg. FIXME: look up in the theme instead.
-    # *boom!* -- stack overflow
+    # overridden by initarg.
     def pressed_pen(self):
         return self._pressed_pen
 
@@ -263,9 +262,11 @@ class MenuButton(Button):
         self._menubox = menubox
 
         def show_menu():
-            # fixme: how to position the menu? For now just show like
-            # a dialog, but need to transform button coords to screen,
-            # then position at a relative offset.
-            self.frame().show_popup(menubox, (0, 0))
+            # fixme: this should probably be done by the frame?
+            # Otherwise how to do nested menus?
+            coord = (0, 1)
+            transform = self.get_screen_transform()
+            tcoord = transform.apply(coord)
+            self.frame().show_popup(menubox, tcoord)
 
         self.on_click = show_menu
