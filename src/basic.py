@@ -107,16 +107,13 @@ def demo(screen):
 
     fm6 = MenuButton(label="Exit")
 
-    def app_quit():
+    def app_quit(widget):
         raise StopApplication("Exit Menu")
 
     fm6.on_click = app_quit
 
     file_menu.set_items([fm1, fm2, fm3, fm4, fm5, fm6])
 
-    # FIXME: associate menubox with menu button and add on_click
-    # callback so when menu button is clicked the menu is shown at (0,
-    # 1) relative to the menu button.
     menu1.set_menu_box(file_menu)
 
     spacer = Sheet(default_pen=frame.theme("focus_edit_text"))

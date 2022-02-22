@@ -147,7 +147,7 @@ class Frame():
         # good to support multiple dialogs in future so a dialog can
         # pop up an alert and so on.
 
-        # TODO: check for clicks over the menu; if none, check for any
+        # Check for clicks over the menu; if none, check for any
         # clicks elsewhere and close the menu if found, and then redo
         # the event distribution for the other top level types.
         event_top_level = None
@@ -175,7 +175,6 @@ class Frame():
                 event_top_level = self._top_level_sheet
             sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
         if sheet:
-            # fixme: rename to "convert_to_screen_coordinate"?
             transform = sheet.get_screen_transform()
             (sx, sy) = transform.inverse().apply((event.x, event.y))
             # if the child declines to deal with the event, pass it

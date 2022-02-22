@@ -15,7 +15,7 @@
    - scroll bars (✔)
    - viewport (✔)
    - menu bar (✔)
-   - menu
+   - menu (✔)
    - status bar
    - dialog box (✔)
        - alert (✔)
@@ -43,7 +43,7 @@ widgets that could be useful.
 
  PRIORITIES:
 
-*. Menus / status bars
+*. status bars
 
 *. command tables
 
@@ -51,6 +51,8 @@ widgets that could be useful.
 
 *. Then - more widgets, event handling, focus, input, tab order.
       - how about having a widget that shows the event stream?
+
+*. keyboard navigation
 
 *. File explorer - local fs, archives, s3
 
@@ -115,8 +117,10 @@ Unit tests, documentation, project setup. Make it more professional,
 push to gitlab. Maybe people will use it... given the chance.
 
 Migrate everything that displays text into having a contained Label
-that contains the text instead.
+that holds the text instead.
 
+Rename "get_screen_transform()" + apply transform pair into something
+like "convert_to_screen_coordinate"?
 
 EVENT HANDLING
 ==============
@@ -140,6 +144,7 @@ EVENT HANDLING - HOW MUCH IS NEEDED?
   - on_button_down
   - on_button_up
   - on_double_click
+  - on_activate
 
 BUTTON LABEL ALIGNMENT - do with label
 

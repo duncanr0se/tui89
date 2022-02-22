@@ -11,24 +11,36 @@ from dcs.ink import Pen
 from sheets.frame import Frame
 
 class BorderLayout(Sheet):
+    """Sheet that draws a border around itself.
 
-    _title = None
+    Manages a single child and can display scroll bars in the space
+    reserved for the border.
 
-    # simple class that draws a border around itself and manages a
-    # single child - todo, complicate this up by making it support
-    # scrolling!
+    Initargs:
+        - title
+        - style
+        - default_pen
+        - pen
 
-    _vertical_sb = None
-    _horizontal_sb = None
+    The following border styles are recognised:
+        - double : border made of double bars
+        - single : border made of single bars
+        - spacing : empty space used for border
+        - scrolling : border on bottom and right sides of sheet
+                 only
+        - title : border only on top edge
 
-    # One of "double", "spacing", "single", "scrolling", "title"
-    #     - double :: draw border using double bars; will draw title;
-    #     - single :: draw border using single bars; will draw title;
-    #     - spacing :: draw border using spaces;
-    #     - scrolling :: border only on bottom and rhs, and populated
-    #           with scroll bars if they are provided; no title
-    #     - title :: border only on top; will draw title
-    _border = None
+    All border styles display borders on all sides of the sheet
+    except for "scrolling" which displays borders on just the
+    right and bottom edges, and "title" which displays a border
+    only on the top edge.
+
+    If the title initarg is provided then all styles of border
+    layout render the title along the top edge of the sheet
+    except for the "scrolling" style which does not show the
+    title.
+    """
+    supported_styles = ["double", "single", "spacing"]
 
     def __init__(self,
                  title=None,
@@ -36,12 +48,14 @@ class BorderLayout(Sheet):
                  default_pen=None,
                  pen=None):
         super().__init__(default_pen=default_pen, pen=pen)
-        self._title = title
-        supported = ["double", "single", "spacing"]
-        if style not in supported:
+        if style not in BorderLayout.supported_styles:
             raise NotImplementedError("Border layout only supports {} style currently"
-                                      .format(supported))
+                                      .format(supported_styles))
         self._border = style
+        self._horizontal_sb = None
+        self._title = title
+        self._vertical_sb = None
+        # todo: title align
 
     def __repr__(self):
         (width, height) = self._region
@@ -91,7 +105,6 @@ class BorderLayout(Sheet):
         sr = ((1, 10, FILL), (1, 10, FILL))
         for child in self._children:
             sr = child.compose_space()
-        # minimum = desired, max = FILL
         xmin = min(xSpaceReqMin(sr)+2, FILL)
         xdes = min(xSpaceReqDesired(sr)+2, FILL)
         xmax = min(xSpaceReqMax(sr), FILL)
@@ -107,8 +120,6 @@ class BorderLayout(Sheet):
     # preferred size if they want to be. However, it does insist on
     # their origin being (0, 0). For more flexibility add a different
     # layout type as the child of the border box.
-    # FIXME: this doesn't seem to do the business for contained list
-    # layouts.
     def allocate_space(self, allocation):
         self._region = allocation
         (width, height) = allocation
