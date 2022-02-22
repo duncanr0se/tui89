@@ -1,42 +1,156 @@
 
 * Default Pen
-All sheets accept a "default_pen" initarg. If no default pen is
-specified for a sheet the pen used for drawing will be the default pen
-of the sheet's parent.
+All sheets accept "default_pen" and "pen" initargs. If a sheet is used
+for drawing the "pen" initarg can be used to override the default pen
+for the sheet type. If no pen is defined for the sheet the sheet will
+use any defined default pen. If no default pen is specified for a
+sheet the sheet's parents are queried until one returns a default pen
+to draw with.
+
+Top level sheet classes must always define a default pen for their
+children to draw with. They also use this as their own pen for
+drawing by default.
+
+The main difference between the "default_pen" and "pen" initargs are
+that one applies only to the sheet to which it is applied and the
+other will be detected by all children of that sheet (until one
+defines a new default_pen for its children).
 
 Note on background drawing; if it is necessary to draw the background,
 for example when clearing a widget background, the Pen's background
 (bg()) value can be used to construct a new pen that will paint in
 that background colour.
 
+Methods:
+
+    - default_pen() :: return default pen if set on sheet, otherwise
+      return parent's default pen
+    - pen() :: return pen if set on sheet, otherwise return default
+      pen
+
+FIXME: focus_pen() needs adding
+
+
 ** Top Level Sheet
- If no default pen is set on the top level sheet and no sheet between
- the top level sheet and the current sheet have a default pen value set
- then the frame is queried for the framework default pen, which is
- taken from the "tv" theme "borders" value.
+If no default pen is set on the top level sheet and no sheet between
+the top level sheet and the current sheet have a default pen value set
+then the frame is queried for the framework default pen, which is
+taken from the "tv" theme "borders" value.
+
 
 ** Dialog Sheet
- Dialog frames take their default pen from the THEME "tv" depending on
- the style of dialog. The following dialog styles are defined:
+Dialog frames take their default pen from the THEME "tv" depending on
+the style of dialog. The following dialog styles are defined:
 
      - alert
      - info
      - yes/no
      - composite
 
- The dialog's "default_pen" initarg can be used to override these
- defaults with a pen defined by the caller.
+The dialog's "default_pen" initarg can be used to override these
+defaults with a pen defined by the caller.
 
 ** Menubar
 The menubar uses the "tv" theme's "menubar" pen by default, unless
 overridden.
 
-** Buttons
-Use the "tv" theme's "button" style by default, and the
-"pushed_button" style when the button is pressed.
+** MenuBox
+Uses "tv" theme's "menubar" pen as its default.
 
-Buttons with no "pressed" style (radio buttons, check box buttons) use
-the "button" default.
+** MenuButton
+Use pen if explicitly set else use parent's pen - to pick up same
+colour scheme as the menubar or menubox containing the button.
 
-Menu buttons inherit the default colours from their parent (either
-menu bar or menu box) and use an inverse of this colour when pressed.
+
+* Sheet initargs
+TODO: describe a sheet.
+
+The following initargs are accepted by all sheets.
+
+    - default_pen
+    - pen
+
+To add:
+
+    - children
+    - width?
+    - height?
+    - sheet_transform? So sheet can move to specific places along with
+      having the parent transform also?
+
+
+** BorderLayout specific initargs
+
+    - style :: { "double", "single", "spacing", *"scrolling", "title"* }
+    - title
+
+
+** BoxLayout specific initargs
+
+    - portions : mandatory constructor param
+
+
+** Button specific initargs
+
+    - label
+    - decorated
+    - label_align
+    - width
+    - pressed_pen
+
+
+** Dialog specific initargs
+
+    - title
+    - text
+    - style
+
+** Label specific initargs
+
+    - label_text
+    - *label_align*
+
+
+** ListLayout specific initargs
+None
+
+
+** MenubarLayout specific initargs
+None
+
+
+** MenuBox specific initargs
+None
+
+
+** Scrollbar specific initargs
+
+    - orientation
+
+
+** Separator specific initargs
+
+    - style :: { "single", "double", "spacing" }
+    - size
+
+
+** SpaceReq specific initargs
+None
+
+
+** TopLevelSheet specific initargs
+
+    - frame : mandatory constructor param
+
+
+** Viewport
+
+    - contentpane : mandatory constructor param
+    - vertical_bar :: { None, scrollbar }
+    - horizontal_bar :: { None, scrollbar }
+
+
+* Frame initargs
+Not a sheet
+
+    - screen : mandatory constructor param

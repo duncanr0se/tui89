@@ -39,15 +39,22 @@ class Button(Sheet):
 
     _width = None
 
-    def __init__(self, label="--", decorated=True, label_align="center", width=None,
-                 default_pen=None):
-        super().__init__(default_pen=default_pen)
+    def __init__(self,
+                 label="--",
+                 decorated=True,
+                 label_align="center",
+                 width=None,
+                 default_pen=None,
+                 pressed_pen=None,
+                 pen=None):
+        super().__init__(default_pen=default_pen, pen=pen)
         self._label = label
         self._decorated = decorated
         if label_align != "center":
             raise RuntimeError("Only center alignment supported for button labels currently")
         self._label_align = label_align
         self._width = width
+        self._pressed_pen=pressed_pen
 
     def __repr__(self):
         (width, height) = self._region
@@ -103,7 +110,8 @@ class Button(Sheet):
         pass
 
     def _draw_padding(self):
-        pen = self._parent.default_pen()
+        # fixme: method on Pen to return a "draw in bg colour" pen
+        pen = self._parent.pen()
         pen = Pen(pen.bg(), pen.attr(), pen.bg())
         (width, height) = self._region
         for y in range(0, height-1):
@@ -111,7 +119,9 @@ class Button(Sheet):
             self.draw((width, y), ' ', pen)
 
     def _draw_button_background(self):
-        pen = self._get_pen()
+        # fixme: method on Pen to return a "draw in bg colour" pen
+        pen = self.pen()
+        pen = Pen(pen.bg(), pen.attr(), pen.bg())
         (width, height) = self._region
         xoffset = 1 if self._decorated else 0
         yoffset = 1 if self._decorated else 0
@@ -124,7 +134,7 @@ class Button(Sheet):
 
     def _draw_button_dropshadow(self):
         shadow_pen = self.frame().theme("shadow")
-        bg_pen = self._parent.default_pen()
+        bg_pen = self._parent.pen()
         pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg())
         (width, height) = self._region
         dropshadow_right = u'▄'
@@ -134,7 +144,7 @@ class Button(Sheet):
         self.draw((width-1, 2), dropshadow_below, pen)
 
     def _draw_button_label(self):
-        pen = self._get_pen()
+        pen = self.pen()
         (width, height) = self._region
         # assume single-line label, for now
         label_length = len(self._label) if self._label else 2
@@ -144,17 +154,17 @@ class Button(Sheet):
         yoffset = 1 if self._decorated else 0
         self.print_at(button_label, (center_x, yoffset), pen)
 
-    def _get_pen(self):
-        return self.pressed_pen() if self._pressed else self.default_pen()
-        return self.frame().theme(style)
-
-    def default_pen(self):
-        if self._default_pen is None:
-            return self.frame().theme("button")
-        return super().default_pen()
+    def pen(self):
+        if self._pressed:
+            return self.pressed_pen()
+        if self._pen is None:
+            self._pen = self.frame().theme("button")
+        return self._pen
 
     def pressed_pen(self):
-        return self.frame().theme("pushed_button")
+        if self._pressed_pen is None:
+            self._pressed_pen = self.frame().theme("pushed_button")
+        return self._pressed_pen
 
     def render(self):
         if not self._region:
@@ -186,16 +196,23 @@ class Button(Sheet):
 
 class RadioButton(Button):
 
-    def __init__(self, label="--", decorated=False, default_pen=None):
-        super().__init__(label="( ) " + label, decorated=decorated, default_pen=default_pen)
+    def __init__(self, label="--",
+                 decorated=False,
+                 default_pen=None, pen=None, pressed_pen=None):
+        super().__init__(label="( ) " + label,
+                         decorated=decorated,
+                         default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
 
     # needs to be part of a button group to be useful
 
 
 class CheckBox(Button):
 
-    def __init__(self, label="--", decorated=False, default_pen=None):
-        super().__init__(label="[ ] " + label, decorated=decorated, default_pen=default_pen)
+    def __init__(self, label="--",
+                 decorated=False,
+                 default_pen=None, pen=None, pressed_pen=None):
+        super().__init__(label="[ ] " + label, decorated=decorated,
+                         default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
 
     def _handle_mouse_event(self, event):
         if event.buttons == MouseEvent.LEFT_CLICK:
@@ -211,19 +228,28 @@ class MenuButton(Button):
 
     _menubox = None
 
-    def __init__(self, label="--", decorated=False, default_pen=None):
-        super().__init__(label=label, decorated=decorated, default_pen=default_pen)
+    def __init__(self, label="--", decorated=False,
+                 default_pen=None, pen=None, pressed_pen=None):
+        super().__init__(label=label, decorated=decorated,
+                         default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
 
-    # get from parent default_pen - in general will pick up pen from
-    # menu bar or parent menu box
-    def default_pen(self):
-        if self._default_pen is None:
-            return self._parent.default_pen()
-        return super().default_pen()
+    # override to return parent's pen
+    def pen(self):
+        if self._pen is None:
+            self._pen = self._parent.pen()
+            # also set self._pressed_pen here if no initarg supplied
+            # to prevent looking up the pen when _pressed_pen is
+            # needed
+            if self._pressed_pen is None:
+                self._pressed_pen = Pen(self._pen.bg(), self._pen.attr(), self._pen.fg())
+        # still want the pressed toggle to be an effect
+        return super().pen()
 
+    # returns inverse of standard pen to show visual difference unless
+    # overridden by initarg. FIXME: look up in the theme instead.
+    # *boom!* -- stack overflow
     def pressed_pen(self):
-        pen = self.default_pen()
-        return Pen(fg=pen.bg(), attr=pen.attr(), bg=pen.fg())
+        return self._pressed_pen
 
     def set_menu_box(self, menubox):
         self._menubox = menubox

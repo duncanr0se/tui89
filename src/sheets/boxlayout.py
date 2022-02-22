@@ -41,8 +41,8 @@ class BoxLayout(Sheet):
     # FIXME: if anything needs unit tests, it's probably the above!
     _portions = None
 
-    def __init__(self, portions):
-        super().__init__()
+    def __init__(self, portions, default_pen=None, pen=None):
+        super().__init__(default_pen=default_pen, pen=pen)
         self._portions = portions
 
     def add_child(self, child):

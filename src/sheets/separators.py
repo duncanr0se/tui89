@@ -10,11 +10,11 @@ from dcs.ink import Pen
 
 class Separator(Sheet):
 
-    _style = None
-    _size = None
+    #_style = None
+    #_size = None
 
-    def __init__(self, style="single", size=None):
-        super().__init__()
+    def __init__(self, style="single", size=None, default_pen=None, pen=None):
+        super().__init__(default_pen=default_pen, pen=pen)
         self._style = style
         self._size = size
 
@@ -29,8 +29,8 @@ class HorizontalSeparator(Separator):
         "spacing": ' '
     }
 
-    def __init__(self, style="single", size=None):
-        super().__init__(style, size)
+#    def __init__(self, style="single", size=None):
+#        super().__init__(style, size)
 
     def __repr__(self):
         (width, height) = self._region
@@ -40,7 +40,7 @@ class HorizontalSeparator(Separator):
     def render(self):
         # todo: label alignment
         # todo: label truncation
-        pen = self.frame().theme("borders")
+        pen = self.pen()
         (w, h) = self._region
         self.move((0, 0))
         self.draw((w, 0), HorizontalSeparator._line_chars[self._style], pen)
@@ -59,8 +59,8 @@ class VerticalSeparator(Separator):
         "spacing": ' '
     }
 
-    def __init__(self, style="single", size=None):
-        super().__init__(style, size)
+#    def __init__(self, style="single", size=None):
+#        super().__init__(style, size)
 
     def __repr__(self):
         (width, height) = self._region
@@ -70,7 +70,7 @@ class VerticalSeparator(Separator):
     def render(self):
         # todo: label alignment
         # todo: label truncation
-        pen = self.frame().theme("borders")
+        pen = self.pen()
         (w, h) = self._region
         self.move((0, 0))
         self.draw((0, h), VerticalSeparator._line_chars[self._style], pen)

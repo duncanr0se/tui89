@@ -47,7 +47,8 @@ class Dialog(TopLevelSheet):
         "composite": ""
     }
 
-    def __init__(self, title=None, text=None, style="info", default_pen=None):
+    def __init__(self, title=None, text=None, style="info",
+                 default_pen=None, pen=None):
         # Can't call super here or this dialog is set as the frame's
         # top level sheet! Ouch, maybe make this a frame after all...
         #super().__init__(frame=frame)
@@ -63,6 +64,7 @@ class Dialog(TopLevelSheet):
         self._wrapper.add_child(self._make_button_pane())
         self._text = text
         self._default_pen = default_pen
+        self._pen = pen
 
     def __repr__(self):
         (width, height) = self._region
@@ -87,9 +89,10 @@ class Dialog(TopLevelSheet):
     def default_pen(self):
         if self._default_pen is None:
             # FIXME: make constructing pens easier!
+            # Surely we have a _frame reference now?
             (fg, attr, bg) = Frame.THEMES["tv"][self._style]
-            return Pen(fg=fg, attr=attr, bg=bg)
-        return self._default_pen;
+            self._default_pen = Pen(fg=fg, attr=attr, bg=bg)
+        return self._default_pen
 
     def compose_space(self):
         # make sufficient space for:
@@ -158,7 +161,7 @@ class Dialog(TopLevelSheet):
         for child in self._children:
             child.render()
 
-        pen = self.default_pen()
+        pen = self.pen()
         # fixme: use a real pane type to hold the text
         self._content_pane.print_at(self._text, (2, 2), pen)
 

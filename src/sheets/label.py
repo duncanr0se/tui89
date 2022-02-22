@@ -12,18 +12,18 @@ class Label(Sheet):
 
     _label_text = None
 
-    def __init__(self, label_text="", default_pen=None):
-        super().__init__(default_pen)
+    def __init__(self, label_text="", default_pen=None, pen=None):
+        super().__init__(default_pen=default_pen, pen=pen)
         self._label_text = label_text
 
     def __repr__(self):
         (width, height) = self._region
         return "Label({}x{}, '{}')".format(width, height, self._label_text)
 
-    def default_pen(self):
-        if self._default_pen is None:
-            return Frame.THEME["tv"]["label"]
-        return super().default_pen()
+    def pen(self):
+        if self._pen is None:
+            self._pen = Frame.THEME["tv"]["label"]
+        return self._pen
 
     def add_child(self):
         raise RuntimeError("children not allowed")

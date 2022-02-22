@@ -19,11 +19,12 @@ class MenubarLayout(Sheet):
             offset += child.width()
             child.layout()
 
+    # override default pen for this sheet and all its children
     def default_pen(self):
         if self._default_pen is None:
             (fg, attr, bg) = Frame.THEMES["tv"]["menubar"]
-            return Pen(fg=fg, attr=attr, bg=bg)
-        return super().default_pen()
+            self._default_pen = Pen(fg=fg, attr=attr, bg=bg)
+        return self._default_pen
 
     def render(self):
         if not self._region:
@@ -35,7 +36,7 @@ class MenubarLayout(Sheet):
         (w, h) = self._region
         self.clear((0, 0), self._region)
         self.move((0, 0))
-        self.draw((w, 0), ' ', self.default_pen())
+        self.draw((w, 0), ' ', self.pen())
         for child in self._children:
             child.render()
 

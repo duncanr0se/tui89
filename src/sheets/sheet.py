@@ -23,12 +23,12 @@ class Sheet():
     # when the sheet's top-level-sheet is attached to the display
     _attached = True
 
-    _default_pen = None
+#    _default_pen = None
 
-    def __init__(self, default_pen=None):
+    def __init__(self, default_pen=None, pen=None):
         self._children = []
-        if default_pen is not None:
-            self._default_pen = default_pen
+        self._default_pen = default_pen
+        self._pen = pen
 
     def __repr__(self):
         (width, height) = self._region
@@ -36,10 +36,18 @@ class Sheet():
 
     # drawing
     def default_pen(self):
+        # What if the sheet is regrafted? if moving sheets between
+        # hierarchies is necessary, change this to always look up the
+        # default from its parent.
         if self._default_pen is None:
-            return self._parent.default_pen()
-        else:
-            return self._default_pen
+            self._default_pen = self._parent.default_pen()
+        return self._default_pen
+
+    # drawing
+    def pen(self):
+        if self._pen is None:
+            self._pen = self.default_pen()
+        return self._pen
 
     # drawing
     def clear(self, origin, region):

@@ -4,10 +4,10 @@ from dcs.ink import Pen
 
 class TopLevelSheet(Sheet):
 
-    _frame = None
+    # _frame = None
 
-    def __init__(self, frame, default_pen=None):
-        super().__init__(default_pen=default_pen)
+    def __init__(self, frame, default_pen=None, pen=None):
+        super().__init__(default_pen=default_pen, pen=pen)
         self._frame = frame
         frame.set_top_level_sheet(self)
 
@@ -16,13 +16,14 @@ class TopLevelSheet(Sheet):
         return "TopLevelSheet({}x{})".format(width, height)
 
     def clear(self, origin, region):
-        pen = self.default_pen()
+        pen = self.pen()
         (x, y) = self._transform.apply(origin)
         (w, h) = region
         for line in range(0, h):
             self._frame._screen.move(x, y + line)
             self._frame._screen.draw(x + w, y + line, u' ', colour=pen.bg(), bg=pen.bg())
 
+    # Return default pen from frame if no initarg
     def default_pen(self):
         if self._default_pen is None:
             return self.frame().default_pen()

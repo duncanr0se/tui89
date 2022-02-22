@@ -8,22 +8,36 @@ from asciimatics.screen import Screen
 
 class Scrollbar(Sheet):
 
-    _orientation = None
+    #_orientation = None
     # one of "origin" or "terminal"
-    _highlight = None
+    #_highlight = None
 
-    _scrolled_sheet_extent = None
-    _slug_size = None
-    _slug_offset = None
+    #_scrolled_sheet_extent = None
+    #_slug_size = None
+    #_slug_offset = None
 
-    _viewport = None
+    #_viewport = None
 
-    def __init__(self, orientation="vertical"):
-        super().__init__()
+    # fixme: pens here are all over the place in this source file; fix
+    def __init__(self, orientation="vertical", default_pen=None, pen=None):
+        super().__init__(default_pen=default_pen, pen=pen)
         self._orientation = orientation
+        self._highlight = None
+        self._scrolled_sheet_extent = None
+        self._slug_size = None
+        self._slug_offset = None
+        self._viewport = None
+
+    def pen(self):
+        if self._pen is None:
+            self._pen = self.frame().theme("scroll")
+        return self._pen
+
+    def button_click_pen(self):
+        return self.frame().theme("borders")
 
     def render(self):
-        pen = self.frame().theme("scroll")
+        pen = self.pen()
         # could make all these parts individual sheets, but
         # just render them directly for now.
         #
@@ -48,7 +62,7 @@ class Scrollbar(Sheet):
         (rw, rh) = self._region
         size = rw if self._orientation == "horizontal" else rh
 
-        button_click_pen = self.frame().theme("borders")
+        button_click_pen = self.button_click_pen()
 
         if self._highlight == "origin":
             save_pen = pen

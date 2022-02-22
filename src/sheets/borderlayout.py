@@ -29,8 +29,12 @@ class BorderLayout(Sheet):
     #     - title :: border only on top; will draw title
     _border = None
 
-    def __init__(self, title=None, style="double", default_pen=None):
-        super().__init__(default_pen)
+    def __init__(self,
+                 title=None,
+                 style="double",
+                 default_pen=None,
+                 pen=None):
+        super().__init__(default_pen=default_pen, pen=pen)
         self._title = title
         supported = ["double", "single", "spacing"]
         if style not in supported:
@@ -157,7 +161,7 @@ class BorderLayout(Sheet):
     }
 
     def _draw_border(self):
-        pen = self.default_pen()
+        pen = self.pen()
         (left, top) = (0, 0)
         (width, height) = self._region
         right = self.width()-1
