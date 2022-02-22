@@ -21,11 +21,12 @@ class Frame():
             "shadow": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "scroll": (Screen.COLOUR_CYAN, Screen.A_REVERSE, Screen.COLOUR_BLUE),
             "button": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_GREEN),
-            "menubar": (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_MAGENTA),
+            "pushed_button": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_RED),
+            "menubar": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE),
             "alert": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED),
             "info": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_CYAN),
             "yes/no": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_GREEN),
-            "composite": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_MAGENTA),
+            "composite": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_WHITE),
 
             "disabled": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_BLUE),
             "invalid": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED),
@@ -52,6 +53,7 @@ class Frame():
     _top_level_sheet = None
     _dialog = None
     _invalidated = None
+    _menu = None
 
     def __init__(self, screen):
         self._screen = screen
@@ -207,12 +209,57 @@ class Frame():
             self._dialog = None
             self.render()
 
+    def show_popup(self, menu, coord):
+        if self._menu is not None:
+            raise RuntimeError("Can't have multiple menus currently")
+        # Rename this method to "attach_dialog", or "graft_dialog" or
+        # similar.
+        # When a top-level-sheet has attach(frame) called on it, it
+        # recursively calls attach on all its kids (could use an event
+        # for this?). When the t-l-s has the frame reference removed,
+        # it recursively calls detach on all its kids.
+        self._menu = menu
+
+        # Allow top level sheets to be grafted / detached from the
+        # frame. This allows sheet hierarchies to be shown, hidden
+        # then shown again.
+        # For now this only works for dialogs, should have proper
+        # "graft / detach / attach" methods that work for all top
+        # levels, if not for all sheets.
+        menu.attach(self)
+
+        dwidth = self._screen.width // 2
+        dheight = self._screen.height // 2
+
+        menu_spacereq = self._menu.compose_space()
+
+        # use dialog desired size if it's smaller than
+        # the default
+        dwidth = min(xSpaceReqDesired(menu_spacereq), dwidth)
+        dheight = min(ySpaceReqDesired(menu_spacereq), dheight)
+
+        menu.allocate_space((dwidth, dheight))
+
+        menu.move_to(coord)
+        menu.layout()
+        self.render()
+
+    def menu_quit(self):
+        if self._menu is not None:
+            # detach will also recursively move all children into a
+            # detached state
+            self._menu.detach()
+            self._menu = None
+            self.render()
+
     def render(self):
         # clear the screen first? Might be flickery... read the docs,
         # work out how to do this.
         self._top_level_sheet.render()
         if self._dialog is not None:
             self._dialog.render()
+        if self._menu is not None:
+            self._menu.render()
         self._screen.refresh()
 
     def invalidate(self, sheet):

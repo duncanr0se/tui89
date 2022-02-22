@@ -22,6 +22,7 @@ from sheets.separators import HorizontalSeparator
 from sheets.separators import VerticalSeparator
 from sheets.listlayout import ListLayout
 from sheets.menubar import MenubarLayout
+from sheets.menubox import MenuBox
 
 from dcs.ink import Pen
 
@@ -38,7 +39,7 @@ def demo(screen):
     child_sheet = HorizontalLayout([1, 2, 1, 1])
     border_layout.add_child(child_sheet)
 
-    oneb = BorderLayout(title="buttons")
+    oneb = BorderLayout(title="buttons", style="single")
     child_sheet.add_child(oneb)
 
     one = VerticalLayout([1, 1, 1])
@@ -54,8 +55,7 @@ def demo(screen):
     # fixme: implement wrapping
     # fixme: dialog sizing to fit text better, with existing scheme
     #     as a maximum.
-    dialog = Dialog(frame, title="dialog!",
-                    text="Hello! I like pancakes!!")
+    dialog = Dialog(title="dialog!", text="Hello! I like pancakes!!")
 
     def btn_cb():
         # sets dialog up, but doesn't draw it. That happens in
@@ -82,20 +82,39 @@ def demo(screen):
     green_bg = Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_GREEN)
     green_border = BorderLayout(title="green", style="spacing", default_pen=green_bg)
     child_sheet.add_child(green_border)
+    green_vert = VerticalLayout([1, 10])
     menubar = MenubarLayout()
-    green_border.add_child(menubar)
+    green_border.add_child(green_vert)
+    green_vert.add_child(menubar)
 
     menu1 = MenuButton(label="File")
     menu2 = MenuButton(label="Edit")
     menu3 = MenuButton(label="View")
     menu4 = MenuButton(label="Help")
 
-    menubar.add_child(menu1)
-    menubar.add_child(menu2)
-    menubar.add_child(menu3)
-    menubar.add_child(menu4)
+    menubar.set_children([menu1, menu2, menu3, menu4])
 
-    border4 = BorderLayout(title="scrolling")
+    # top level sheet < dialog < menu
+    # MenuBox = BorderLayout(style="single").add_child(ListLayout)
+    file_menu = MenuBox()
+    fm1 = MenuButton(label="Open")
+    fm2 = HorizontalSeparator()
+    fm3 = MenuButton(label="Save")
+    fm4 = MenuButton(label="Save As")
+    fm5 = HorizontalSeparator()
+    fm6 = MenuButton(label="Exit")
+
+    file_menu.set_items([fm1, fm2, fm3, fm4, fm5, fm6])
+
+    # FIXME: associate menubox with menu button and add on_click
+    # callback so when menu button is clicked the menu is shown at (0,
+    # 1) relative to the menu button.
+    menu1.set_menu_box(file_menu)
+
+    spacer = Sheet(default_pen=frame.theme("focus_edit_text"))
+    green_vert.add_child(spacer)
+
+    border4 = BorderLayout(title="scrolling", style="single")
     child_sheet.add_child(border4)
     # MAKE THE BORDER LAYOUT WORK AS A SCROLLER, THEN IT CAN BE
     # WRAPPED AROUND ALL SORTS OF STUFF.

@@ -20,7 +20,7 @@
    - dialog box (✔)
        - alert (✔)
        - error
-       - information
+       - info (✔)
        - yes/no
        - multivalue
    - text entry

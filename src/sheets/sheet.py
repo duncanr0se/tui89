@@ -88,6 +88,12 @@ class Sheet():
         self._children.append(child)
         child._parent = self
 
+    #genealogy
+    def set_children(self, children):
+        self._children = children
+        for child in children:
+            child._parent = self
+
     # genealogy
     def frame(self):
         return self.top_level_sheet().frame()

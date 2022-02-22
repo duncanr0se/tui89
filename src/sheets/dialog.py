@@ -47,12 +47,11 @@ class Dialog(TopLevelSheet):
         "composite": ""
     }
 
-    def __init__(self, frame, title=None, text=None, style="info", default_pen=None):
+    def __init__(self, title=None, text=None, style="info", default_pen=None):
         # Can't call super here or this dialog is set as the frame's
         # top level sheet! Ouch, maybe make this a frame after all...
         #super().__init__(frame=frame)
         self._children = []
-        self._frame = frame
         self._title = title if title is not None else "unnamed"
         self._style = style
         border = BorderLayout(title=Dialog.prefix[style] + title)

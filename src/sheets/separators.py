@@ -13,7 +13,7 @@ class Separator(Sheet):
     _style = None
     _size = None
 
-    def __init__(self, style=None, size=None):
+    def __init__(self, style="single", size=None):
         super().__init__()
         self._style = style
         self._size = size
@@ -29,7 +29,7 @@ class HorizontalSeparator(Separator):
         "spacing": ' '
     }
 
-    def __init__(self, style=None, size=None):
+    def __init__(self, style="single", size=None):
         super().__init__(style, size)
 
     def __repr__(self):
@@ -59,7 +59,7 @@ class VerticalSeparator(Separator):
         "spacing": ' '
     }
 
-    def __init__(self, style=None, size=None):
+    def __init__(self, style="single", size=None):
         super().__init__(style, size)
 
     def __repr__(self):

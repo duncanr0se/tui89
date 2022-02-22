@@ -154,7 +154,7 @@ class Button(Sheet):
         return super().default_pen()
 
     def pressed_pen(self):
-        return self.frame().theme("selected_focus_field")
+        return self.frame().theme("pushed_button")
 
     def render(self):
         if not self._region:
@@ -209,9 +209,13 @@ class CheckBox(Button):
 
 class MenuButton(Button):
 
+    _menubox = None
+
     def __init__(self, label="--", decorated=False, default_pen=None):
         super().__init__(label=label, decorated=decorated, default_pen=default_pen)
 
+    # get from parent default_pen - in general will pick up pen from
+    # menu bar or parent menu box
     def default_pen(self):
         if self._default_pen is None:
             return self._parent.default_pen()
@@ -220,3 +224,14 @@ class MenuButton(Button):
     def pressed_pen(self):
         pen = self.default_pen()
         return Pen(fg=pen.bg(), attr=pen.attr(), bg=pen.fg())
+
+    def set_menu_box(self, menubox):
+        self._menubox = menubox
+
+        def show_menu():
+            # fixme: how to position the menu? For now just show like
+            # a dialog, but need to transform button coords to screen,
+            # then position at a relative offset.
+            self.frame().show_popup(menubox, (0, 0))
+
+        self.on_click = show_menu
