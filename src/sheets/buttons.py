@@ -198,7 +198,7 @@ class Button(Sheet):
             if self._pressed:
                 self._pressed = False
                 self.invalidate()
-                return self.on_click and self.on_click()
+                return self.on_click and self.on_click(self)
         return False
 
 
@@ -261,12 +261,12 @@ class MenuButton(Button):
     def set_menu_box(self, menubox):
         self._menubox = menubox
 
-        def show_menu():
+        def show_menu(button):
             # fixme: this should probably be done by the frame?
             # Otherwise how to do nested menus?
             coord = (0, 1)
-            transform = self.get_screen_transform()
+            transform = button.get_screen_transform()
             tcoord = transform.apply(coord)
-            self.frame().show_popup(menubox, tcoord)
+            button.frame().show_popup(menubox, tcoord)
 
         self.on_click = show_menu

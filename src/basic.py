@@ -1,5 +1,5 @@
 from asciimatics.screen import Screen
-from asciimatics.exceptions import ResizeScreenError
+from asciimatics.exceptions import ResizeScreenError, StopApplication
 
 from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
@@ -8,18 +8,13 @@ from sheets.frame import Frame
 from sheets.sheet import Sheet
 from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
-from sheets.buttons import Button
-from sheets.buttons import RadioButton
-from sheets.buttons import CheckBox
-from sheets.buttons import MenuButton
-from sheets.boxlayout import HorizontalLayout
-from sheets.boxlayout import VerticalLayout
-from sheets.dialog import Dialog
+from sheets.buttons import Button, RadioButton, CheckBox, MenuButton
+from sheets.boxlayout import HorizontalLayout, VerticalLayout
+from sheets.dialog import Dialog, alert
 from sheets.scrollbar import Scrollbar
 from sheets.viewport import Viewport
 from sheets.label import Label
-from sheets.separators import HorizontalSeparator
-from sheets.separators import VerticalSeparator
+from sheets.separators import HorizontalSeparator, VerticalSeparator
 from sheets.listlayout import ListLayout
 from sheets.menubar import MenubarLayout
 from sheets.menubox import MenuBox
@@ -57,11 +52,11 @@ def demo(screen):
     #     as a maximum.
     dialog = Dialog(title="dialog!", text="Hello! I like pancakes!!")
 
-    def btn_cb():
+    def btn_cb(button):
         # sets dialog up, but doesn't draw it. That happens in
         # render(). Perhaps the dialog layout should happen in
         # lay_out_frame()? Maybe it's independent.
-        frame.show_dialog(dialog)
+        button.frame().show_dialog(dialog)
 
     button.on_click = btn_cb
     one.add_child(button)
@@ -102,7 +97,20 @@ def demo(screen):
     fm3 = MenuButton(label="Save")
     fm4 = MenuButton(label="Save As")
     fm5 = HorizontalSeparator()
+
+    def default_on_click(widget):
+        alert(widget.frame(), "Button clicked: {}".format(widget._label))
+        widget.frame().menu_quit()
+    fm1.on_click = default_on_click
+    fm3.on_click = default_on_click
+    fm4.on_click = default_on_click
+
     fm6 = MenuButton(label="Exit")
+
+    def app_quit():
+        raise StopApplication("Exit Menu")
+
+    fm6.on_click = app_quit
 
     file_menu.set_items([fm1, fm2, fm3, fm4, fm5, fm6])
 
@@ -116,8 +124,6 @@ def demo(screen):
 
     border4 = BorderLayout(title="scrolling", style="single")
     child_sheet.add_child(border4)
-    # MAKE THE BORDER LAYOUT WORK AS A SCROLLER, THEN IT CAN BE
-    # WRAPPED AROUND ALL SORTS OF STUFF.
     vbar = Scrollbar(orientation="vertical")
     hbar = Scrollbar(orientation="horizontal")
     # setting bars on the border pane is just a VISUAL thing to

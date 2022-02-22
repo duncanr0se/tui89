@@ -105,13 +105,17 @@ class Frame():
             # if event has caused widget to need redrawing, do it now
             self.render_invalidated()
 
+    # FIXME: handling focus better
     def _handle_key_event(self, event):
         if event.key_code > 0:
             if chr(event.key_code) in ('Q', 'q'):
                 raise StopApplication("User quit")
         else:
             if event.key_code == Screen.KEY_ESCAPE:
-                self.dialog_quit()
+                if self._menu is not None:
+                    self.menu_quit()
+                if self._dialog is not None:
+                    self.dialog_quit()
 
     def _handle_mouse_event(self, event):
         # find sheet under mouse, send it the event
@@ -160,6 +164,16 @@ class Frame():
         # a frame... carry on this way for now.
 
         sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
+        if not sheet and event_top_level == self._menu:
+            # Check if event occurred in the (modal) dialog (if there
+            # is one) or in the top level sheet otherwise
+            # Dispose of menu since there was a click outside it
+            self.menu_quit()
+            if self._dialog is not None:
+                event_top_level = self._dialog
+            else:
+                event_top_level = self._top_level_sheet
+            sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
         if sheet:
             # fixme: rename to "convert_to_screen_coordinate"?
             transform = sheet.get_screen_transform()

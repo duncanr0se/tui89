@@ -80,8 +80,8 @@ class Dialog(TopLevelSheet):
     def _make_button_pane(self):
         self._okButton = Button("OK", decorated=True, width=11)
 
-        def callback():
-            self._frame.dialog_quit()
+        def callback(button):
+            button.frame().dialog_quit()
 
         self._okButton.on_click = callback
         return self._okButton
@@ -177,3 +177,9 @@ class Dialog(TopLevelSheet):
         # x is not included when using "draw" but is when using
         # "print_at". Maybe that's as it should be?
         self.draw((1, height-1), dropshadow_below, pen)
+
+
+
+def alert(frame, message):
+    dialog = Dialog(title="???", style="alert", text=message)
+    frame.show_dialog(dialog)
