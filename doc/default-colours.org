@@ -173,3 +173,30 @@ directions.
 If the parent sheet allocates a size smaller than the minimum size the
 widget can be displayed in then the child widget will overflow the
 bounds of the parent sheet (and will be clipped).
+
+
+* Scrolling Overview
+Multiple components:
+
+    - scroll bars provide ability to represent scrolled area
+      proportionality (size of viewport to size of scrolled area)
+
+Scroll bars can be displayed anywhere, and are linked to the scrolled
+area by being connected to a Viewport
+
+    - scrolled sheet
+
+The scrolled sheet is the region that is too big to fit on the display
+and that the user wants to be able to navigate to different parts of.
+
+    - viewport
+
+The viewport is displayed in the UI. It links the scrolled sheet and
+the scroll bars. When it is drawn, it displays the contents of the
+scrolled sheet that "show through" the viewport at the current time as
+dictated by the values of the scrollbars.
+
+The viewport intercepts drawing operations from its children (or made
+on it directly) and calculates a bounding rectangle for the operation
+in the coordinate space of the scrolling pane. These extents are used
+to calculate scrollbar sizes and slug sizes.
