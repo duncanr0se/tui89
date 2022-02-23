@@ -43,8 +43,8 @@ widgets that could be useful.
 
  PRIORITIES:
 
-*. scroller clipping (text rhs) + scrollbar slug offset (not showing
-   as scrolled when still parts of scrolled sheet off screen
+*. scrollbar slug offset (not showing as scrolled when still parts of
+   scrolled sheet off screen
 
 *. status bars
 

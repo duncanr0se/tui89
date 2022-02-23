@@ -100,35 +100,27 @@ class Viewport(Sheet):
             child.render()
         # fixme: how to deal with events?
 
-    # FIME: this seems often to be over-eager to clip the text
+
+    # FIXME: Pretty sure this should be working. Thinking that if it
+    # isn't it's a bug in asciimatics...
+    # Can see the problem if scroll straight to bottom of page in
+    # "basic.py" sample ui - the text that should be off-screen is
+    # displayed just outside the rhs of the sheet but at the correct y
+    # ordinate. Not sure why...
     def _clip_text(self, coord, text):
         # measure text, cut off any that would be rendered before x=0
         # + cut off any that would be rendered after 'width'
         # coord is fixed elsewhere
-
-        text_len = len(text)
         (x, y) = coord
         (w, h) = self._region
 
+        if y < 0 or y >= h:
+            return ""
+
         if x < 0:
             text = text[abs(x):]
-        if x > w:
-            text = None
-        if y < 0:
-            text = None
-        if y > h:
-            text = None
-
-        if text is not None:
-            overflow = x+len(text) - w
-            if overflow > 0:
-                # change overflow to represent just the portion of the
-                # text that is overflowing
-                overflow -= x
-                text = text[:overflow]
-
-        if text == "":
-            text = None
+        if x < w:
+            text = text[:w-x]
 
         return text
 
@@ -150,7 +142,7 @@ class Viewport(Sheet):
         self._capture_print_at(text, coord)
         # clip to region prior to drawing
         text = self._clip_text(coord, text)
-        if text is not None:
+        if text != '':
             coord = self._clip(coord)
             parent_coord = self._transform.apply(coord)
             self._parent.display_at(parent_coord, text, pen)
@@ -271,9 +263,6 @@ class Viewport(Sheet):
         self.invalidate()
 
     def scroll_right_line(self):
-        #
-        # FIXME: +definitely coming in here but scrolling by a page; why?
-        #
         delta = 1
         trans = self._scrolled_sheet._transform
         # 0,0
