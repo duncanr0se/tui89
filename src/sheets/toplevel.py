@@ -91,3 +91,7 @@ class TopLevelSheet(Sheet):
 
     def is_detached(self):
         return self._frame is None
+
+    def handle_key_event(self, event):
+        raise NotImplementedError("handle_key_event in top_level_sheet")
+        return False

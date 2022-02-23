@@ -4,10 +4,10 @@ from collections import deque
 from asciimatics.screen import Screen
 from asciimatics.widgets.utilities import THEMES
 from asciimatics.event import KeyboardEvent, MouseEvent
-from asciimatics.exceptions import StopApplication
 
 from sheets.sheet import Sheet
 from dcs.ink import Pen
+from frames.commands import find_command
 
 class Frame():
 
@@ -45,17 +45,20 @@ class Frame():
         }
     }
 
-    _screen = None
-    _top_level_sheet = None
-    _dialog = None
-    _invalidated = None
-    _menu = None
+    #_screen = None
+    #_top_level_sheet = None
+    #_dialog = None
+    #_invalidated = None
+    #_menu = None
 
     def __init__(self, screen):
-        self._screen = screen
-
-        self._invalidated = deque()
         self._delayed_calls = []
+        self._dialog = None
+        self._focus = None
+        self._invalidated_sheets = deque()
+        self._menu = None
+        self._screen = screen
+        self._top_level_sheet = None
 
     def __repr__(self):
         (width, height) = self._region
@@ -76,6 +79,11 @@ class Frame():
         return Pen(fg=fg, attr=attr, bg=bg)
 
     def start_frame(self):
+        # TODO: test just running this loop, see how quickly the
+        # system can respond to mouse and key events. Not sure if
+        # latency is in the TUI code and need to find speedups there,
+        # or just in the event loop. Wonder if the event loop piece
+        # can be done in an async way?
         while True:
             self._screen.wait_for_input(60)
             event = self._screen.get_event()
@@ -99,54 +107,87 @@ class Frame():
             if isinstance(event, MouseEvent):
                 self._handle_mouse_event(event)
 
+            # FIXME: deal with TUI synthetic events also
+            # call_later, button_pressed, those kinds of things. Not
+            # sure if want to create a hierarchy of events or to just
+            # keep it simple.
+
             # if event has caused widget to need redrawing, do it now
-            self.render_invalidated()
+            self.render_invalidated_sheets()
+
+    def focus(self):
+        return self._focus
+
+    def set_focus(self, focus):
+        self._focus = focus
 
     # FIXME: handling focus better
     def _handle_key_event(self, event):
-        if event.key_code > 0:
-            if chr(event.key_code) in ('Q', 'q'):
-                raise StopApplication("User quit")
-        else:
-            if event.key_code == Screen.KEY_ESCAPE:
-                if self._menu is not None:
-                    self.menu_quit()
-                if self._dialog is not None:
-                    self.dialog_quit()
+        # Handle accelerators from the "command table"
+        # Who handles navigation? The frame or the sheets?
+
+        command = find_command(event)
+        if command is not None:
+            if command.apply(self):
+                return True
+
+        # Do what if there is no focus?
+        if self.focus() is None:
+            # Pass event to top level sheet to pass down the sheet
+            # hierarchy (start at bottom of z-order). Layouts can deal
+            # with keyboard navigation if appropriate before passing
+            # finally to leaf sheet.
+
+            # Set the focus to the highest priority top level
+            # sheet. When it is asked to deal with an event it can
+            # identify a more specific focus, if it is coded to.
+            if self._menu:
+                self.set_focus(self._menu)
+            elif self._dialog:
+                self.set_focus(self._dialog)
+            else:
+                self.set_focus(self._top_level_sheet)
+
+        # When a top level sheet, a dialog, or a menu is displayed it
+        # takes control of the current focus. When a menu or dialog is
+        # closed, the frame focus is cleared and the branch above is
+        # entered so the next highest priority focus can be selected.
+        return self.focus().handle_key_event(event)
 
     def _handle_mouse_event(self, event):
-        # find sheet under mouse, send it the event
+        # find sheet under mouse, send it the event. Only handles
+        # button events.
 
-        # Need to compose transforms from sheet up to screen and see
-        # if mouse event happened in that sheet.
+        # Compose transforms from sheet up to screen and see if mouse
+        # event happened in that sheet.
 
-        # If it did and it has children, see repeat the process with
-        # its children until find the sheet highest in the z-order
-        # where the event occurred. Then invoke "mouse_down" or
-        # "mouse_up" on the sheet. Also - need timestamp for event.
+        # If it did and it has children, repeat the process with its
+        # children until find the sheet highest in the z-order where
+        # the event occurred. Then invoke "mouse_down" or "mouse_up"
+        # on the sheet.
 
-        # How about handling mouse move for highlighting? Perhaps
-        # don't handle the mouse at all? Should be fine for setting
-        # focus and clicking widgets, so just do that.
+        # menu > dialog > default top level
 
-        # Just (very) rudimentary mouse handling, this is supposed to
-        # be a keyboard-driven ui toolkit...
+        # Check for clicks over an open menu; if clicks occur outside
+        # the bounds of an active menu the menu will be closed;
 
-        # start at top level sheet which must contain the event by
-        # definition since it takes up the whole of the screen. Ask it
-        # for the highest child it knows of that contains the
-        # "untransformed" position.
-        # If there's a dialog on screen, look in the dialog for the
-        # sheet that's going to handle the event; otherwise look in
-        # the top level sheet.
+        # If event not handled by a menu and there's a dialog on
+        # screen, look in the dialog for the sheet that's going to
+        # handle the event;
+
         # Note: this makes dialogs capture the mouse and become modal,
         # in effect. That's probably ok for a TUI, for now. Might be
         # good to support multiple dialogs in future so a dialog can
         # pop up an alert and so on.
 
-        # Check for clicks over the menu; if none, check for any
-        # clicks elsewhere and close the menu if found, and then redo
-        # the event distribution for the other top level types.
+        # If the event is not handled by a menu or a dialog, start at
+        # top level sheet (which must contain the event by definition
+        # since it takes up the whole of the screen) and search for
+        # the highest child that contains the "untransformed"
+        # position.
+
+        # TODO: better handling of top level sheets would simplify
+        # this mess.
         event_top_level = None
         if self._menu is not None:
             event_top_level = self._menu
@@ -154,11 +195,6 @@ class Frame():
             event_top_level = self._dialog
         if event_top_level is None:
             event_top_level = self._top_level_sheet
-
-        # this is failing to find the button in the dialog; because
-        # the dialog doesn't have sensible 'children', it instead has
-        # the 'layout' slot. Would likely be easier to make dialog
-        # a frame... carry on this way for now.
 
         sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
         if not sheet and event_top_level == self._menu:
@@ -227,6 +263,7 @@ class Frame():
             # detached state
             self._dialog.detach()
             self._dialog = None
+            self._focus = None
             self.render()
 
     def show_popup(self, menu, coord):
@@ -270,6 +307,7 @@ class Frame():
             # detached state
             self._menu.detach()
             self._menu = None
+            self._focus = None
             self.render()
 
     def render(self):
@@ -283,11 +321,11 @@ class Frame():
         self._screen.refresh()
 
     def invalidate(self, sheet):
-        self._invalidated.append(sheet)
+        self._invalidated_sheets.append(sheet)
 
-    def render_invalidated(self):
-        while len(self._invalidated) > 0:
-            sheet = self._invalidated.popleft()
+    def render_invalidated_sheets(self):
+        while len(self._invalidated_sheets) > 0:
+            sheet = self._invalidated_sheets.popleft()
             if not sheet.is_detached():
                 sheet.render()
         self._screen.refresh()

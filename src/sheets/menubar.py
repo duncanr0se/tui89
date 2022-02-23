@@ -2,7 +2,7 @@
 from sheets.sheet import Sheet
 
 from sheets.spacereq import FILL, SpaceReq
-from sheets.frame import Frame
+from frames.frame import Frame
 from dcs.ink import Pen
 
 # A layout that arranges its children in a row. Each child is

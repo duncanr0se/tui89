@@ -1,4 +1,6 @@
 
+from asciimatics.screen import Screen
+
 from sheets.sheet import Sheet
 
 from sheets.spacereq import SpaceReq, FILL, combine_spacereqs
@@ -7,7 +9,7 @@ from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
 from sheets.boxlayout import VerticalLayout
 from sheets.buttons import Button
-from sheets.frame import Frame
+from frames.frame import Frame
 
 from dcs.ink import Pen
 
@@ -21,16 +23,16 @@ class Dialog(TopLevelSheet):
     # wrapped in that border. The dialog "content pane" is the
     # first child of the vertical layout, the "button pane"
     # is the second.
-    _wrapper = None
-    _title = None
+    #_wrapper = None
+    #_title = None
 
-    _text = None
+    #_text = None
 
-    _content_pane = None
+    #_content_pane = None
 
-    _okButton = None
+    #_okButton = None
 
-    _style = None
+    #_style = None
 
     prefix = {
         "alert": "[ALERT] - ",
@@ -170,6 +172,35 @@ class Dialog(TopLevelSheet):
         # "print_at". Maybe that's as it should be?
         self.draw_to((1, height-1), dropshadow_below, pen)
 
+    def handle_key_event(self, key_event):
+        #
+        # ESC - exit menu
+        if key_event.key_code == Screen.KEY_ESCAPE:
+            self.frame().dialog_quit()
+            return True
+        #
+        # RETURN (ctrl-j), SPACE - select current item
+        if key_event.key_code in [ord(" "),  Screen.ctrl("j")]:
+            # activate selected item, or do nothing if nothing selected
+            button = self._find_button()
+            if button is not None:
+                return self._activate(button)
+            return False
+        # Not handling other key presses
+        return False
+
+    def _find_button(self):
+#        for child in self._children:
+#            if isinstance(child, Button):
+#                return child
+#            # Need "do_sheet_tree"...
+#        return None
+        if self._okButton is None:
+            raise RuntimeError("_okButton", self._okButton)
+        return self._okButton
+
+    def _activate(self, selected):
+        return selected.activate()
 
 
 def alert(frame, message):

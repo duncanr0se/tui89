@@ -193,10 +193,14 @@ class Button(Sheet):
             self.invalidate()
         if event.buttons == 0:
             if self._pressed:
-                self._pressed = False
-                self.invalidate()
-                return self.on_click and self.on_click(self)
+                return self.activate()
         return False
+
+    def activate(self):
+        self._pressed = False
+        self.invalidate()
+        # fixme: rename "on_click" → "on_click_callback"
+        return self.on_click and self.on_click(self)
 
 
 class RadioButton(Button):

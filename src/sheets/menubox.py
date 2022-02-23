@@ -4,6 +4,10 @@ from sheets.spacereq import FILL, SpaceReq
 from sheets.borderlayout import BorderLayout
 from sheets.listlayout import ListLayout
 from sheets.toplevel import TopLevelSheet
+from sheets.separators import Separator
+from sheets.buttons import Button
+
+from asciimatics.screen import Screen
 
 # A layout that arranges its children in a column. Each child is
 # packed as closely as possible to its siblings. Layout takes minimum
@@ -74,3 +78,85 @@ class MenuBox(TopLevelSheet):
 
     def set_items(self, items):
         self._item_pane.set_children(items)
+
+    def handle_key_event(self, key_event):
+        #
+        # ESC - exit menu
+        if key_event.key_code == Screen.KEY_ESCAPE:
+            self.frame().menu_quit()
+            return True
+        #
+        # CTRL-P, UP-ARROW - up item
+        if key_event.key_code in [Screen.ctrl("p"), Screen.KEY_UP]:
+            selected = self._find_selected()
+            if selected is not None:
+                return self._select_previous(selected)
+            return False
+        #
+        # CTRL-N, DOWN-ARROW - down item
+        if key_event.key_code in [Screen.ctrl("n"), Screen.KEY_DOWN]:
+            selected = self._find_selected()
+            if selected is None:
+                return self._select_first()
+            else:
+                return self._select_next(selected)
+        #
+        # RETURN (ctrl-j), SPACE - select current item
+        if key_event.key_code in [ord(" "),  Screen.ctrl("j")]:
+            # activate selected item, or do nothing if nothing selected
+            selected = self._find_selected()
+            if selected is not None:
+                return self._activate(selected)
+            return False
+
+        # FIXME: if button that created menubox is part of a menubar,
+        # should deal with left/right navigation within the menubar.
+
+        # Not handling other key presses
+        return False
+
+    def _find_selected(self):
+        for child in self._item_pane._children:
+            if not isinstance(child, Separator):
+                if child._pressed == True:
+                    return child
+        return None
+
+    def _select_first(self):
+        for child in self._item_pane._children:
+            if isinstance(child, Button):
+                child._pressed = True
+                child.invalidate()
+                return True
+        return False
+
+    def _select_previous(self, selected):
+        found = False
+        for child in reversed(self._item_pane._children):
+            if found:
+                if isinstance(child, Button):
+                    selected._pressed = False
+                    child._pressed = True
+                    selected.invalidate()
+                    child.invalidate()
+                    return True
+            if child == selected:
+                found = True
+        return False
+
+    def _select_next(self, selected):
+        found = False
+        for child in self._item_pane._children:
+            if found:
+                if isinstance(child, Button):
+                    selected._pressed = False
+                    child._pressed = True
+                    selected.invalidate()
+                    child.invalidate()
+                    return True
+            if child == selected:
+                found = True
+        return False
+
+    def _activate(self, selected):
+        return selected.activate()

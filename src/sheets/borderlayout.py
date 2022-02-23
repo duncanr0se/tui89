@@ -3,7 +3,7 @@ from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 
 from dcs.ink import Pen
-from sheets.frame import Frame
+from frames.frame import Frame
 
 class BorderLayout(Sheet):
     """Sheet that draws a border around itself.

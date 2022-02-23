@@ -4,7 +4,7 @@ from asciimatics.exceptions import ResizeScreenError, StopApplication
 from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
 
-from sheets.frame import Frame
+from frames.frame import Frame
 from sheets.sheet import Sheet
 from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout

@@ -16,7 +16,6 @@
    - viewport (✔)
    - menu bar (✔)
    - menu (✔)
-   - status bar
    - dialog box (✔)
        - alert (✔)
        - error
@@ -31,6 +30,7 @@
    - combo box
    - padding
    - progress bar
+   - status bar
 
 add controls:
    - tree control
@@ -43,16 +43,13 @@ widgets that could be useful.
 
  PRIORITIES:
 
-*. status bars
+*. event handling (keyboard, delayed), focus, input, tab order.
+
+*. keyboard navigation
 
 *. command tables
 
 *. Layouts - make it pretty, make it functional
-
-*. Then - more widgets, event handling, focus, input, tab order.
-      - how about having a widget that shows the event stream?
-
-*. keyboard navigation
 
 *. File explorer - local fs, archives, s3
 
@@ -95,6 +92,7 @@ Multiline labels
 Measuring text needs to be better; len(str) might not be effective for
 multibyte characters.
 
+
 VISUAL FEEDBACK
 ===============
 test / fix screen resize! See docs from asciimatics
@@ -126,6 +124,7 @@ that holds the text instead.
 Rename "get_screen_transform()" + apply transform pair into something
 like "convert_to_screen_coordinate"?
 
+
 EVENT HANDLING
 ==============
 need to do something about events! - see draw_next_frame() in
@@ -138,6 +137,13 @@ them like it should?
 
 Implement a "functional event" that allows functions to be called at a
 later point in time, after the current event is dealt with.
+
+Can the widgets be based on urwid instead of asciimatics? Not sure if
+that will make a difference to anything, might be worth trying.
+
+When a popup is detached the focus needs to be returned to some
+other top level. Not sure this is happening although it's hard to
+know just yet...
 
 ===============================================
 
