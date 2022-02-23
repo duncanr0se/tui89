@@ -55,6 +55,7 @@ class Frame():
         self._screen = screen
 
         self._invalidated = deque()
+        self._delayed_calls = []
 
     def __repr__(self):
         (width, height) = self._region

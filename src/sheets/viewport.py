@@ -2,6 +2,7 @@
 from sheets.sheet import Sheet
 from sheets.spacereq import FILL
 from geometry.transforms import Transform
+from sheets.dialog import alert
 
 class Viewport(Sheet):
 
@@ -100,13 +101,6 @@ class Viewport(Sheet):
             child.render()
         # fixme: how to deal with events?
 
-
-    # FIXME: Pretty sure this should be working. Thinking that if it
-    # isn't it's a bug in asciimatics...
-    # Can see the problem if scroll straight to bottom of page in
-    # "basic.py" sample ui - the text that should be off-screen is
-    # displayed just outside the rhs of the sheet but at the correct y
-    # ordinate. Not sure why...
     def _clip_text(self, coord, text):
         # measure text, cut off any that would be rendered before x=0
         # + cut off any that would be rendered after 'width'
@@ -127,6 +121,11 @@ class Viewport(Sheet):
     def _clip(self, coord):
         (x, y) = coord
         (w, h) = self._region
+
+        if x >= w or y >= h:
+            # coord does not intersect viewport region at all
+            return None
+
         cx = max(min(x, w), 0)
         cy = max(min(y, h), 0)
         return (cx, cy)
@@ -138,14 +137,16 @@ class Viewport(Sheet):
 
     # drawing
     def display_at(self, coord, text, pen):
+
         # capture full extents of print
         self._capture_print_at(text, coord)
         # clip to region prior to drawing
         text = self._clip_text(coord, text)
         if text != '':
             coord = self._clip(coord)
-            parent_coord = self._transform.apply(coord)
-            self._parent.display_at(parent_coord, text, pen)
+            if coord is not None:
+                parent_coord = self._transform.apply(coord)
+                self._parent.display_at(parent_coord, text, pen)
 
     # drawing
     def move(self, coord):

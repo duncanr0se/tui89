@@ -43,9 +43,6 @@ widgets that could be useful.
 
  PRIORITIES:
 
-*. scrollbar slug offset (not showing as scrolled when still parts of
-   scrolled sheet off screen
-
 *. status bars
 
 *. command tables
@@ -139,6 +136,8 @@ event handling (button click / release) seems slow. Investigate.
 click detection is really ropey. Maybe asciimatics is not reporting
 them like it should?
 
+Implement a "functional event" that allows functions to be called at a
+later point in time, after the current event is dealt with.
 
 ===============================================
 
