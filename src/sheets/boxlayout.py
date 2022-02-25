@@ -2,6 +2,9 @@
 from sheets.sheet import Sheet
 
 import math
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 # A layout that arranges its children in columns
 class BoxLayout(Sheet):
@@ -71,19 +74,6 @@ class BoxLayout(Sheet):
         # What the hell, let's just be really inefficient first. Fix it
         # up to be more efficient later...
         self._region = allocation
-        # Children may ignore the allocated space (buttons for example
-        # may not expand to fill the available allocated space) so the
-        # widget region can't be relied upon to position widgets at
-        # their calculated offsets. Keep an indpendent record of the
-        # regins of the children so they can be positioned properly.
-
-        # FIXME: perhaps when a sheet has space allocated it should be
-        # FORCED to accept that allocation; it need not fill it when
-        # drawing itself, but the allocation is the allocation. Then
-        # it's on the parents to decide whether to squeeze the kids or
-        # not.
-
-        self._child_regions = []
 
         major_component = self._major_region_component(allocation)
         minor_component = self._minor_region_component(allocation)
@@ -110,7 +100,6 @@ class BoxLayout(Sheet):
                 totalFixedSpace += n
                 child = self._children[index]
                 child_region = self._make_region(n, minor_component)
-                self._child_regions.append(child_region)
                 child.allocate_space(child_region)
 
         major_component -= totalFixedSpace
@@ -124,7 +113,6 @@ class BoxLayout(Sheet):
                 totalPercentageSpace += percentageRequirement
                 child = self._children[index]
                 child_region = self._make_region(percentageRequirement, minor_component)
-                self._child_regions.append(child_region)
                 child.allocate_space(child_region)
 
         major_component -= totalPercentageSpace
@@ -149,7 +137,6 @@ class BoxLayout(Sheet):
                     callocq += 1
                     surplus -= 1
                 child_region = self._make_region(callocq, minor_component)
-                self._child_regions.append(child_region)
                 child.allocate_space(child_region)
 
 
