@@ -2,6 +2,10 @@
 from asciimatics.screen import Screen
 from asciimatics.exceptions import StopApplication
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 # keycode :: Command object map
 # Commands the frame deals with go in this map
 
@@ -18,6 +22,7 @@ class Command():
         self._name = name
 
     def apply(self, client):
+        logger.debug("applying command %s with client %s", self, client)
         return self._func(client)
 
 

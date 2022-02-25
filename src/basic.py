@@ -22,9 +22,12 @@ from sheets.menubox import MenuBox
 from dcs.ink import Pen
 
 import sys
-
+import logging
 
 def demo(screen):
+
+    logging.basicConfig(filename="tui.log", level=logging.DEBUG)
+
     frame = Frame(screen)
     top_level_sheet = TopLevelSheet(frame)
 

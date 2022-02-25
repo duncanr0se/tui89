@@ -9,6 +9,10 @@ from sheets.sheet import Sheet
 from dcs.ink import Pen
 from frames.commands import find_command
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 class Frame():
 
     THEMES = {
@@ -119,6 +123,7 @@ class Frame():
         return self._focus
 
     def set_focus(self, focus):
+        logger.debug("setting focus to %s", focus)
         self._focus = focus
 
     # FIXME: handling focus better

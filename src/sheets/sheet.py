@@ -7,6 +7,10 @@ from geometry.transforms import IDENTITY_TRANSFORM
 from sheets.spacereq import FILL, SpaceReq
 from dcs.ink import Pen
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 # ALL sheets are "drawing sheets". ALL sheets have children. ALL
 # sheets participate in layout.
 class Sheet():
