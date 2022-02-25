@@ -200,6 +200,36 @@ class Sheet():
         (width, height) = self._region
         return height
 
+    # events
+    def find_focus(self):
+        logger.debug("find_focus invoked on %s", self)
+        # depth first search to find the first descendent with no
+        # children; use that as the focus. Keyboard navigation or
+        # selection with the mouse can be used to find a different
+        # focus.
+        # TODO: update focus when user clicks with mouse
+        if len(self._children) > 0:
+            for child in self._children:
+                focus = child.find_focus()
+                if focus is not None:
+                    return focus
+        if self.accepts_focus():
+            logger.debug("find_focus identified %s", self)
+            return self
+        return None
+
+    # events
+    def accepts_focus(self):
+        return False
+
+    # events
+    def handle_key_event(self, event):
+        # by default pass event to the next sheet in the hierarchy to
+        # deal with. Top level sheet types terminate this walk by
+        # returning False to their caller (= the Frame)
+        return self._parent.handle_key_event(event)
+
+    # events
     def handle_event(self, event):
         # coordinates in event are in the coordinate system of self
         # default is to decline to handle the event and ask our parent

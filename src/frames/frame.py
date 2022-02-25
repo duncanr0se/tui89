@@ -125,6 +125,7 @@ class Frame():
     def set_focus(self, focus):
         logger.debug("setting focus to %s", focus)
         self._focus = focus
+        focus.set_focus()
 
     # FIXME: handling focus better
     def _handle_key_event(self, event):
@@ -157,7 +158,10 @@ class Frame():
         # takes control of the current focus. When a menu or dialog is
         # closed, the frame focus is cleared and the branch above is
         # entered so the next highest priority focus can be selected.
-        return self.focus().handle_key_event(event)
+        handled = self.focus().accept_key_event(event)
+        # Could introduce some extra steps here if handled == False
+        # but for now there are none
+        return handled
 
     def _handle_mouse_event(self, event):
         # find sheet under mouse, send it the event. Only handles
@@ -260,6 +264,7 @@ class Frame():
 
         dialog.move_to((dx, dy))
         dialog.layout()
+        self._focus = None
         self.render()
 
     def dialog_quit(self):
@@ -304,6 +309,7 @@ class Frame():
 
         menu.move_to(coord)
         menu.layout()
+        self._focus = None
         self.render()
 
     def menu_quit(self):

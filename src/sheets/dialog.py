@@ -59,6 +59,7 @@ class Dialog(TopLevelSheet):
         self._text = text
         self._default_pen = default_pen
         self._pen = pen
+        self._focus = None
 
     def __repr__(self):
         (width, height) = self._region

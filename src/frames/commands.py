@@ -29,31 +29,113 @@ class Command():
         return self._func(client)
 
 
-def quit_command(client):
-    raise StopApplication("quit")
-
-def register_command(keys, command):
+def register_command(keys, command, command_table="global"):
+    if not command_table in COMMANDS:
+        COMMANDS[command_table] = {}
     for key in keys:
         # FIXME: check if key is already bound
-        # FIXME: deal with modifier keys
-        COMMANDS[key] = command
+        # FIXME: deal with "C-x C-c" type commands?
+        COMMANDS[command_table][key] = command
 
-def find_command(key_event):
+def find_command(key_event, command_table="global"):
     cmd = None
     if key_event.key_code:
         try:
-            cmd = COMMANDS[key_event.key_code]
+            cmd = COMMANDS[command_table][key_event.key_code]
         except KeyError:
             pass
     return cmd
 
 
-#### global commands
+### Commands on Frame
+def populate_global():
+    #### global commands
 
-# QUIT / EXIT
-keycode = Screen.ctrl('w')
-register_command([keycode], Command("quit", quit_command))
+    # QUIT / EXIT
+    def _quit_command(client):
+        raise StopApplication("quit")
 
-# QUIT_POPUP - maybe this should be added by specific
-# top-level-sheets?
-#register_command([Screen.KEY_ESCAPE], Command("quit_popup", exit_popup))
+    keycode = Screen.ctrl('w')
+    register_command([keycode], Command("quit", _quit_command))
+
+
+### Commands on menuboxes (popup menus)
+def populate_menubox():
+    #### generic menubox commands; specific menus could set up
+    #### command tables of their own, but do not currently.
+
+    # ESC - exit menu
+    def _close(menubox):
+        menubox.frame().menu_quit()
+        return True
+
+    keycode = [Screen.KEY_ESCAPE]
+    register_command(keycode, Command("close", _close), command_table="menubox")
+
+    # CTRL-P, UP-ARROW - up item
+    def _prev(menubox):
+        selected = menubox._find_selected()
+        if selected is not None:
+            return menubox._select_previous(selected)
+        return False
+
+    keycode = [Screen.ctrl("p"), Screen.KEY_UP]
+    register_command(keycode, Command("previous", _prev), command_table="menubox")
+
+    # CTRL-N, DOWN-ARROW - down item
+    def _next(menubox):
+        selected = menubox._find_selected()
+        if selected is None:
+            return menubox._select_first()
+        else:
+            return menubox._select_next(selected)
+
+    keycode = [Screen.ctrl("n"), Screen.KEY_DOWN]
+    register_command(keycode, Command("next", _next), command_table="menubox")
+
+
+### Commands on buttons
+def populate_button():
+    # FIXME: if parents delegated (found a focus) for events then
+    # dialogs or menuboxes (or menubars) could end up in here without
+    # any special logic. And that's the way it should be - containers
+    # need to find a focus widget and then events need to bubble up to
+    # the parents into the top-level-sheet and finally into the frame
+    # where it is then *not* handled (frame had opportunity to handle
+    # first - maybe should have frame pre- and post- handlers?)
+
+    # FIXME: when event handling process is properly tied down, move
+    # these command tables into the widgets they are acting upon.
+    def _activate(button):
+        button.activate()
+        return True
+
+    keycode = [ord(" "),  Screen.ctrl("j")]
+    register_command(keycode, Command("activate", _activate), command_table="button")
+
+
+#
+# actually populate the command tables.
+#
+populate_global()
+populate_menubox()
+populate_button()
+
+# when a new TOP LEVEL SHEET type is displayed, it needs to identify
+# the FOCUS WIDGET. Until that TOP LEVEL SHEET is closed (or
+# superceded), the TOP LEVEL SHEET is responsible for event handling
+# within it.
+
+# in general the TOP LEVEL SHEET finds a layout widget and selects the
+# highest z-order child or that widget to take the focus. If keyboard
+# events that widget does not handle are received, the events bubble
+# up the sheet's parent hierarchy (down the z-order) until a sheet is
+# found to handle the event, or the top-level sheet is reached. If the
+# top-level sheet elects not to handle the event, the event is
+# returned to the Frame as unhandled.
+
+# "find_focus" -> perform depth-first search to find first child with
+# no children, set it as the focus.
+
+# FIXME: focus colour scheme; make focused items display with magenta
+# backgrounds since magenta isn't used for anything else.

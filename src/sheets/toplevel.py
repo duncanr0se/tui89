@@ -8,8 +8,10 @@ class TopLevelSheet(Sheet):
 
     def __init__(self, frame, default_pen=None, pen=None):
         super().__init__(default_pen=default_pen, pen=pen)
+        # fixme: use "set_frame" instead of passing as initarg
         self._frame = frame
         frame.set_top_level_sheet(self)
+        self._focus = None
 
     def __repr__(self):
         (width, height) = self._region
@@ -92,6 +94,21 @@ class TopLevelSheet(Sheet):
     def is_detached(self):
         return self._frame is None
 
-    def handle_key_event(self, event):
-        raise NotImplementedError("handle_key_event in top_level_sheet")
+    # events
+    def accept_key_event(self, event):
+        # pass event to the focus widget; if the event isn't handled,
+        # it will end up back with the Frame
+        if self._focus is not None:
+            return self._focus.handle_key_event(event)
         return False
+
+    # events
+    def handle_key_event(self, event):
+        return False
+
+    # events
+    def set_focus(self):
+        # once the top level sheet has a focus, it retains it unless
+        # one of its child widgets changes it
+        if not self._focus:
+            self._focus = self.find_focus()

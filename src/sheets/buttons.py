@@ -6,6 +6,8 @@ from asciimatics.event import MouseEvent
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 
+from frames.commands import find_command
+
 from dcs.ink import Pen
 
 class Button(Sheet):
@@ -196,12 +198,22 @@ class Button(Sheet):
                 return self.activate()
         return False
 
+    def handle_key_event(self, event):
+        command = find_command(event, command_table="button")
+        if command is not None:
+            return command.apply(self)
+        return self._parent.handle_key_event(event)
+
+    def accepts_focus(self):
+        return True
+
     def activate(self):
         self._pressed = False
         self.invalidate()
         # fixme: rename "on_click" → "on_click_callback"
         return self.on_click and self.on_click(self)
 
+    # fixme: change visual of button if it is the focus...
 
 class RadioButton(Button):
 
