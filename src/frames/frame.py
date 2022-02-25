@@ -20,9 +20,15 @@ class Frame():
             "background": (Screen.COLOUR_BLUE, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "shadow": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "scroll": (Screen.COLOUR_CYAN, Screen.A_REVERSE, Screen.COLOUR_BLUE),
+
             "button": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_GREEN),
-            "pushed_button": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_RED),
-            "menubar": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE),
+            "focus_button": (Screen.COLOUR_CYAN, Screen.A_NORMAL, Screen.COLOUR_GREEN),
+            "pushed_button": (Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_CYAN),
+
+            "menu": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE),
+            "focus_menu": (Screen.COLOUR_CYAN, Screen.A_BOLD, Screen.COLOUR_GREEN),
+            "pushed_menu": (Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_CYAN),
+
             "alert": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED),
             "info": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_CYAN),
             "yes/no": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_GREEN),
@@ -48,12 +54,6 @@ class Frame():
             "selected_focus_field": (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN),
         }
     }
-
-    #_screen = None
-    #_top_level_sheet = None
-    #_dialog = None
-    #_invalidated = None
-    #_menu = None
 
     def __init__(self, screen):
         self._delayed_calls = []
@@ -124,16 +124,20 @@ class Frame():
         # if event has caused widget to need redrawing, do it now
         self.render_invalidated_sheets()
 
-
+    # returns sheet that deals with key events
     def focus(self):
         return self._focus
 
+    # updates sheet that will deal with key events
     def set_focus(self, focus):
         logger.debug("setting focus to %s", focus)
+        if self._focus is not None and not self._focus.is_detached():
+            self._focus.invalidate()
         self._focus = focus
-        focus.set_focus()
+        if self._focus is not None:
+            self._focus.invalidate()
+        self._process_event()
 
-    # FIXME: handling focus better
     def _handle_key_event(self, event):
         # Handle accelerators from the "command table"
         # Who handles navigation? The frame or the sheets?
@@ -154,17 +158,21 @@ class Frame():
             # sheet. When it is asked to deal with an event it can
             # identify a more specific focus, if it is coded to.
             if self._menu:
-                self.set_focus(self._menu)
+                focus_sheet = self._menu.find_focus()
+                self.set_focus(focus_sheet)
             elif self._dialog:
                 self.set_focus(self._dialog)
+                focus_sheet = self._dialog.find_focus()
+                self.set_focus(focus_sheet)
             else:
-                self.set_focus(self._top_level_sheet)
+                focus_sheet = self._top_level_sheet.find_focus()
+                self.set_focus(focus_sheet)
 
         # When a top level sheet, a dialog, or a menu is displayed it
         # takes control of the current focus. When a menu or dialog is
         # closed, the frame focus is cleared and the branch above is
         # entered so the next highest priority focus can be selected.
-        handled = self.focus().accept_key_event(event)
+        handled = self.focus().handle_key_event(event)
         # Could introduce some extra steps here if handled == False
         # but for now there are none
         return handled
@@ -228,7 +236,10 @@ class Frame():
             # if the child declines to deal with the event, pass it
             # back up the widget hierarchy in case a parent wants to
             # do something with the event. This allows some parents to
-            # handle all the mouse activity for all of its children.
+            # handle all the mouse activity for all of its children
+            # (e.g., radio button group)
+            if sheet.accepts_focus():
+                self.set_focus(sheet)
             sheet.handle_event(MouseEvent(sx, sy, event.buttons))
 
     def lay_out_frame(self):
@@ -270,7 +281,7 @@ class Frame():
 
         dialog.move_to((dx, dy))
         dialog.layout()
-        self._focus = None
+        self.set_focus(None)
         self.render()
 
     def dialog_quit(self):
@@ -279,7 +290,7 @@ class Frame():
             # detached state
             self._dialog.detach()
             self._dialog = None
-            self._focus = None
+            self.set_focus(None)
             self.render()
 
     def show_popup(self, menu, coord):
@@ -315,7 +326,7 @@ class Frame():
 
         menu.move_to(coord)
         menu.layout()
-        self._focus = None
+        self.set_focus(None)
         self.render()
 
     def menu_quit(self):
@@ -324,17 +335,22 @@ class Frame():
             # detached state
             self._menu.detach()
             self._menu = None
-            self._focus = None
+            self.set_focus(None)
             self.render()
 
     def render(self):
         # clear the screen first? Might be flickery... read the docs,
         # work out how to do this.
+        focus_top_level = self._top_level_sheet
         self._top_level_sheet.render()
         if self._dialog is not None:
             self._dialog.render()
+            focus_top_level = self._dialog
         if self._menu is not None:
             self._menu.render()
+            focus_top_level = self._menu
+        focus_sheet = focus_top_level.find_focus()
+        self.set_focus(focus_sheet)
         self._screen.refresh()
 
     def invalidate(self, sheet):

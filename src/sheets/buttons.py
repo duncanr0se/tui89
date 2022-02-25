@@ -173,7 +173,13 @@ class Button(Sheet):
             return self.pressed_pen()
         if self._pen is None:
             self._pen = self.frame().theme("button")
-        return self._pen
+        if self._focus_pen is None:
+            self._focus_pen = self.frame().theme("focus_button")
+        logger.debug("is_focus = %s", self.is_focus())
+        return self._focus_pen if self.is_focus() else self._pen
+
+    def is_focus(self):
+        return self.frame()._focus == self
 
     def pressed_pen(self):
         if self._pressed_pen is None:
@@ -260,20 +266,28 @@ class MenuButton(Button):
         super().__init__(label=label, decorated=decorated,
                          default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
 
-    # override to return parent's pen
     def pen(self):
+        # Button states:
+        #   - resting
+        #   - focus
+        #   - pressed - not sure if needed
+        # +
+        #   - mnemonic
+        #
+        # fixme: mnemonic pen
         if self._pen is None:
-            self._pen = self._parent.pen()
-            # also set self._pressed_pen here if no initarg supplied
-            # to prevent looking up the pen when _pressed_pen is
-            # needed
-            if self._pressed_pen is None:
-                self._pressed_pen = Pen(self._pen.bg(), self._pen.attr(), self._pen.fg())
+            self._pen = self.frame().theme("menu")
+
+        if self._focus_pen is None:
+            self._focus_pen = self.frame().theme("focus_menu")
+        # also set self._pressed_pen here if no initarg supplied
+        # to prevent looking up the pen when _pressed_pen is
+        # needed
+        if self._pressed_pen is None:
+            self._pressed_pen = self.frame().theme("pushed_menu")
         # still want the pressed toggle to be an effect
         return super().pen()
 
-    # returns inverse of standard pen to show visual difference unless
-    # overridden by initarg.
     def pressed_pen(self):
         return self._pressed_pen
 

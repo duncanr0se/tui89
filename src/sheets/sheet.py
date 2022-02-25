@@ -225,6 +225,10 @@ class Sheet():
         return False
 
     # events
+    def is_focus(self):
+        return False
+
+    # events
     def handle_key_event(self, event):
         # by default pass event to the next sheet in the hierarchy to
         # deal with. Top level sheet types terminate this walk by

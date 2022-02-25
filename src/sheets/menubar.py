@@ -19,7 +19,7 @@ class MenubarLayout(Sheet):
     # override default pen for this sheet and all its children
     def default_pen(self):
         if self._default_pen is None:
-            (fg, attr, bg) = Frame.THEMES["tv"]["menubar"]
+            (fg, attr, bg) = Frame.THEMES["tv"]["menu"]
             self._default_pen = Pen(fg=fg, attr=attr, bg=bg)
         return self._default_pen
 

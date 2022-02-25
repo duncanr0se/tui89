@@ -41,7 +41,7 @@ class MenuBox(TopLevelSheet):
     # Set default pen for self and children
     def default_pen(self):
         if self._default_pen is None:
-            self._default_pen = self.frame().theme("menubar")
+            self._default_pen = self.frame().theme("menu")
         return self._default_pen
 
     def render(self):
