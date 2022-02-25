@@ -16,9 +16,8 @@
    - viewport (✔)
    - menu bar (✔)
    - menu (✔)
-   - dialog box (✔)
+   - dialog box
        - alert (✔)
-       - error
        - info (✔)
        - yes/no
        - multivalue
@@ -41,9 +40,10 @@ add controls:
 Look at other toolkits, work out if there are any other controls or
 widgets that could be useful.
 
+
  PRIORITIES:
 
-*. event handling (keyboard, delayed), focus, input, tab order.
+*. event handling (delayed), input, tab order, keyboard navigation.
 
 *. keyboard navigation
 
@@ -57,9 +57,6 @@ widgets that could be useful.
 USABILITY
 =========
 ACCELERATORS + MNEMONICS - for buttons and generic commands
-
-and we need command tables or some other way to tie keys and ui to
-commands.
 
 Instead of frigging pens for different purposes, put them in the theme
 definition as specific pens. Move all direct Pen instantiations into
@@ -102,10 +99,6 @@ GENERAL / CODING
 ================
 DIFFERENT TYPES OF BORDERS
 
-look at other stuff asciimatics does (save / restore form state etc.)
-and decide if that's something that could be useful.Pretty sure it
-isn't...
-
 DOCUMENTATION - write some
 
 USE THE SHEET TYPES ALREADY PRESENT TO BUILD CONTROLS OUT OF; E.G.,
@@ -141,9 +134,6 @@ later point in time, after the current event is dealt with.
 Can the widgets be based on urwid instead of asciimatics? Not sure if
 that will make a difference to anything, might be worth trying.
 
-When a popup is detached the focus needs to be returned to some
-other top level. Not sure this is happening although it's hard to
-know just yet...
 
 ===============================================
 

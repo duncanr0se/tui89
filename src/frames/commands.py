@@ -70,7 +70,7 @@ def populate_menubox():
         return True
 
     keycode = [Screen.KEY_ESCAPE]
-    register_command(keycode, Command("close", _close), command_table="menubox")
+    register_command(keycode, Command("close popup", _close), command_table="menubox")
 
     # CTRL-P, UP-ARROW - up item
     def _prev(menubox):
@@ -92,6 +92,22 @@ def populate_menubox():
 
     keycode = [Screen.ctrl("n"), Screen.KEY_DOWN]
     register_command(keycode, Command("next", _next), command_table="menubox")
+
+
+### Commands on dialogs
+def populate_dialog():
+    # ESC - exit menu
+    def _close(dialog):
+        dialog.frame().dialog_quit()
+        return True
+
+    keycode = [Screen.KEY_ESCAPE]
+    register_command(keycode, Command("close dialog", _close), command_table="dialog")
+
+    # the on_click_callback for dialog buttons needs to return the
+    # dialog values where necessary, or the caller (creator of the
+    # dialog) needs to keep a reference to the dialog so any contained
+    # values can be recovered
 
 
 ### Commands on buttons
@@ -119,6 +135,7 @@ def populate_button():
 #
 populate_global()
 populate_menubox()
+populate_dialog()
 populate_button()
 
 # when a new TOP LEVEL SHEET type is displayed, it needs to identify

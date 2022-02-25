@@ -219,6 +219,8 @@ class Sheet():
         return None
 
     # events
+    # FIXME: this is pretty useless apart from when "find_focus" is
+    # invoked. Maybe that's enough.
     def accepts_focus(self):
         return False
 

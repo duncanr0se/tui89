@@ -93,7 +93,9 @@ class MenuBox(TopLevelSheet):
         # attempt to do something with the event
         return True
 
-    # events
+    # events - top level sheets don't pass event on to a parent,
+    # instead they return False to indicate the event is not handled
+    # and expect the Frame to take any further necessary action
     def handle_key_event(self, key_event):
         command = find_command(key_event, command_table="menubox")
         if command is not None:
@@ -116,6 +118,7 @@ class MenuBox(TopLevelSheet):
         for child in self._item_pane._children:
             if isinstance(child, Button):
                 child._pressed = True
+                self._focus = child
                 child.invalidate()
                 return True
         return False
@@ -127,6 +130,7 @@ class MenuBox(TopLevelSheet):
                 if isinstance(child, Button):
                     selected._pressed = False
                     child._pressed = True
+                    self._focus = child
                     selected.invalidate()
                     child.invalidate()
                     return True
@@ -141,12 +145,10 @@ class MenuBox(TopLevelSheet):
                 if isinstance(child, Button):
                     selected._pressed = False
                     child._pressed = True
+                    self._focus = child
                     selected.invalidate()
                     child.invalidate()
                     return True
             if child == selected:
                 found = True
         return False
-
-    def _activate(self, selected):
-        return selected.activate()

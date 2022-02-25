@@ -13,6 +13,8 @@ from frames.frame import Frame
 
 from dcs.ink import Pen
 
+from frames.commands import find_command
+
 class Dialog(TopLevelSheet):
 
     # top level sheet with an implicit border layout (unlike standard
@@ -34,13 +36,6 @@ class Dialog(TopLevelSheet):
 
     #_style = None
 
-    prefix = {
-        "alert": "[ALERT] - ",
-        "info": "[INFO] - ",
-        "yes/no": "[YES or NO] - ",
-        "composite": ""
-    }
-
     def __init__(self, title=None, text=None, style="info",
                  default_pen=None, pen=None):
         # Can't call super here or this dialog is set as the frame's
@@ -49,7 +44,7 @@ class Dialog(TopLevelSheet):
         self._children = []
         self._title = title if title is not None else "unnamed"
         self._style = style
-        border = BorderLayout(title=Dialog.prefix[style] + title)
+        border = BorderLayout(title=title)
         self.add_child(border)
         self._wrapper = VerticalLayout([4, 1])
         border.add_child(self._wrapper)
@@ -173,37 +168,21 @@ class Dialog(TopLevelSheet):
         # "print_at". Maybe that's as it should be?
         self.draw_to((1, height-1), dropshadow_below, pen)
 
+    # events - top level sheets don't pass event on to a parent,
+    # instead they return False to indicate the event is not handled
+    # and expect the Frame to take any further necessary action
     def handle_key_event(self, key_event):
-        #
-        # ESC - exit menu
-        if key_event.key_code == Screen.KEY_ESCAPE:
-            self.frame().dialog_quit()
-            return True
-        #
-        # RETURN (ctrl-j), SPACE - select current item
-        if key_event.key_code in [ord(" "),  Screen.ctrl("j")]:
-            # activate selected item, or do nothing if nothing selected
-            button = self._find_button()
-            if button is not None:
-                return self._activate(button)
-            return False
-        # Not handling other key presses
+        command = find_command(key_event, command_table="dialog")
+        if command is not None:
+            return command.apply(self)
+
         return False
-
-    def _find_button(self):
-#        for child in self._children:
-#            if isinstance(child, Button):
-#                return child
-#            # Need "do_sheet_tree"...
-#        return None
-        if self._okButton is None:
-            raise RuntimeError("_okButton", self._okButton)
-        return self._okButton
-
-    def _activate(self, selected):
-        return selected.activate()
 
 
 def alert(frame, message):
-    dialog = Dialog(title="???", style="alert", text=message)
+    dialog = Dialog(title="=[ ALERT ]=", style="alert", text=message)
+    frame.show_dialog(dialog)
+
+def info(frame, message):
+    dialog = Dialog(title="=[ INFO ]=", style="info", text=message)
     frame.show_dialog(dialog)

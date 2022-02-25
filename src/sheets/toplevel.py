@@ -107,6 +107,7 @@ class TopLevelSheet(Sheet):
         return False
 
     # events
+    # FIXME: rename to be "set_initial_focus" or similar...
     def set_focus(self):
         # once the top level sheet has a focus, it retains it unless
         # one of its child widgets changes it
