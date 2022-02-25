@@ -61,7 +61,7 @@ def demo(screen):
         # lay_out_frame()? Maybe it's independent.
         button.frame().show_dialog(dialog)
 
-    button.on_click = btn_cb
+    button.on_click_callback = btn_cb
     one.add_child(button)
     one.add_child(RadioButton(label="Radio", decorated=False))
     one.add_child(CheckBox(label="Check"))
@@ -104,16 +104,16 @@ def demo(screen):
     def default_on_click(widget):
         alert(widget.frame(), "Button clicked: {}".format(widget._label))
         widget.frame().menu_quit()
-    fm1.on_click = default_on_click
-    fm3.on_click = default_on_click
-    fm4.on_click = default_on_click
+    fm1.on_click_callback = default_on_click
+    fm3.on_click_callback = default_on_click
+    fm4.on_click_callback = default_on_click
 
     fm6 = MenuButton(label="Exit")
 
     def app_quit(widget):
         raise StopApplication("Exit Menu")
 
-    fm6.on_click = app_quit
+    fm6.on_click_callback = app_quit
 
     file_menu.set_items([fm1, fm2, fm3, fm4, fm5, fm6])
 

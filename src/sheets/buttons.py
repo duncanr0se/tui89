@@ -10,6 +10,10 @@ from frames.commands import find_command
 
 from dcs.ink import Pen
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 class Button(Sheet):
     """Push button sheet.
 
@@ -30,7 +34,7 @@ class Button(Sheet):
 
     # event support
 
-    on_click = None
+    #on_click = None
     # on_button_down?
     # on_button_up?
     # on_double_click?
@@ -55,6 +59,9 @@ class Button(Sheet):
         self._label_align = label_align
         self._width = width
         self._pressed_pen=pressed_pen
+        self._focus_pen = None
+        # Function of 1 arg (button that was clicked)
+        self.on_click_callback = None
 
     def __repr__(self):
         (width, height) = self._region
@@ -210,8 +217,7 @@ class Button(Sheet):
     def activate(self):
         self._pressed = False
         self.invalidate()
-        # fixme: rename "on_click" → "on_click_callback"
-        return self.on_click and self.on_click(self)
+        return self.on_click_callback and self.on_click_callback(self)
 
     # fixme: change visual of button if it is the focus...
 
@@ -282,4 +288,4 @@ class MenuButton(Button):
             tcoord = transform.apply(coord)
             button.frame().show_popup(menubox, tcoord)
 
-        self.on_click = show_menu
+        self.on_click_callback = show_menu

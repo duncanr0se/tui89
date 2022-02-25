@@ -28,7 +28,7 @@ class BoxLayout(Sheet):
     #   - [(N1, "char"), (N2, "char"), ...] :: each N defines a number
     #           of units to allocate to the corresponding child.
     #   - [(N1, "ratio"), (N2, "ratio"), ...] :: each N defines a
-    #           ratio of the overall space; same as [N1, N2, ...]
+    #           ratio of the available space; same as [N1, N2, ...]
     #   - [(N1, "%"), (N2, "%"), ...] :: define a specific percentage
     #           of the available space to allocate to corresponding
     #           child.

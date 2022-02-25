@@ -73,7 +73,7 @@ class Dialog(TopLevelSheet):
         def callback(button):
             button.frame().dialog_quit()
 
-        self._okButton.on_click = callback
+        self._okButton.on_click_callback = callback
         return self._okButton
 
     def default_pen(self):

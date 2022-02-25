@@ -43,11 +43,13 @@ widgets that could be useful.
 
  PRIORITIES:
 
-*. event handling (delayed), input, tab order, keyboard navigation.
+*. focus on click; focus colour scheme. When focus changed, need to
+ redraw the focus controls (both loser + gainer) otherwise changes
+ won't show. Navigating to different widgets must change the focus.
 
 *. keyboard navigation
 
-*. command tables
+*. event handling (delayed), input, tab order
 
 *. Layouts - make it pretty, make it functional
 
@@ -61,6 +63,8 @@ ACCELERATORS + MNEMONICS - for buttons and generic commands
 Instead of frigging pens for different purposes, put them in the theme
 definition as specific pens. Move all direct Pen instantiations into
 frame.
+
+No part of scroll bars should take focus - I think
 
 
 LAYOUT IMPROVEMENTS
@@ -140,10 +144,15 @@ TIDY THE WIDGETS, DOCUMENT THE PROTOCOLS.
 
 EVENT HANDLING - HOW MUCH IS NEEDED?
   - on_click
-  - on_button_down
-  - on_button_up
   - on_double_click
   - on_activate
+  - focus_in
+  - focus_out
+
+FIXME: focus should apply for the FRAME, not just the different top
+levels. It's fine for top levels to keep track of their own focus but
+visual feedback needs to be given by whatever focus is set on the
+FRAME.
 
 BUTTON LABEL ALIGNMENT - do with label
 
@@ -154,3 +163,25 @@ places also, such as when drawing text for borders.
 PUSH BUTTONS: CENTER ALIGN BY DEFAULT
 RADIO + CHECK BUTTONS: LEFT ALIGN BY DEFAULT
 
+Obviously focus handling still needs work... is there any point in
+remembering what the focus might be for different top level sheets?
+Maybe. But definitely need to set visual based on frame's focus, so
+set that when it is known.
+
+Key events go to frame, then frame focus, and ascend to parents and
+finally back to the frame.  Top level sheet needs to remember the
+focus when a popup is shown so when the popup is closed the frame
+focus can be returned to it.
+
+Focus is chosen one of 3 ways:
+
+   1. highest z-order widget that accepts focus on initial walk
+   2. mouse click on widget that accepts focus
+   3. keyboard navigation to widget that accepts focus
+
+Is "focus widget" different to "selected widget"? Is it possible to
+tab to a widget that does NOT accept focus? Probably not...
+
+Is "pressed" feedback needed? Maybe but can be subtler than it is
+currently. And maybe it should just be the inverse of the default
+widget style.

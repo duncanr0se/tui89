@@ -91,33 +91,39 @@ class Frame():
         while True:
             self._screen.wait_for_input(60)
             event = self._screen.get_event()
-            # are keyboard events handled by the frame and then passed
-            # DOWN the sheet hierarchy? Or are they dealt with by the
-            # frame and then passed to the focus widget otherwise?
-            # What about tabbing between controls?
+            self._process_event(event)
 
-            # In the interests of keeping it simple; Frame handles
-            # accelerators and tab navigation, and passes everything
-            # else down to whichever sheet has keyboard focus.
-            # QUERY: HOW IS <TAB> HANDLED? - consider text fields +
-            # boxes.
-            # What to do about mnemonics?
-            if isinstance(event, KeyboardEvent):
-                self._handle_key_event(event)
-            # mouse events go to frontmost sheet under pointer and then
-            # travel up the ancestor stack (= down the z-order) until
-            # the top sheet is reached or some intermediary sheet elects
-            # to handle the event
-            if isinstance(event, MouseEvent):
-                self._handle_mouse_event(event)
+    # called to handle events when input events occur; can also be
+    # called arbitrarily to redraw invalidated sheets
+    def _process_event(self, event=None):
+        # are keyboard events handled by the frame and then passed
+        # DOWN the sheet hierarchy? Or are they dealt with by the
+        # frame and then passed to the focus widget otherwise?
+        # What about tabbing between controls?
 
-            # FIXME: deal with TUI synthetic events also
-            # call_later, button_pressed, those kinds of things. Not
-            # sure if want to create a hierarchy of events or to just
-            # keep it simple.
+        # In the interests of keeping it simple; Frame handles
+        # accelerators and tab navigation, and passes everything
+        # else down to whichever sheet has keyboard focus.
+        # QUERY: HOW IS <TAB> HANDLED? - consider text fields +
+        # boxes.
+        # What to do about mnemonics?
+        if isinstance(event, KeyboardEvent):
+            self._handle_key_event(event)
+        # mouse events go to frontmost sheet under pointer and then
+        # travel up the ancestor stack (= down the z-order) until
+        # the top sheet is reached or some intermediary sheet elects
+        # to handle the event
+        if isinstance(event, MouseEvent):
+            self._handle_mouse_event(event)
 
-            # if event has caused widget to need redrawing, do it now
-            self.render_invalidated_sheets()
+        # FIXME: deal with TUI synthetic events also
+        # call_later, button_pressed, those kinds of things. Not
+        # sure if want to create a hierarchy of events or to just
+        # keep it simple.
+
+        # if event has caused widget to need redrawing, do it now
+        self.render_invalidated_sheets()
+
 
     def focus(self):
         return self._focus
