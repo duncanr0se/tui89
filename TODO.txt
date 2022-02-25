@@ -1,5 +1,5 @@
 
- add more widgets:
+add more widgets:
    - layouts
        - border (✔)
        - row (✔)
@@ -120,9 +120,6 @@ like "convert_to_screen_coordinate"?
 
 EVENT HANDLING
 ==============
-need to do something about events! - see draw_next_frame() in
-screen.py
-
 event handling (button click / release) seems slow. Investigate.
 
 click detection is really ropey. Maybe asciimatics is not reporting
