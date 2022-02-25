@@ -21,6 +21,9 @@ class Command():
         self._func = func
         self._name = name
 
+    def __repr__(self):
+        return "Command('{}')".format(self._name)
+
     def apply(self, client):
         logger.debug("applying command %s with client %s", self, client)
         return self._func(client)
