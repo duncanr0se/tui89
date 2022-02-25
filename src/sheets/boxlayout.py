@@ -62,7 +62,7 @@ class BoxLayout(Sheet):
     # space at the end if the children are exhausted before the
     # columns are all filled. Each child is given an offset so they
     # are placed at the left / top of the box cell they occupy.
-    def allocate_spacex(self, allocation):
+    def allocate_space(self, allocation):
         # Work out max height of children; use as height of layout.
         # Split allocation width into chunks as specified by columns list.
         # Allocate each child the width, height given by its corresponding
@@ -71,6 +71,19 @@ class BoxLayout(Sheet):
         # What the hell, let's just be really inefficient first. Fix it
         # up to be more efficient later...
         self._region = allocation
+        # Children may ignore the allocated space (buttons for example
+        # may not expand to fill the available allocated space) so the
+        # widget region can't be relied upon to position widgets at
+        # their calculated offsets. Keep an indpendent record of the
+        # regins of the children so they can be positioned properly.
+
+        # FIXME: perhaps when a sheet has space allocated it should be
+        # FORCED to accept that allocation; it need not fill it when
+        # drawing itself, but the allocation is the allocation. Then
+        # it's on the parents to decide whether to squeeze the kids or
+        # not.
+
+        self._child_regions = []
 
         major_component = self._major_region_component(allocation)
         minor_component = self._minor_region_component(allocation)
@@ -96,7 +109,9 @@ class BoxLayout(Sheet):
             if unit == "char":
                 totalFixedSpace += n
                 child = self._children[index]
-                child.allocate_space(self._make_region(n, minor_component))
+                child_region = self._make_region(n, minor_component)
+                self._child_regions.append(child_region)
+                child.allocate_space(child_region)
 
         major_component -= totalFixedSpace
 
@@ -108,7 +123,9 @@ class BoxLayout(Sheet):
                 percentageRequirement = math.ceil(n / 100.0 * major_component)
                 totalPercentageSpace += percentageRequirement
                 child = self._children[index]
-                child.allocate_space(self._make_region(percentageRequirement, minor_component))
+                child_region = self._make_region(percentageRequirement, minor_component)
+                self._child_regions.append(child_region)
+                child.allocate_space(child_region)
 
         major_component -= totalPercentageSpace
 
@@ -131,7 +148,9 @@ class BoxLayout(Sheet):
                 if surplus > 0:
                     callocq += 1
                     surplus -= 1
-                child.allocate_space(self._make_region(callocq, minor_component))
+                child_region = self._make_region(callocq, minor_component)
+                self._child_regions.append(child_region)
+                child.allocate_space(child_region)
 
 
     # perhaps this should be the thing that calls compose-space
@@ -171,32 +190,6 @@ class HorizontalLayout(BoxLayout):
         return "HorizontalLayout({}x{}@{},{}: {} cols)".format(
             width, height, tx, ty, len(self._portions))
 
-#    # Box layouts don't need to be full of children; they leave empty
-#    # space at the end if the children are exhausted before the
-#    # columns are all filled. Each child is given an offset so they
-#    # are placed at the left / top of the box cell they occupy.
-#    def allocate_space(self, allocation):
-#        # Work out max height of children; use as height of layout.
-#        # Split allocation width into chunks as specified by columns list.
-#        # Allocate each child the width, height given by its corresponding
-#        # column.
-#        #
-#        # What the hell, let's just be really inefficient first. Fix it
-#        # up to be more efficient later...
-#        self._region = allocation
-#        (width, height) = allocation
-#        totalSegments = 0
-#        for column in self._portions:
-#            totalSegments += column
-#        segmentSize = width // totalSegments
-#        surplus = width - segmentSize*totalSegments
-#        for index, child in enumerate(self._children):
-#            callocx = self._portions[index] * segmentSize
-#            if surplus > 0:
-#                callocx += 1
-#                surplus -= 1
-#            child.allocate_space((callocx, height))
-
     def _major_region_component(self, allocation):
         (width, height) = allocation
         return width
@@ -207,9 +200,6 @@ class HorizontalLayout(BoxLayout):
 
     def _make_region(self, major, minor):
         return (major, minor)
-
-    def allocate_space(self, allocation):
-        self.allocate_spacex(allocation)
 
     def major_size_component(self, sheet):
         return sheet.width()
@@ -235,35 +225,6 @@ class VerticalLayout(BoxLayout):
         return "VerticalLayout({}x{}@{},{}: {} rows)".format(
             width, height, tx, ty, len(self._portions))
 
-    # Box layouts don't need to be full of children; they leave empty
-    # space at the end if the children are exhausted before the
-    # columns are all filled. Each child is given an offset so they
-    # are placed at the left / top of the box cell they occupy.
-    def allocate_space(self, allocation):
-        # Work out max height of children; use as height of layout.
-        # Split allocation width into chunks as specified by columns list.
-        # Allocate each child the width, height given by its corresponding
-        # column.
-        #
-        # What the hell, let's just be really inefficient first. Fix it
-        # up to be more efficient later...
-        self._region = allocation
-        (width, height) = allocation
-        totalSegments = 0
-        for row in self._portions:
-            totalSegments += row
-        segmentSize = height // totalSegments
-        # collect rounding errors as surplus
-        surplus = height - segmentSize*totalSegments
-        for index, child in enumerate(self._children):
-            callocy = self._portions[index] * segmentSize
-            # if there is surplous, dole it out to each child until it
-            # is exhausted
-            if surplus > 0:
-                callocy += 1
-                surplus -= 1
-            child.allocate_space((width, callocy))
-
     def _major_region_component(self, allocation):
         (width, height) = allocation
         return height
@@ -271,9 +232,6 @@ class VerticalLayout(BoxLayout):
     def _minor_region_component(self, allocation):
         (width, height) = allocation
         return width
-
-#    def allocate_space(self, allocation):
-#        self.allocate_spacex(allocation)
 
     def _make_region(self, major, minor):
         return (minor, major)
