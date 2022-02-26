@@ -3,6 +3,7 @@ from sheets.sheet import Sheet
 
 import math
 from logging import getLogger
+from collections.abc import Iterable
 
 logger = getLogger(__name__)
 
@@ -83,14 +84,11 @@ class BoxLayout(Sheet):
             self._portions = [(1, "ratio")] * len(self._children)
 
         def _destructure(column):
-            try:
-                iterator = iter(column)
+            if isinstance(column, Iterable):
                 # (N, "char"), (N, "%"), (N, "ratio")
                 return column
-            except TypeError:
-                # not iterable
-                # N
-                return (column, "ratio")
+            # N
+            return (column, "ratio")
 
         # allocate fixed size allocations
         totalFixedSpace = 0
