@@ -65,8 +65,7 @@ class Frame():
         self._top_level_sheet = None
 
     def __repr__(self):
-        (width, height) = self._region
-        return "Frame({}x{})".format(width, height)
+        return "Frame({}x{})".format(self._screen.width, self._screen.height)
 
     def default_pen(self):
         return self.theme("borders")
@@ -209,15 +208,7 @@ class Frame():
         # the highest child that contains the "untransformed"
         # position.
 
-        # TODO: better handling of top level sheets would simplify
-        # this mess.
-        event_top_level = None
-        if self._menu is not None:
-            event_top_level = self._menu
-        if event_top_level is None and self._dialog is not None:
-            event_top_level = self._dialog
-        if event_top_level is None:
-            event_top_level = self._top_level_sheet
+        event_top_level = self._get_focus_top_level()
 
         sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
         if not sheet and event_top_level == self._menu:
@@ -349,6 +340,7 @@ class Frame():
         if self._menu is not None:
             self._menu.render()
             focus_top_level = self._menu
+        # fixme: this really shouldn't be done on each render loop...
         focus_sheet = focus_top_level.find_focus()
         self.set_focus(focus_sheet)
         self._screen.refresh()
@@ -362,3 +354,59 @@ class Frame():
             if not sheet.is_detached():
                 sheet.render()
         self._screen.refresh()
+
+    def _get_focus_top_level(self):
+        focus_top_level = self._top_level_sheet
+        if self._dialog is not None:
+            focus_top_level = self._dialog
+        if self._menu is not None:
+            focus_top_level = self._menu
+        return focus_top_level
+
+    def _select_next_focus(self):
+        # returns True if the focus was updated and False otherwise
+        focus_top_level = self._get_focus_top_level()
+
+        if self._focus is None:
+            raise RuntimError("no focus! It's possible after all!")
+
+        if self._focus is None:
+            # find first focus
+            focus_sheet = focus_top_level.find_focus()
+            if focus_sheet is not None:
+                self.set_focus(focus_sheet)
+                return True
+            return False
+        # repeat "find_focus" walk looking for current focus and then
+        # continue to next focus candidate - set focus on that
+        # candidate and return True. If run out of candidates, retain
+        # current focus and return False
+        (found, focus_sheet) = focus_top_level.find_next_focus(self._focus)
+        if not found or focus_sheet is None:
+            return False
+        if found and focus_sheet is not None:
+            self.set_focus(focus_sheet)
+            return True
+        return False
+
+    def _select_prev_focus(self):
+        logger.debug("_select_prev_focus entered")
+        focus_top_level = self._get_focus_top_level()
+        logger.debug("top-level %s", focus_top_level)
+
+        if self._focus is None:
+            raise RuntimError("no focus! It's possible after all!")
+
+        # repeat find_focus walk looking for current focus and then
+        # return that last focus candidate seen. If no previous
+        # candidates retain current focus and return False
+        (found, focus_sheet) = focus_top_level.find_prev_focus(self._focus,
+                                                               previous_candidate=None)
+
+        logger.debug("found=%s, new_focus %s", found, focus_sheet)
+
+        if found and focus_sheet is not None:
+            self.set_focus(focus_sheet)
+            return True
+
+        return False

@@ -91,6 +91,7 @@ class MenuBox(TopLevelSheet):
         # children) but when children fail to handle an event and pass
         # it back to their parent this indicates that the parent will
         # attempt to do something with the event
+        # FIXME: not necessary and adds nothing - for now at least.
         return True
 
     # events - top level sheets don't pass event on to a parent,
@@ -102,10 +103,6 @@ class MenuBox(TopLevelSheet):
             return command.apply(self)
 
         return False
-
-    # FIXME: on mouse event, see if the widget the mouse event occurs
-    # on accepts the focus and if it does, set the top level's focus
-    # to that widget
 
     def _find_selected(self):
         for child in self._item_pane._children:

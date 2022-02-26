@@ -27,7 +27,7 @@ add more widgets:
    - vertical separator (✔)
    - option box
    - combo box
-   - padding
+   - padding/null pane
    - progress bar
    - status bar
 
@@ -43,10 +43,7 @@ widgets that could be useful.
 
  PRIORITIES:
 
-*. keyboard navigation. Navigating to different widgets must change
- the focus.
-
-*. event handling (delayed), input, tab order
+*. event handling (delayed), input
 
 *. Layouts - make it pretty, make it functional
 
@@ -101,6 +98,7 @@ that holds the text instead.
 Rename "get_screen_transform()" + apply transform pair into something
 like "convert_to_screen_coordinate"?
 
+Rename "_select_next" etc. to be "cycle_focus_forward/backward".
 
 EVENT HANDLING
 ==============
@@ -115,6 +113,8 @@ later point in time, after the current event is dealt with.
 Can the widgets be based on urwid instead of asciimatics? Not sure if
 that will make a difference to anything, might be worth trying.
 
+Change "find_next_focus" and "find_prev_focus" methods so they wrap
+instead of stopping at end of sheet hierarchy.
 
 ===============================================
 
@@ -137,11 +137,6 @@ places also, such as when drawing text for borders.
 
 PUSH BUTTONS: CENTER ALIGN BY DEFAULT
 RADIO + CHECK BUTTONS: LEFT ALIGN BY DEFAULT
-
-Obviously focus handling still needs work... is there any point in
-remembering what the focus might be for different top level sheets?
-Maybe. But definitely need to set visual based on frame's focus, so
-set that when it is known.
 
 Key events go to frame, then frame focus, and ascend to parents and
 finally back to the frame.

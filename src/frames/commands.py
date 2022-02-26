@@ -25,7 +25,8 @@ class Command():
         return "Command('{}')".format(self._name)
 
     def apply(self, client):
-        logger.debug("applying command %s with client %s", self, client)
+        dclient = "None" if client is None else client
+        logger.debug("applying command %s with client %s", self, dclient)
         return self._func(client)
 
 
@@ -57,6 +58,22 @@ def populate_global():
 
     keycode = Screen.ctrl('w')
     register_command([keycode], Command("quit", _quit_command))
+
+    # NEXT FOCUS
+    def _find_next_focus(client):
+        focus_updated = client._select_next_focus()
+        return True
+
+    keycode = Screen.KEY_TAB
+    register_command([keycode], Command("next focus", _find_next_focus))
+
+    # PREV FOCUS
+    def _find_prev_focus(client):
+        focus_updated = client._select_prev_focus()
+        return True
+
+    keycode = Screen.KEY_BACK_TAB
+    register_command([keycode], Command("previous focus", _find_prev_focus))
 
 
 ### Commands on menuboxes (popup menus)
@@ -130,6 +147,34 @@ def populate_button():
     register_command(keycode, Command("activate", _activate), command_table="button")
 
 
+### Commands on menubars
+def populate_menubar():
+    # CTRL-K, LEFT-ARROW - previous item
+    def _prev(menubar):
+        selected = menubar._find_selected()
+        if selected is not None:
+            return menubar._select_previous(selected)
+        return False
+
+    keycode = [Screen.ctrl("k"), Screen.KEY_LEFT]
+    register_command(keycode, Command("previous", _prev), command_table="menubar")
+
+    # CTRL-L, RIGHT-ARROW - next item
+    def _next(menubar):
+        selected = menubar._find_selected()
+        if selected is None:
+            return menubar._select_first()
+        else:
+            return menubar._select_next(selected)
+
+    keycode = [Screen.ctrl("l"), Screen.KEY_RIGHT]
+    register_command(keycode, Command("next", _next), command_table="menubar")
+
+# FIXME: "select previous" on menubox should select menubar containing
+# button that spawned menu box in the first place, if there is
+# one. Need to capture the menubar in the menubox state since the
+# menubar isn't actually a parent of the menubox.
+
 #
 # actually populate the command tables.
 #
@@ -137,6 +182,7 @@ populate_global()
 populate_menubox()
 populate_dialog()
 populate_button()
+populate_menubar()
 
 # when a new TOP LEVEL SHEET type is displayed, it needs to identify
 # the FOCUS WIDGET. Until that TOP LEVEL SHEET is closed (or

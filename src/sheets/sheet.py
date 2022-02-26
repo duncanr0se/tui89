@@ -207,16 +207,70 @@ class Sheet():
         # children; use that as the focus. Keyboard navigation or
         # selection with the mouse can be used to find a different
         # focus.
-        # TODO: update focus when user clicks with mouse
-        if len(self._children) > 0:
-            for child in self._children:
-                focus = child.find_focus()
-                if focus is not None:
-                    return focus
+        for child in self._children:
+            focus = child.find_focus()
+            if focus is not None:
+                return focus
         if self.accepts_focus():
             logger.debug("find_focus identified %s", self)
             return self
         return None
+
+    def find_next_focus(self, current_focus, found_current=False):
+        logger.debug("self=%s, current_focus=%s, found=%s", self, current_focus, found_current)
+
+        # in words:
+        #
+        # walk sheet hierarchy until find current focus. Once found
+        # continue walking sheet hierarchy until find next potential
+        # focus candidate, or run out of sheets to check.
+        #
+        # if run out of candidates, return None indicating there is no
+        # suitable "next focus"
+        #
+        # Method returns a pair of (found, next_focus)
+        #
+        # Note: this method is designed to stop when it can't find a
+        # next focus. I think that wrapping is better behaviour.
+
+        if not found_current and self == current_focus:
+            found_current = True
+
+        if found_current and self != current_focus and self.accepts_focus():
+            return (True, self)
+
+        for child in self._children:
+            (found_current, next) = child.find_next_focus(current_focus,
+                                                          found_current=found_current)
+            if next is not None:
+                return (True, next)
+
+        # failed to find anything suitable
+        return (found_current, None)
+
+    def find_prev_focus(self, current_focus, previous_candidate=None):
+        logger.debug("find_prev_focus entered; current_focus %s, prev candidate %s, self %s",
+                     current_focus, previous_candidate, self)
+        # returns (True, candidate) if the current focus is found, and
+        # (False, candidate) otherwise.
+        if self == current_focus:
+            logger.debug("self == current_focus, returning previous_candidate %s",
+                         previous_candidate)
+            return (True, previous_candidate)
+
+        candidate = previous_candidate
+
+        if self.accepts_focus():
+            candidate = self
+
+        for child in self._children:
+            (found, candidate) = child.find_prev_focus(current_focus,
+                                                       previous_candidate=candidate)
+            if found:
+                logger.debug("found current focus, returning prev focus %s", candidate)
+                return (True, candidate)
+
+        return (False, candidate)
 
     # events
     # FIXME: this is pretty useless apart from when "find_focus" is

@@ -2,7 +2,10 @@
 from sheets.sheet import Sheet
 
 from sheets.spacereq import FILL, SpaceReq
+from sheets.separators import Separator
+from sheets.buttons import Button
 from frames.frame import Frame
+from frames.commands import find_command
 from dcs.ink import Pen
 
 # A layout that arranges its children in a row. Each child is
@@ -60,3 +63,49 @@ class MenubarLayout(Sheet):
 
     # fixme: add some functions to take a bunch of labels and
     # callbacks and build menus out of them?
+
+    # events - top level sheets don't pass event on to a parent,
+    # instead they return False to indicate the event is not handled
+    # and expect the Frame to take any further necessary action
+    def handle_key_event(self, key_event):
+        command = find_command(key_event, command_table="menubar")
+        if command is not None:
+            return command.apply(self)
+
+        return False
+
+    def _find_selected(self):
+        for child in self._children:
+            if not isinstance(child, Separator):
+                if child.is_focus():
+                    return child
+        return None
+
+    def _select_first(self):
+        for child in self._children:
+            if isinstance(child, Button):
+                self.frame().set_focus(child)
+                return True
+        return False
+
+    def _select_previous(self, selected):
+        found = False
+        for child in reversed(self._children):
+            if found:
+                if isinstance(child, Button):
+                    self.frame().set_focus(child)
+                    return True
+            if child == selected:
+                found = True
+        return False
+
+    def _select_next(self, selected):
+        found = False
+        for child in self._children:
+            if found:
+                if isinstance(child, Button):
+                    self.frame().set_focus(child)
+                    return True
+            if child == selected:
+                found = True
+        return False
