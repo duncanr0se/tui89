@@ -47,8 +47,6 @@ widgets that could be useful.
 
 *. Layouts - make it pretty, make it functional
 
-*. Set up github repo for project
-
 *. File explorer - local fs, archives, s3
 
 
