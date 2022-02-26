@@ -168,23 +168,31 @@ class Button(Sheet):
         yoffset = 1 if self._decorated else 0
         self.display_at((center_x, yoffset), button_label, pen)
 
+    # There are 4 pens that affect the appearance of buttons:
+    #   - resting button: use frame "button" colours
+    #   - focused button: use frame "focus_button" colours
+    #   - clicked button: use frame "pushed_button" colours
+    #   - mnemonic pen for button label: use frame "button_mnemonic" colours
     def pen(self):
-        if self._pressed:
-            return self.pressed_pen()
+        if self._pressed_pen is None:
+            self._pressed_pen = self.frame().theme("pushed_button")
         if self._pen is None:
             self._pen = self.frame().theme("button")
         if self._focus_pen is None:
             self._focus_pen = self.frame().theme("focus_button")
+
+        # check transitory state first
+        if self._pressed:
+            return self._pressed_pen
+        # if button is the current focus use focus colour; otherwise
+        # use the default
         logger.debug("is_focus = %s", self.is_focus())
-        return self._focus_pen if self.is_focus() else self._pen
+        if self.is_focus():
+            return self._focus_pen
+        return self._pen
 
     def is_focus(self):
         return self.frame()._focus == self
-
-    def pressed_pen(self):
-        if self._pressed_pen is None:
-            self._pressed_pen = self.frame().theme("pushed_button")
-        return self._pressed_pen
 
     def render(self):
         if not self._region:

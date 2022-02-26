@@ -43,15 +43,14 @@ widgets that could be useful.
 
  PRIORITIES:
 
-*. focus on click; focus colour scheme. When focus changed, need to
- redraw the focus controls (both loser + gainer) otherwise changes
- won't show. Navigating to different widgets must change the focus.
-
-*. keyboard navigation
+*. keyboard navigation. Navigating to different widgets must change
+ the focus.
 
 *. event handling (delayed), input, tab order
 
 *. Layouts - make it pretty, make it functional
+
+*. Set up github repo for project
 
 *. File explorer - local fs, archives, s3
 
@@ -60,30 +59,11 @@ USABILITY
 =========
 ACCELERATORS + MNEMONICS - for buttons and generic commands
 
-Instead of frigging pens for different purposes, put them in the theme
-definition as specific pens. Move all direct Pen instantiations into
-frame.
-
 No part of scroll bars should take focus - I think
 
 
 LAYOUT IMPROVEMENTS
 ===================
-
-Box layouts
------------
-Should support explicit sizes for kids as well as ratios. Allow space
-for explicitly specified sizes, then split remaining space over
-specified ratios. If there's free space left (all specified sizes but
-space remains), do what? Leave undefined for now, throw on user to
-make sure it doesn't happen.
-First pass: fixed sizes
-Second pass: percentages
-
-Box layout not working now buttons refuse to take space allocation
-that is over the space composed. Layout needs to hold the offsets
-instead of relying on having them in the child widgets.
-
 TEXT ALIGNMENT ON BUTTONS / BORDER TITLES
 
 Label needs to support alignments and truncation.
@@ -149,11 +129,6 @@ EVENT HANDLING - HOW MUCH IS NEEDED?
   - focus_in
   - focus_out
 
-FIXME: focus should apply for the FRAME, not just the different top
-levels. It's fine for top levels to keep track of their own focus but
-visual feedback needs to be given by whatever focus is set on the
-FRAME.
-
 BUTTON LABEL ALIGNMENT - do with label
 
 Replace button hard-coded label with label sheet, implement alignments
@@ -169,9 +144,7 @@ Maybe. But definitely need to set visual based on frame's focus, so
 set that when it is known.
 
 Key events go to frame, then frame focus, and ascend to parents and
-finally back to the frame.  Top level sheet needs to remember the
-focus when a popup is shown so when the popup is closed the frame
-focus can be returned to it.
+finally back to the frame.
 
 Focus is chosen one of 3 ways:
 
@@ -180,8 +153,8 @@ Focus is chosen one of 3 ways:
    3. keyboard navigation to widget that accepts focus
 
 Is "focus widget" different to "selected widget"? Is it possible to
-tab to a widget that does NOT accept focus? Probably not...
+tab to a widget that does NOT accept focus? Probably not... "selected"
+and "focused" are the same thing.
 
 Is "pressed" feedback needed? Maybe but can be subtler than it is
-currently. And maybe it should just be the inverse of the default
-widget style.
+currently.

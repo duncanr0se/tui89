@@ -110,16 +110,14 @@ class MenuBox(TopLevelSheet):
     def _find_selected(self):
         for child in self._item_pane._children:
             if not isinstance(child, Separator):
-                if child._pressed == True:
+                if child.is_focus():
                     return child
         return None
 
     def _select_first(self):
         for child in self._item_pane._children:
             if isinstance(child, Button):
-                child._pressed = True
-                self._focus = child
-                child.invalidate()
+                self.frame().set_focus(child)
                 return True
         return False
 
@@ -128,11 +126,7 @@ class MenuBox(TopLevelSheet):
         for child in reversed(self._item_pane._children):
             if found:
                 if isinstance(child, Button):
-                    selected._pressed = False
-                    child._pressed = True
-                    self._focus = child
-                    selected.invalidate()
-                    child.invalidate()
+                    self.frame().set_focus(child)
                     return True
             if child == selected:
                 found = True
@@ -143,11 +137,7 @@ class MenuBox(TopLevelSheet):
         for child in self._item_pane._children:
             if found:
                 if isinstance(child, Button):
-                    selected._pressed = False
-                    child._pressed = True
-                    self._focus = child
-                    selected.invalidate()
-                    child.invalidate()
+                    self.frame().set_focus(child)
                     return True
             if child == selected:
                 found = True

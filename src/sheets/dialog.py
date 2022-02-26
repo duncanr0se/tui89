@@ -78,10 +78,7 @@ class Dialog(TopLevelSheet):
 
     def default_pen(self):
         if self._default_pen is None:
-            # FIXME: make constructing pens easier!
-            # Surely we have a _frame reference now?
-            (fg, attr, bg) = Frame.THEMES["tv"][self._style]
-            self._default_pen = Pen(fg=fg, attr=attr, bg=bg)
+             self._default_pen = self.frame().theme(self._style)
         return self._default_pen
 
     def compose_space(self):
