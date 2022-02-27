@@ -37,27 +37,13 @@ class Button(Sheet):
         - decorated
         - label_align
         - width
-    Buttons have a label;
-    can be decorated, or not;
-    have no children;
+
+    Buttons have a label; can be decorated, or not; have no children;
 
     Can be aligned left, center, or right.
     Can have fixed width forced using "width".
+
     """
-    _label = None
-    _label_align = None
-
-    # event support
-
-    #on_click = None
-    # on_button_down?
-    # on_button_up?
-    # on_double_click?
-
-    _pressed = False
-
-    _width = None
-
     def __init__(self,
                  label="--",
                  decorated=True,
@@ -73,6 +59,7 @@ class Button(Sheet):
             raise RuntimeError("Only center alignment supported for button labels currently")
         self._label_align = label_align
         self._width = width
+        self._pressed = False
         self._pressed_pen=pressed_pen
         self._focus_pen = None
         # Function of 1 arg (button that was clicked)
@@ -248,7 +235,6 @@ class Button(Sheet):
         self.invalidate()
         return self.on_click_callback and self.on_click_callback(self)
 
-    # fixme: change visual of button if it is the focus...
 
 class RadioButton(Button):
 
@@ -260,7 +246,46 @@ class RadioButton(Button):
                          default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
 
     # needs to be part of a button group to be useful
+    #
+    # For now define a button group as a bunch of RadioButton
+    # instances that share the same parent sheet.
+    #
+    # FIXME: split label and visual selection indicator - also for checkbox
 
+    def _handle_mouse_event(self, event):
+        # Need more complexity here; there should only ever be a
+        # single radio button in the same group active
+        if event.buttons == MouseEvent.LEFT_CLICK:
+            if self._label[:3] == "( )":
+                self.activate()
+            else:
+                self._label = "( )" + self._label[3:]
+            self.invalidate()
+        return False
+
+    def _disable_others(self):
+        # find all other radio buttons that are selected (fixme: work
+        # out if selected by having a flag instead of checking visual
+        # state) and unselect them.
+        siblings = self._parent._children
+        for sibling in siblings:
+            if sibling != self:
+                if isinstance(sibling, RadioButton):
+                    if sibling._label[:3] == "(•)":
+                        sibling._label = "( )" + sibling._label[3:]
+                        sibling.invalidate()
+
+    # key event invokes activate() which needs to queue the visual
+    # changes
+    def activate(self):
+        if self._label[:3] == "( )":
+            self._label = "(•)" + self._label[3:]
+        else:
+            self._label = "( )" + self._label[3:]
+        self._disable_others()
+        self.invalidate()
+        # fixme: should be a delayed action
+        return self.on_click_callback and self.on_click_callback(self)
 
 class CheckBox(Button):
 
@@ -273,21 +298,30 @@ class CheckBox(Button):
     def _handle_mouse_event(self, event):
         if event.buttons == MouseEvent.LEFT_CLICK:
             if self._label[:3] == "[ ]":
-                self._label = "[X]" + self._label[3:]
+                self.activate()
             else:
                 self._label = "[ ]" + self._label[3:]
             self.invalidate()
         return False
 
+    # key event invokes activate() which needs to queue the visual
+    # changes
+    def activate(self):
+        if self._label[:3] == "[ ]":
+            self._label = "[✘]" + self._label[3:]
+        else:
+            self._label = "[ ]" + self._label[3:]
+        self.invalidate()
+        # fixme: should be a delayed action
+        return self.on_click_callback and self.on_click_callback(self)
 
 class MenuButton(Button):
-
-    _menubox = None
 
     def __init__(self, label="--", decorated=False,
                  default_pen=None, pen=None, pressed_pen=None):
         super().__init__(label=label, decorated=decorated,
                          default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
+        self._menubox = None
 
     def pen(self):
         # Button states:

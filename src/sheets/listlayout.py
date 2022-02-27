@@ -48,8 +48,8 @@ class ListLayout(Sheet):
     def allocate_space(self, allocation):
         # height = sum of all heights
         # width = max of all widths
-        # min? not sure how small it can go
-        # max? FILL
+        # min = max of all mins
+        # max = FILL
 
         self._region = allocation
         (width, height) = allocation

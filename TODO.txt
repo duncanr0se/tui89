@@ -10,7 +10,7 @@ add more widgets:
        - radio buttons (✔)
        - check boxes (✔)
        - menu button (✔)
-   - button group
+   - button group (✔)
    - label (✔)
    - scroll bars (✔)
    - viewport (✔)

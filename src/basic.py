@@ -55,7 +55,7 @@ def demo(screen):
     oneb = BorderLayout(title="buttons", style="single")
     child_sheet.add_child(oneb)
 
-    one = VerticalLayout([(10, "%"), (80, "%"), 1])
+    one = VerticalLayout([(10, "%"), (80, "%"), 1, 1])
     oneb.add_child(one)
 
     button = Button(label="Press me!", decorated=True)
@@ -78,7 +78,8 @@ def demo(screen):
 
     button.on_click_callback = btn_cb
     one.add_child(button)
-    one.add_child(RadioButton(label="Radio", decorated=False))
+    one.add_child(RadioButton(label="Radio1", decorated=False))
+    one.add_child(RadioButton(label="Radio2", decorated=False))
     one.add_child(CheckBox(label="Check"))
 
     border2 = BorderLayout(title="list", style="single")
