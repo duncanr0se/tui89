@@ -25,32 +25,22 @@ from sheets.borderlayout import BorderLayout
 from sheets.boxlayout import VerticalLayout
 from sheets.buttons import Button
 from frames.frame import Frame
+from sheets.separators import HorizontalSeparator
 
 from dcs.ink import Pen
 
 from frames.commands import find_command
 
 class Dialog(TopLevelSheet):
+    """Dialog popup.
 
-    # top level sheet with an implicit border layout (unlike standard
-    # top level sheet where the user gets to pick the contained
-    # layout)
+    Top level sheet type containing an implicit border layout (unlike
+    standard top level sheet where the user gets to pick the contained
+    layout) which contains a box layout in turn.
 
-    # on creation, create the border to use and the row layout
-    # wrapped in that border. The dialog "content pane" is the
-    # first child of the vertical layout, the "button pane"
-    # is the second.
-    #_wrapper = None
-    #_title = None
-
-    #_text = None
-
-    #_content_pane = None
-
-    #_okButton = None
-
-    #_style = None
-
+    The box layout contains the dialog content pane and button pane,
+    in that order.
+    """
     def __init__(self, title=None, text=None, style="info",
                  default_pen=None, pen=None):
         # Can't call super here or this dialog is set as the frame's
@@ -61,10 +51,15 @@ class Dialog(TopLevelSheet):
         self._style = style
         border = BorderLayout(title=title)
         self.add_child(border)
-        self._wrapper = VerticalLayout([4, 1])
+        # FIXME: make this box layout configurable; maybe the user
+        # wants a horizontal layout
+        # FILL isn't a requirement, it's a non-requirement so should
+        # be ignored for composition / allocation.
+        self._wrapper = VerticalLayout([4, (1, "char"), 1])
         border.add_child(self._wrapper)
         # fixme: scrolling dialog content?
         self._wrapper.add_child(self._make_content_pane(text))
+        self._wrapper.add_child(HorizontalSeparator())
         self._wrapper.add_child(self._make_button_pane())
         self._text = text
         self._default_pen = default_pen
@@ -125,7 +120,7 @@ class Dialog(TopLevelSheet):
         # Also hard-code the button pane (minimum + preferred)
         # sizes for now
         # FIXME: hardcoded index
-        button_pane = self._wrapper._children[1]
+        button_pane = self._wrapper._children[2]
         button_pane_size = button_pane.compose_space()
         vbox_pane_size = combine_spacereqs(content_pane_size, button_pane_size)
         # border adds +1 on each side

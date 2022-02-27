@@ -52,6 +52,7 @@ widgets that could be useful.
 *. create "ports" for different backends; experiment with asciimatics,
  urwid, vanilla curses.
 
+*. menu bar / box from command table
 
 USABILITY
 =========

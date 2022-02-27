@@ -29,7 +29,11 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 class Frame():
+    """Represents a TUI application.
 
+    Intermediary between the display (screen) and the widgets.
+    Deals with event loop and redrawing damage regions.
+    """
     THEMES = {
         "tv": {
             "background": (Screen.COLOUR_BLUE, Screen.A_NORMAL, Screen.COLOUR_BLUE),
@@ -37,12 +41,12 @@ class Frame():
             "scroll": (Screen.COLOUR_CYAN, Screen.A_REVERSE, Screen.COLOUR_BLUE),
 
             "button": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_GREEN),
-            "focus_button": (Screen.COLOUR_CYAN, Screen.A_NORMAL, Screen.COLOUR_GREEN),
-            "pushed_button": (Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_CYAN),
+            "focus_button": (Screen.COLOUR_MAGENTA, Screen.A_NORMAL, Screen.COLOUR_GREEN),
+            "pushed_button": (Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_MAGENTA),
 
             "menu": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE),
-            "focus_menu": (Screen.COLOUR_CYAN, Screen.A_BOLD, Screen.COLOUR_GREEN),
-            "pushed_menu": (Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_CYAN),
+            "focus_menu": (Screen.COLOUR_MAGENTA, Screen.A_BOLD, Screen.COLOUR_GREEN),
+            "pushed_menu": (Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_MAGENTA),
 
             "alert": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED),
             "info": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_CYAN),
