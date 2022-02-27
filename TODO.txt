@@ -49,6 +49,9 @@ widgets that could be useful.
 
 *. File explorer - local fs, archives, s3
 
+*. create "ports" for different backends; experiment with asciimatics,
+ urwid, vanilla curses.
+
 
 USABILITY
 =========
