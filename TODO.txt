@@ -68,8 +68,6 @@ LAYOUT IMPROVEMENTS
 ===================
 TEXT ALIGNMENT ON BUTTONS / BORDER TITLES
 
-Label needs to support alignments
-
 Multiline labels
 
 Measuring text needs to be better; len(str) might not be effective for

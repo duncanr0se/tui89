@@ -27,9 +27,13 @@ class Label(Sheet):
 
     _label_text = None
 
-    def __init__(self, label_text="", default_pen=None, pen=None):
+    def __init__(self, label_text="", default_pen=None, pen=None, align=None):
         super().__init__(default_pen=default_pen, pen=pen)
         self._label_text = label_text
+        valid_aligns = { None, "left", "right", "center", "centre" }
+        if align not in valid_aligns:
+            raise RuntimeError("label align not in valid set", align, valid_aligns)
+        self._align = align
 
     def __repr__(self):
         (width, height) = self._region
@@ -55,7 +59,13 @@ class Label(Sheet):
         if len(display_text)>self.width() and len(display_text)>3:
             display_text = display_text[:self.width()-3]
             display_text += "..."
-        self.display_at((0, 0), display_text, pen)
+        if self._align is None or self._align == "left":
+            coord = (0, 0)
+        elif self._align == "right":
+            coord = (self.width()-len(display_text), 0)
+        else: #self._align == "center" or self._align == "centre":
+            coord = ((self.width()-len(display_text)) // 2, 0)
+        self.display_at(coord, display_text, pen)
 
     # layout
     def compose_space(self):

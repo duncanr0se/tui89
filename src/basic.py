@@ -105,6 +105,22 @@ def demo(screen):
     row4.add_child(Label("Long label:"))
     row4.add_child(Label("This label should be truncated to fit the available space"))
 
+    # right align
+    row5 = HorizontalLayout([])
+    listlayout.add_child(row5)
+    row5.add_child(Label("Right align:"))
+    row5.add_child(Label("align", align="right"))
+    # center align
+    row6 = HorizontalLayout([])
+    listlayout.add_child(row6)
+    row6.add_child(Label("Center align:"))
+    row6.add_child(Label("align", align="center"))
+    # left align
+    row7 = HorizontalLayout([])
+    listlayout.add_child(row7)
+    row7.add_child(Label("Left align:"))
+    row7.add_child(Label("align", align="left"))
+
     #### "green"
 
     green_bg = Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_GREEN)
