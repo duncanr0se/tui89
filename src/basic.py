@@ -80,9 +80,6 @@ def demo(screen):
 
     #### "list"
 
-    # FIXME: space allocation on list layouts / box layouts are not
-    # right
-
     border2 = BorderLayout(title="list", style="single")
     child_sheet.add_child(border2)
     listlayout = ListLayout()
@@ -102,6 +99,11 @@ def demo(screen):
     listlayout.add_child(row3)
     row3.add_child(Label("VSeparator:"))
     row3.add_child(VerticalSeparator(style="double", size=8))
+
+    row4 = HorizontalLayout([])
+    listlayout.add_child(row4)
+    row4.add_child(Label("Long label:"))
+    row4.add_child(Label("This label should be truncated to fit the available space"))
 
     #### "green"
 

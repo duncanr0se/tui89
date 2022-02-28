@@ -46,9 +46,16 @@ class Label(Sheet):
     # drawing / redisplay
     def render(self):
         # todo: label alignment
-        # todo: label truncation
         pen = self.frame().theme("label")
-        self.display_at((0, 0), self._label_text, pen)
+        display_text = self._label_text
+        # truncate so it's possible to see at least 3+ label chars +
+        # "...". If text has 3 or fewer characters and doesn't fit in
+        # the available space, then that's just tough. Text will be
+        # clipped.
+        if len(display_text)>self.width() and len(display_text)>3:
+            display_text = display_text[:self.width()-3]
+            display_text += "..."
+        self.display_at((0, 0), display_text, pen)
 
     # layout
     def compose_space(self):
