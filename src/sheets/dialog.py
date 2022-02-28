@@ -22,7 +22,7 @@ from sheets.spacereq import SpaceReq, FILL, combine_spacereqs
 
 from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
-from sheets.boxlayout import VerticalLayout
+from sheets.boxlayout import VerticalLayout, HorizontalLayout
 from sheets.buttons import Button
 from frames.frame import Frame
 from sheets.separators import HorizontalSeparator
@@ -78,13 +78,32 @@ class Dialog(TopLevelSheet):
         return self._content_pane
 
     def _make_button_pane(self):
-        self._okButton = Button("OK", decorated=True, width=11)
+        # fixme: should allow caller to pass in arbitrary buttons
+        if self._style == "yes/no":
+            yes = Button("YES", decorated=True, width=11)
+            no = Button("NO", decorated=True, width=11)
+            hbox = HorizontalLayout([])
+            hbox.add_child(yes)
+            hbox.add_child(no)
 
-        def callback(button):
-            button.frame().dialog_quit()
+            def yncallback(button):
+                # save frame because the call to dialog_quit destroys
+                # the reference held in button arg
+                bframe = button.frame()
+                button.frame().dialog_quit()
+                # fixme: stash value somewhere so it can be retrieved
+                alert(bframe, "You clicked: {}".format(button._label))
+            yes.on_click_callback = yncallback
+            no.on_click_callback = yncallback
+            return hbox
+        else:
+            okButton = Button("OK", decorated=True, width=11)
 
-        self._okButton.on_click_callback = callback
-        return self._okButton
+            def callback(button):
+                button.frame().dialog_quit()
+
+            okButton.on_click_callback = callback
+            return okButton
 
     def default_pen(self):
         if self._default_pen is None:
@@ -138,17 +157,9 @@ class Dialog(TopLevelSheet):
         (calloc_x, calloc_y) = (width - 1, height - 1)
         border_layout = self._children[0]
         border_request = border_layout.compose_space()
-        # if desired or max space are less than allocation, reduce allocation to max space
-        # else set allocation to desired
-        # Desired space must be <= max space so no need to check it...
-
-        # Don't allow space allocated to widget to be smaller than
-        # the widget's minimum; it won't all fit on the screen,
-        # but that's the widget's problem...
-        calloc_x = max(border_request.x_min(),
-                       min(border_request.x_preferred(), calloc_x))
-        calloc_y = max(border_request.y_min(),
-                       min(border_request.y_preferred(), calloc_y))
+        # give all the space to the child without allocating more than the child's maximum.
+        calloc_x = min(calloc_x, border_request.x_max())
+        calloc_y = min(calloc_y, border_request.y_max())
         border_layout.allocate_space((calloc_x, calloc_y))
 
     def render(self):
@@ -192,4 +203,8 @@ def alert(frame, message):
 
 def info(frame, message):
     dialog = Dialog(title="=[ INFO ]=", style="info", text=message)
+    frame.show_dialog(dialog)
+
+def yes_no(frame, message):
+    dialog = Dialog(title="=[ YES or NO ]=", style="yes/no", text=message)
     frame.show_dialog(dialog)

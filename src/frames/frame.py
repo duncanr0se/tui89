@@ -50,7 +50,7 @@ class Frame():
 
             "alert": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED),
             "info": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_CYAN),
-            "yes/no": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_GREEN),
+            "yes/no": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_YELLOW),
             "composite": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_WHITE),
 
             "disabled": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_BLUE),

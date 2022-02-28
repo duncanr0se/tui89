@@ -25,7 +25,7 @@ from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
 from sheets.buttons import Button, RadioButton, CheckBox, MenuButton
 from sheets.boxlayout import HorizontalLayout, VerticalLayout
-from sheets.dialog import Dialog, alert
+from sheets.dialog import Dialog, alert, yes_no
 from sheets.scrollbar import Scrollbar
 from sheets.viewport import Viewport
 from sheets.label import Label
@@ -59,14 +59,21 @@ def demo(screen):
     oneb = BorderLayout(title="buttons", style="single")
     child_sheet.add_child(oneb)
 
-    one = VerticalLayout([(10, "%"), (80, "%"), 1, 1])
+    one = VerticalLayout([(10, "%"), (10, "%"), (70, "%"), 1, 1])
     oneb.add_child(one)
 
     # FIXME: allocate_space method on buttons is not right
 
-    button = Button(label="Press me!", decorated=True)
+    button = Button(label="Pancakes!", decorated=True)
     button.on_click_callback = _make_dialog_callback()
     one.add_child(button)
+
+    button = Button(label="Yes/No", decorated=True)
+    # fixme: dialog needs to expose "button callback" which gets
+    # called when one of the dialog buttons is pushed
+    button.on_click_callback = _make_yesno_callback()
+    one.add_child(button)
+
     one.add_child(RadioButton(label="Radio1", decorated=False))
     one.add_child(RadioButton(label="Radio2", decorated=False))
     one.add_child(CheckBox(label="Check"))
@@ -186,6 +193,10 @@ def _make_dialog_callback():
 
     return btn_cb
 
+def _make_yesno_callback():
+    def btn_cb(button):
+        yes_no(button.frame(), "Isn't it a lovely day?")
+    return btn_cb
 
 def _make_menubar():
     menubar = MenubarLayout()
