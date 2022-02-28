@@ -109,7 +109,7 @@ class BorderLayout(Sheet):
         return None
 
     # Ask children how much space it needs, add in the border, use
-    # that as the space allocation
+    # that as the space request
     def compose_space(self):
         sr = SpaceReq(1, 10, FILL, 1, 10, FILL)
         for child in self._children:
@@ -134,19 +134,17 @@ class BorderLayout(Sheet):
         (width, height) = allocation
         (calloc_x, calloc_y) = (width - 2, height - 2)
         for child in self._children:
+            # borderlayout has a single child - give it all the space
+            # the border doesn't need for itself without allocating
+            # more than the child's maximum. It doesn't matter if the
+            # child ends up too small it will just overflow it's
+            # bounds.
             child_request = child.compose_space()
-            # if desired or max space are less than allocation, reduce allocation to max space
-            # else set allocation to desired
-            # By definition desired space <= max space so no need to check it
-            # Don't allow space allocated to widget to be smaller than
-            # the widget's minimum; it won't all fit on the screen,
-            # but that's the widget's problem...
-            calloc_x = max(child_request.x_min(),
-                           min(child_request.x_preferred(), calloc_x))
-            calloc_y = max(child_request.y_min(),
-                           min(child_request.y_preferred(), calloc_y))
+            calloc_x = min(calloc_x, child_request.x_max())
+            calloc_y = min(calloc_y, child_request.y_max())
             child.allocate_space((calloc_x, calloc_y))
-
+        # deal with scrollbars specially because they aren't treated
+        # as children of the border pane.
         if self._vertical_sb is not None:
             child_request = self._vertical_sb.compose_space()
             # use the minimum width and the border pane's height
@@ -166,8 +164,8 @@ class BorderLayout(Sheet):
             self._vertical_sb.move_to((rw-1, 1))
             self._vertical_sb.layout()
         if self._horizontal_sb is not None:
-            # how wide should horizontal bars be? turbo vision looks
-            # to give about 50% of the pane width...
+            # fixme: how wide should horizontal bars be? turbo vision
+            # looks to give about 50% of the pane width...
             self._horizontal_sb.move_to((1, rh-1))
             self._horizontal_sb.layout()
 

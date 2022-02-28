@@ -18,13 +18,13 @@ from sheets.sheet import Sheet
 
 from sheets.spacereq import FILL, SpaceReq
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 # A layout that arranges its children in a column. Each child is
 # packed as closely as possible to its siblings
 class ListLayout(Sheet):
-
-    # see if class will work without this call... test pen, default pen
-#    def __init__(self):
-#        super().__init__()
 
     def layout(self):
         offset = 0
@@ -60,8 +60,8 @@ class ListLayout(Sheet):
 
         for child in self._children:
             sr = child.compose_space()
-            ch = sr.y_preferred()
-            child.allocate_space((width, ch), force=True)
+            ch = sr.y_preferred() if sr.y_preferred() < FILL else sr.y_min()
+            child.allocate_space((width, ch))
 
     def compose_space(self):
         reqheight = 0
@@ -73,7 +73,7 @@ class ListLayout(Sheet):
             minwidth = max(minwidth, sr.x_min())
             # horizontal separators have their desired space set to
             # FILL, which is probably not ideal...
-            if sr.x_preferred() != FILL:
+            if sr.x_preferred() < FILL:
                 reqwidth = max(reqwidth, sr.x_preferred())
             minheight += sr.y_min()
             reqheight += sr.y_preferred()

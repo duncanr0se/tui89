@@ -25,9 +25,6 @@ from dcs.ink import Pen
 
 class Separator(Sheet):
 
-    #_style = None
-    #_size = None
-
     def __init__(self, style="single", size=None, default_pen=None, pen=None):
         super().__init__(default_pen=default_pen, pen=pen)
         self._style = style
@@ -43,9 +40,6 @@ class HorizontalSeparator(Separator):
         "single": u'─',
         "spacing": ' '
     }
-
-#    def __init__(self, style="single", size=None):
-#        super().__init__(style, size)
 
     def __repr__(self):
         (width, height) = self._region
@@ -73,9 +67,6 @@ class VerticalSeparator(Separator):
         "single": u'│',
         "spacing": ' '
     }
-
-#    def __init__(self, style="single", size=None):
-#        super().__init__(style, size)
 
     def __repr__(self):
         (width, height) = self._region

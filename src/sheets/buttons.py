@@ -105,10 +105,13 @@ class Button(Sheet):
             return SpaceReq(button_height, button_length, FILL,
                             button_height, button_height, button_height)
 
-    def allocate_space(self, allocation, force=False):
-        if force:
-            self._region = allocation
-        else:
+    def allocate_space(self, allocation):
+        # fixme: this is just wrong. The allocation is the allocation,
+        # although the widget can decide not to fill it when drawing
+        # it still must accept it as its allocation.
+#        if force:
+#            self._region = allocation
+#        else:
             # how much space to take? Does allocation need
             # restricting? Is it ok to say "thanks but no thanks" when
             # given space?  todo: cache space requirement

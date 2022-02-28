@@ -16,21 +16,25 @@
 
 FILL = 8080  # Go with DUIM's 100 screens
 
-sr_x = 0
-sr_y = 1
-sr_min = 0
-sr_pref = 1
-sr_max = 2
 
 class SpaceReq():
 
     def __init__(self, minx, desx, maxx, miny, desy, maxy):
-        self._xmax = maxx
-        self._xmin = minx
-        self._xpref = desx
-        self._ymax = maxy
-        self._ymin = miny
-        self._ypref = desy
+        self._xmax = _fill_or(maxx)
+        self._xmin = _fill_or(minx)
+        self._xpref = _fill_or(desx)
+        self._ymax = _fill_or(maxy)
+        self._ymin = _fill_or(miny)
+        self._ypref = _fill_or(desy)
+
+    def __repr__(self):
+        return "SpaceReq([{},{},{}], [{},{},{}])".format(
+            self.x_min() if self.x_min() < FILL else "FILL",
+            self.x_preferred() if self.x_preferred() < FILL else "FILL",
+            self.x_max() if self.x_max() < FILL else "FILL",
+            self.y_min() if self.y_min() < FILL else "FILL",
+            self.y_preferred() if self.y_preferred() < FILL else "FILL",
+            self.y_max() if self.y_max() < FILL else "FILL")
 
     def x_max(self):
         return self._xmax
@@ -51,13 +55,16 @@ class SpaceReq():
         return self._ymin
 
 
-def combine_spacereqs(sr1, sr2):
-    min_x = sr1._xmin + sr2._xmin
-    pref_x = sr1._xpref + sr2._xpref
-    max_x = sr1._xmax + sr2._xmax
+def _fill_or(n):
+    return n if n < FILL else FILL
 
-    min_y = sr1._ymin + sr2._ymin
-    pref_y = sr1._ypref + sr2._ypref
-    max_y = sr1._ymax + sr2._ymax
+def combine_spacereqs(sr1, sr2):
+    min_x = _fill_or(sr1._xmin + sr2._xmin)
+    pref_x = _fill_or(sr1._xpref + sr2._xpref)
+    max_x = _fill_or(sr1._xmax + sr2._xmax)
+
+    min_y = _fill_or(sr1._ymin + sr2._ymin)
+    pref_y = _fill_or(sr1._ypref + sr2._ypref)
+    max_y = _fill_or(sr1._ymax + sr2._ymax)
 
     return SpaceReq(min_x, pref_x, max_x, min_y, pref_y, max_y)

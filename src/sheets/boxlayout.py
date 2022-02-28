@@ -15,6 +15,7 @@
 #
 
 from sheets.sheet import Sheet
+from sheets.spacereq import SpaceReq, FILL
 
 import math
 from logging import getLogger
@@ -91,6 +92,8 @@ class BoxLayout(Sheet):
         # up to be more efficient later...
         self._region = allocation
 
+        totalSpaceAllocated = 0
+
         major_component = self._major_region_component(allocation)
         minor_component = self._minor_region_component(allocation)
 
@@ -113,6 +116,7 @@ class BoxLayout(Sheet):
                 totalFixedSpace += n
                 child = self._children[index]
                 child_region = self._make_region(n, minor_component)
+                totalSpaceAllocated += n
                 child.allocate_space(child_region)
 
         major_component -= totalFixedSpace
@@ -126,6 +130,7 @@ class BoxLayout(Sheet):
                 totalPercentageSpace += percentageRequirement
                 child = self._children[index]
                 child_region = self._make_region(percentageRequirement, minor_component)
+                totalSpaceAllocated += percentageRequirement
                 child.allocate_space(child_region)
 
         major_component -= totalPercentageSpace
@@ -141,6 +146,8 @@ class BoxLayout(Sheet):
         segmentSize = major_component // totalSegments
         surplus = major_component - segmentSize*totalSegments
 
+        logger.debug("%s, segment size = %s", self, segmentSize)
+
         for index, column in enumerate(self._portions):
             (n, unit) = _destructure(column)
             if unit == "ratio":
@@ -150,7 +157,12 @@ class BoxLayout(Sheet):
                     callocq += 1
                     surplus -= 1
                 child_region = self._make_region(callocq, minor_component)
+                totalSpaceAllocated += callocq
                 child.allocate_space(child_region)
+
+        logger.debug("total space allocated %s from allocation %s", totalSpaceAllocated, major_component)
+        for child in self._children:
+            logger.debug("allocated space on child %s", child)
 
 
     # perhaps this should be the thing that calls compose-space
@@ -190,6 +202,21 @@ class HorizontalLayout(BoxLayout):
         return "HorizontalLayout({}x{}@{},{}: {} cols)".format(
             width, height, tx, ty, len(self._portions))
 
+    def compose_space(self):
+        min_height = 1
+        preferred_height = 1
+        min_width = 0
+        preferred_width = 0
+
+        for child in self._children:
+            sr = child.compose_space()
+            min_height = max(min_height, sr.y_min())
+            preferred_height = max(preferred_height, sr.y_preferred())
+            min_width += sr.x_min()
+            preferred_width += sr.x_preferred()
+
+        return SpaceReq(min_width, preferred_width, FILL, min_height, preferred_height, FILL)
+
     def _major_region_component(self, allocation):
         (width, height) = allocation
         return width
@@ -224,6 +251,21 @@ class VerticalLayout(BoxLayout):
         ty = self._transform._dy
         return "VerticalLayout({}x{}@{},{}: {} rows)".format(
             width, height, tx, ty, len(self._portions))
+
+    def compose_space(self):
+        min_height = 1
+        preferred_height = 1
+        min_width = 0
+        preferred_width = 0
+
+        for child in self._children:
+            sr = child.compose_space()
+            min_width = max(min_width, sr.x_min())
+            preferred_width = max(preferred_width, sr.x_preferred())
+            min_height += sr.y_min()
+            preferred_height += sr.y_preferred()
+
+        return SpaceReq(min_width, preferred_width, FILL, min_height, preferred_height, FILL)
 
     def _major_region_component(self, allocation):
         (width, height) = allocation

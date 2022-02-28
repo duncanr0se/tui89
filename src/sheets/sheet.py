@@ -170,7 +170,7 @@ class Sheet():
         return self._transform.add_transform(self._parent.get_screen_transform())
 
     # layout layout types must override this to actually do layout
-    def allocate_space(self, allocation, force=False):
+    def allocate_space(self, allocation):
         """
         Forces width and height onto sheet.
 
