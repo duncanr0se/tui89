@@ -89,21 +89,21 @@ class MenubarLayout(Sheet):
 
         return False
 
-    def _find_selected(self):
+    def find_focused_child(self):
         for child in self._children:
             if not isinstance(child, Separator):
                 if child.is_focus():
                     return child
         return None
 
-    def _select_first(self):
+    def focus_first_child(self):
         for child in self._children:
             if isinstance(child, Button):
                 self.frame().set_focus(child)
                 return True
         return False
 
-    def _select_previous(self, selected):
+    def cycle_focus_backward(self, selected):
         found = False
         for child in reversed(self._children):
             if found:
@@ -114,7 +114,7 @@ class MenubarLayout(Sheet):
                 found = True
         return False
 
-    def _select_next(self, selected):
+    def cycle_focus_forward(self, selected):
         found = False
         for child in self._children:
             if found:

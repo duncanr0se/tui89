@@ -114,7 +114,6 @@ that holds the text instead.
 Rename "get_screen_transform()" + apply transform pair into something
 like "convert_to_screen_coordinate"?
 
-Rename "_select_next" etc. to be "cycle_focus_forward/backward".
 
 EVENT HANDLING
 ==============

@@ -76,7 +76,7 @@ def populate_global():
 
     # NEXT FOCUS
     def _find_next_focus(client):
-        focus_updated = client._select_next_focus()
+        focus_updated = client.cycle_focus_forward()
         return True
 
     keycode = Screen.KEY_TAB
@@ -84,7 +84,7 @@ def populate_global():
 
     # PREV FOCUS
     def _find_prev_focus(client):
-        focus_updated = client._select_prev_focus()
+        focus_updated = client.cycle_focus_backward()
         return True
 
     keycode = Screen.KEY_BACK_TAB
@@ -106,9 +106,9 @@ def populate_menubox():
 
     # CTRL-P, UP-ARROW - up item
     def _prev(menubox):
-        selected = menubox._find_selected()
+        selected = menubox.find_focused_child()
         if selected is not None:
-            if menubox._select_previous(selected):
+            if menubox.cycle_focus_backward(selected):
                 return True
 #        if menubox.has_menubar_button():
 #            # FIXME: close self, select menubar button
@@ -120,11 +120,11 @@ def populate_menubox():
 
     # CTRL-N, DOWN-ARROW - down item
     def _next(menubox):
-        selected = menubox._find_selected()
+        selected = menubox.find_focused_child()
         if selected is None:
-            return menubox._select_first()
+            return menubox.focus_first_child()
         else:
-            return menubox._select_next(selected)
+            return menubox.cycle_focus_forward(selected)
 
     keycode = [Screen.ctrl("n"), Screen.KEY_DOWN]
     register_command(keycode, Command("next", _next), command_table="menubox")
@@ -174,9 +174,9 @@ def populate_button():
 def populate_menubar():
     # CTRL-K, LEFT-ARROW - previous item
     def _prev(menubar):
-        selected = menubar._find_selected()
+        selected = menubar.find_focused_child()
         if selected is not None:
-            return menubar._select_previous(selected)
+            return menubar.cycle_focus_backward(selected)
         return False
 
     keycode = [Screen.ctrl("k"), Screen.KEY_LEFT]
@@ -184,11 +184,11 @@ def populate_menubar():
 
     # CTRL-L, RIGHT-ARROW - next item
     def _next(menubar):
-        selected = menubar._find_selected()
+        selected = menubar.find_focused_child()
         if selected is None:
-            return menubar._select_first()
+            return menubar.focus_first_child()
         else:
-            return menubar._select_next(selected)
+            return menubar.cycle_focus_forward(selected)
 
     keycode = [Screen.ctrl("l"), Screen.KEY_RIGHT]
     register_command(keycode, Command("next", _next), command_table="menubar")
@@ -197,7 +197,7 @@ def populate_menubar():
     # FIXME: need to support going up from the menubox back into the
     # menubar also...
     def _activate(menubar):
-        button = menubar._find_selected()
+        button = menubar.find_focused_child()
         if button is not None:
             button.activate()
             return True
@@ -281,8 +281,8 @@ populate_textentry()
 # top-level sheet elects not to handle the event, the event is
 # returned to the Frame as unhandled.
 
-# "find_focus" -> perform depth-first search to find first child with
-# no children, set it as the focus.
+# "find_focus_candidate" -> perform depth-first search to find first
+# child with no children, set it as the focus.
 
 # FIXME: focus colour scheme; make focused items display with magenta
 # backgrounds since magenta isn't used for anything else.

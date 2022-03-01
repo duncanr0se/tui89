@@ -216,18 +216,18 @@ class Sheet():
         return height
 
     # events
-    def find_focus(self):
+    def find_focus_candidate(self):
         logger.debug("find_focus invoked on %s", self)
         # depth first search to find the first descendent with no
         # children; use that as the focus. Keyboard navigation or
         # selection with the mouse can be used to find a different
         # focus.
         for child in self._children:
-            focus = child.find_focus()
+            focus = child.find_focus_candidate()
             if focus is not None:
                 return focus
         if self.accepts_focus():
-            logger.debug("find_focus identified %s", self)
+            logger.debug("find_focus_candidate identified %s", self)
             return self
         return None
 
@@ -288,8 +288,6 @@ class Sheet():
         return (False, candidate)
 
     # events
-    # FIXME: this is pretty useless apart from when "find_focus" is
-    # invoked. Maybe that's enough.
     def accepts_focus(self):
         return False
 

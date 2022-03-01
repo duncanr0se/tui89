@@ -177,14 +177,14 @@ class Frame():
             # sheet. When it is asked to deal with an event it can
             # identify a more specific focus, if it is coded to.
             if self._menu:
-                focus_sheet = self._menu.find_focus()
+                focus_sheet = self._menu.find_focus_candidate()
                 self.set_focus(focus_sheet)
             elif self._dialog:
                 self.set_focus(self._dialog)
-                focus_sheet = self._dialog.find_focus()
+                focus_sheet = self._dialog.find_focus_candidate()
                 self.set_focus(focus_sheet)
             else:
-                focus_sheet = self._top_level_sheet.find_focus()
+                focus_sheet = self._top_level_sheet.find_focus_candidate()
                 self.set_focus(focus_sheet)
 
         # When a top level sheet, a dialog, or a menu is displayed it
@@ -361,7 +361,7 @@ class Frame():
             self._menu.render()
             focus_top_level = self._menu
         # fixme: this really shouldn't be done on each render loop...
-        focus_sheet = focus_top_level.find_focus()
+        focus_sheet = focus_top_level.find_focus_candidate()
         self.set_focus(focus_sheet)
         self._screen.refresh()
 
@@ -383,7 +383,7 @@ class Frame():
             focus_top_level = self._menu
         return focus_top_level
 
-    def _select_next_focus(self):
+    def cycle_focus_forward(self):
         # returns True if the focus was updated and False otherwise
         focus_top_level = self._get_focus_top_level()
 
@@ -392,15 +392,15 @@ class Frame():
 
         if self._focus is None:
             # find first focus
-            focus_sheet = focus_top_level.find_focus()
+            focus_sheet = focus_top_level.find_focus_candidate()
             if focus_sheet is not None:
                 self.set_focus(focus_sheet)
                 return True
             return False
-        # repeat "find_focus" walk looking for current focus and then
-        # continue to next focus candidate - set focus on that
-        # candidate and return True. If run out of candidates, retain
-        # current focus and return False
+        # repeat "find_focus_candidate" walk looking for current focus
+        # and then continue to next focus candidate - set focus on
+        # that candidate and return True. If run out of candidates,
+        # retain current focus and return False
         (found, focus_sheet) = focus_top_level.find_next_focus(self._focus)
         if not found or focus_sheet is None:
             return False
@@ -409,17 +409,17 @@ class Frame():
             return True
         return False
 
-    def _select_prev_focus(self):
-        logger.debug("_select_prev_focus entered")
+    def cycle_focus_backward(self):
+        logger.debug("cycle_focus_backward entered")
         focus_top_level = self._get_focus_top_level()
         logger.debug("top-level %s", focus_top_level)
 
         if self._focus is None:
             raise RuntimError("no focus! It's possible after all!")
 
-        # repeat find_focus walk looking for current focus and then
-        # return that last focus candidate seen. If no previous
-        # candidates retain current focus and return False
+        # repeat find_focus_candidate walk looking for current focus
+        # and then return that last focus candidate seen. If no
+        # previous candidates retain current focus and return False
         (found, focus_sheet) = focus_top_level.find_prev_focus(self._focus,
                                                                previous_candidate=None)
 
