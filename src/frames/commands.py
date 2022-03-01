@@ -249,6 +249,12 @@ def populate_textentry():
     keycode = Screen.KEY_BACK
     register_command([keycode], Command("backspace", _backspace), command_table="textentry")
 
+    # NEWLINE - silently ignore
+    def _nop(entry):
+        return True
+    keycode = Screen.ctrl("j")
+    register_command([keycode], Command("eat nl", _nop), command_table="textentry")
+
     # PRINTING CHAR - insert char; implemented in widget itself
     pass
 

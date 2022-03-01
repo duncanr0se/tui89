@@ -33,6 +33,7 @@ add more widgets:
    - context menu
 
 add controls:
+   - list control (scrolling list view)
    - tree control
    - multivalue dialog box (dialog box containing other widgets)
    - file save
@@ -66,6 +67,9 @@ When radio buttons in group one should be selected by default.
 Widgets (and dialogs) should have a "value" that can be queried.
 
 Text edit components should support select, cut, paste
+
+Expand inks so can paint a background in a fg/bg colour and using a
+specific character for the bg.
 
 
 LAYOUT IMPROVEMENTS
