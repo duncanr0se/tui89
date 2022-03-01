@@ -34,8 +34,6 @@ from frames.commands import find_command
 class TextEntry(Sheet):
     """Text entry widget."""
 
-    _cursor = u'█'
-
     def __init__(self, text="", default_pen=None, pen=None):
         super().__init__(default_pen=default_pen, pen=pen)
         self._children = []
@@ -45,6 +43,7 @@ class TextEntry(Sheet):
         self._default_pen = default_pen
         self._pen = pen
         self._focus = None
+        self._cursor_pen = None
         # insertion point = where in the text the cursor is
         self._insertion_point = 0
         # text offset = where in the box the text is (relative to 0)
@@ -63,8 +62,12 @@ class TextEntry(Sheet):
             self._pen = self.frame().theme("edit_text")
         return self._pen
 
-    def _cursor_pen(self):
-        return self.frame().theme("focus_edit_text")
+    def cursor_pen(self):
+        if self._cursor_pen is None:
+            current_pen = self.pen()
+            self._cursor_pen = Pen(current_pen.fg(), Screen.A_REVERSE, current_pen.bg())
+        #return self.frame().theme("focus_edit_text")
+        return self._cursor_pen
 
     def accepts_focus(self):
         return True
@@ -73,7 +76,7 @@ class TextEntry(Sheet):
         return self.frame()._focus == self
 
     def compose_space(self):
-        # assume 20x1 edit field by default
+        # arbitrary: assume 20x1 edit field by default
         return SpaceReq(10, 20, FILL, 1, 1, FILL)
 
     def render(self):
@@ -94,10 +97,12 @@ class TextEntry(Sheet):
         # draw cursor if focus
         if self.is_focus():
             visual_insertion_pt = self._insertion_point-self._text_offset
-            # fixme: draw character under cursor or space for cursor
-            # so get appropriate inverse.
-            # fixme: use inverse attribute instead of manually inverting
-            self.display_at((visual_insertion_pt, 0), self._cursor, self._cursor_pen())
+            # draw character under cursor or space for cursor using an
+            # inverted pen
+            cursor = self._text[self._insertion_point] \
+                if self._insertion_point < len(self._text) \
+                   else ' '
+            self.display_at((visual_insertion_pt, 0), cursor, self.cursor_pen())
 
         # text entry boxes are leaf panes and don't have any children
         #for child in self._children:
@@ -141,12 +146,12 @@ class TextEntry(Sheet):
 
     def move_end(self):
         self._insertion_point = len(self._text)
-        self._text_offset = max(len(self._text)-self.width(), 0)
+        self._text_offset = max(len(self._text)-self.width()+1, 0)
         return True
 
     def move_forward(self):
         self._insertion_point = min(self._insertion_point+1, len(self._text))
-        if self._insertion_point-self._text_offset > self.width():
+        if self._insertion_point-self._text_offset >= self.width():
             self._text_offset += 1
         return True
 

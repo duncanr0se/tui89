@@ -65,6 +65,9 @@ When radio buttons in group one should be selected by default.
 
 Widgets (and dialogs) should have a "value" that can be queried.
 
+Text edit components should support select, cut, paste
+
+
 LAYOUT IMPROVEMENTS
 ===================
 TEXT ALIGNMENT ON BUTTONS / BORDER TITLES
@@ -148,7 +151,7 @@ PUSH BUTTONS: CENTER ALIGN BY DEFAULT
 RADIO + CHECK BUTTONS: LEFT ALIGN BY DEFAULT
 
 Key events go to frame, then frame focus, and ascend to parents and
-finally back to the frame.
+finally back to the frame. Maybe should go to focus directly first?
 
 Focus is chosen one of 3 ways:
 
