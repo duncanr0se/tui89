@@ -155,6 +155,10 @@ class Button(Sheet):
 
     def _button_background_region(self):
         (width, height) = self._region
+
+        if self._width is not None:
+            width = self._width
+
         # fixme: if width is large enough to hold the label but not
         # the decoration, draw the button background over the whole
         # region width.
@@ -162,8 +166,8 @@ class Button(Sheet):
         # If insufficient space for padding, just draw background.
         x_shadow = width >= len(self._label)+3 and self._decorated
         x_padding = width >= len(self._label)+2 and self._decorated
-        y_shadow = height >= 4 and self._decorated
-        y_padding = height >= 3 and self._decorated
+        y_shadow = height >= 3 and self._decorated
+        y_padding = height >= 2 and self._decorated
 
         # fixme: this is not right, what if the button background
         # needs centering in a relatively high parent sheet?
@@ -174,6 +178,12 @@ class Button(Sheet):
         right = right-1 if x_shadow else right
 
         bottom = top+1
+
+        # center button background in available height
+        top_padding = max((height-4) // 2, 0)
+
+        top += top_padding
+        bottom += top_padding
 
         # left, bottom not included in region
         return left, top, right, bottom
@@ -190,7 +200,7 @@ class Button(Sheet):
         # is region wide enough to include side dropshadow?
         draw_dropshadow_side = width > len(self._label)+2
         # is region high enough to include bottom dropshadow?
-        draw_dropshadow_below = height > 3
+        draw_dropshadow_below = height >= 2
 
         dropshadow_right = u'▄'
         dropshadow_below = u'▀'
