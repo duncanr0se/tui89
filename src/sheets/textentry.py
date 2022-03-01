@@ -122,6 +122,11 @@ class TextEntry(Sheet):
         if key_event.key_code < 0:
             return False
 
+        # SHIFT+KEY_RIGHT=402
+        # SHIFT+KEY_UP=337
+        # SHIFT+KEY_LEFT=393
+        # SHIFT+KEY_DOWN=336
+
         pos = self._insertion_point
         self._text = self._text[:pos] + chr(key_event.key_code) + self._text[pos:]
         self.move_forward()

@@ -55,8 +55,9 @@ class Button(Sheet):
         super().__init__(default_pen=default_pen, pen=pen)
         self._label = label
         self._decorated = decorated
-        if label_align != "center":
-            raise RuntimeError("Only center alignment supported for button labels currently")
+        valid_label_aligns = {"left", "center", "centre"}
+        if not label_align in valid_label_aligns:
+            raise RuntimeError("Unsupported alignment", label_align, valid_label_aligns)
         self._label_align = label_align
         self._width = width
         self._pressed = False
@@ -70,6 +71,21 @@ class Button(Sheet):
         tx = self._transform._dx
         ty = self._transform._dy
         return "Button({}x{}@{},{}: '{}')".format(width, height, tx, ty, self._label)
+
+    ####
+
+    # This might be better done in the method in sheet.py. Could set a
+    # flag or something else to indicate that the sheet has a reduced
+    # hit box for mouse events. For now just use this override.
+    def find_highest_sheet_containing_position(self, parent_coord):
+        coord = self._transform.inverse().apply(parent_coord)
+        if self.region_contains_position(coord):
+            (x, y) = coord
+            # Is the mouse over the button background?
+            (l, t, r, b) = self._button_background_region()
+            if l <= x and y <= t and x < r and y < b:
+                return self
+        return None
 
     ####
 
@@ -103,31 +119,21 @@ class Button(Sheet):
                             button_height, button_height, button_height)
         else:
             return SpaceReq(button_height, button_length, FILL,
-                            button_height, button_height, button_height)
+                            button_height, button_height, FILL)
 
     def allocate_space(self, allocation):
-        # fixme: this is just wrong. The allocation is the allocation,
-        # although the widget can decide not to fill it when drawing
-        # it still must accept it as its allocation.
-#        if force:
-#            self._region = allocation
-#        else:
-            # how much space to take? Does allocation need
-            # restricting? Is it ok to say "thanks but no thanks" when
-            # given space?  todo: cache space requirement
-            sr = self.compose_space()
-            # force region to be within the sheet's space
-            # composition. If this causes the sheet render to overflow
-            # its bounds, so be it.
-            (aw, ah) = allocation
-            aw = max(sr.x_min(), min(sr.x_preferred(), aw))
-            ah = max(sr.y_min(), min(sr.y_preferred(), aw))
-            self._region = (aw, ah)
+        # no children to share the allocation out to, but the widget
+        # doesn't have to fill the allocated space...
+        self._region = allocation
 
     def layout(self):
         # default Button has no children
         pass
 
+    # decorated buttons fill excess space with padding; undecorated
+    # buttons fill x-space with their background and y-space with
+    # padding.
+    # button background > padding decoration > drop shadow decoration
     def _draw_padding(self):
         # fixme: method on Pen to return a "draw in bg colour" pen
         pen = self._parent.pen()
@@ -141,37 +147,78 @@ class Button(Sheet):
         # fixme: method on Pen to return a "draw in bg colour" pen
         pen = self.pen()
         pen = Pen(pen.bg(), pen.attr(), pen.bg())
+
+        (left, top, right, bottom) = self._button_background_region()
+
+        self.move((left, top))
+        self.draw_to((right, bottom-1), ' ', pen)
+
+    def _button_background_region(self):
         (width, height) = self._region
-        xoffset = 1 if self._decorated else 0
-        yoffset = 1 if self._decorated else 0
-        self.move((xoffset, yoffset))
-        # looks like "draw" and "print_at" have different semantics of
-        # when they do and don't draw. Width in "draw" appears not to
-        # be inclusive when drawing left to right. Weird.
-        width = width-2 if self._decorated else width
-        self.draw_to((width, yoffset), ' ', pen)
+        # fixme: if width is large enough to hold the label but not
+        # the decoration, draw the button background over the whole
+        # region width.
+        # If insufficient space for dropshadow, draw padding.
+        # If insufficient space for padding, just draw background.
+        x_shadow = width >= len(self._label)+3 and self._decorated
+        x_padding = width >= len(self._label)+2 and self._decorated
+        y_shadow = height >= 4 and self._decorated
+        y_padding = height >= 3 and self._decorated
+
+        # fixme: this is not right, what if the button background
+        # needs centering in a relatively high parent sheet?
+        left = 1 if x_padding else 0
+        top = 1 if y_padding else 0
+
+        right = width-1 if x_padding else width
+        right = right-1 if x_shadow else right
+
+        bottom = top+1
+
+        # left, bottom not included in region
+        return left, top, right, bottom
 
     def _draw_button_dropshadow(self):
+        # if the region isn't big enough for the decoration, don't
+        # draw it even for decorated buttons
         shadow_pen = self.frame().theme("shadow")
         bg_pen = self._parent.pen()
         pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg())
         (width, height) = self._region
+        (left, top, right, bottom) = self._button_background_region()
+
+        # is region wide enough to include side dropshadow?
+        draw_dropshadow_side = width > len(self._label)+2
+        # is region high enough to include bottom dropshadow?
+        draw_dropshadow_below = height > 3
+
         dropshadow_right = u'▄'
         dropshadow_below = u'▀'
-        self.display_at((width-2, 1), dropshadow_right, pen)
-        self.move((2, 2))
-        self.draw_to((width-1, 2), dropshadow_below, pen)
+
+        if draw_dropshadow_side:
+            self.display_at((right, 1), dropshadow_right, pen)
+        if draw_dropshadow_below:
+            self.move((2, 2))
+            self.draw_to((right+1, 2), dropshadow_below, pen)
 
     def _draw_button_label(self):
+        # fixme: this should be an actual label to deal with alignment
+        # and truncation consistently
         pen = self.pen()
-        (width, height) = self._region
-        # assume single-line label, for now
-        label_length = len(self._label) if self._label else 2
-        center_x = (width - label_length) // 2
-        # todo: truncate label if it's too long...
-        button_label = self._label
-        yoffset = 1 if self._decorated else 0
-        self.display_at((center_x, yoffset), button_label, pen)
+        (left, top, right, bottom) = self._button_background_region()
+        label = self._label
+
+        if self._label_align == "left":
+            left_pad = True if len(label)+1 < right-left else False
+            xoffset = 1 if left_pad else 0
+            self.display_at((xoffset, top), label, pen)
+
+        elif self._label_align in {"center", "centre"}:
+            # assume single-line label, for now
+            label_length = len(label) if self._label else 2
+            center_x = left + ((right-left - label_length) // 2)
+            # todo: truncate label if it's too long...
+            self.display_at((center_x, top), label, pen)
 
     # There are 4 pens that affect the appearance of buttons:
     #   - resting button: use frame "button" colours
@@ -242,9 +289,11 @@ class Button(Sheet):
 class RadioButton(Button):
 
     def __init__(self, label="--",
+                 label_align="left",
                  decorated=False,
                  default_pen=None, pen=None, pressed_pen=None):
         super().__init__(label="( ) " + label,
+                         label_align=label_align,
                          decorated=decorated,
                          default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
 
@@ -293,9 +342,12 @@ class RadioButton(Button):
 class CheckBox(Button):
 
     def __init__(self, label="--",
+                 label_align="left",
                  decorated=False,
                  default_pen=None, pen=None, pressed_pen=None):
-        super().__init__(label="[ ] " + label, decorated=decorated,
+        super().__init__(label="[ ] " + label,
+                         label_align=label_align,
+                         decorated=decorated,
                          default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
 
     def _handle_mouse_event(self, event):
@@ -320,9 +372,13 @@ class CheckBox(Button):
 
 class MenuButton(Button):
 
-    def __init__(self, label="--", decorated=False,
+    def __init__(self, label="--",
+                 label_align="left",
+                 decorated=False,
                  default_pen=None, pen=None, pressed_pen=None):
-        super().__init__(label=label, decorated=decorated,
+        super().__init__(label=label,
+                         label_align=label_align,
+                         decorated=decorated,
                          default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
         self._menubox = None
 

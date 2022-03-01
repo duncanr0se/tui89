@@ -36,7 +36,7 @@ class Frame():
     """
     THEMES = {
         "tv": {
-            "background": (Screen.COLOUR_BLUE, Screen.A_NORMAL, Screen.COLOUR_BLUE),
+            "background": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_BLACK),
             "shadow": (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_BLUE),
             "scroll": (Screen.COLOUR_CYAN, Screen.A_REVERSE, Screen.COLOUR_BLUE),
 
@@ -53,8 +53,8 @@ class Frame():
             "yes/no": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_YELLOW),
             "composite": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_WHITE),
 
-            "edit_text": (Screen.COLOUR_BLUE, Screen.A_NORMAL, Screen.COLOUR_YELLOW),
-            "focus_edit_text": (Screen.COLOUR_YELLOW, Screen.A_NORMAL, Screen.COLOUR_BLUE),
+            "edit_text": (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_BLUE),
+            "focus_edit_text": (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_BLUE),
 
             "disabled": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_BLUE),
             "invalid": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED),

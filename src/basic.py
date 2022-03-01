@@ -52,7 +52,7 @@ def demo(screen):
     border_layout = BorderLayout(title="Basic")
     top_level_sheet.add_child(border_layout)
 
-    child_sheet = HorizontalLayout([(16, "char"), (20, "%"), 1, 1])
+    child_sheet = HorizontalLayout([(18, "char"), (20, "%"), 1, 1])
     border_layout.add_child(child_sheet)
 
     #### "buttons"
@@ -60,7 +60,7 @@ def demo(screen):
     oneb = BorderLayout(title="buttons", style="single")
     child_sheet.add_child(oneb)
 
-    one = VerticalLayout([(10, "%"), (10, "%"), (70, "%"), 1, 1])
+    one = VerticalLayout([(7, "%"), (7, "%"), (56, "%"), 1, 1])
     oneb.add_child(one)
 
     # FIXME: allocate_space method on buttons is not right

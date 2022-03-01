@@ -29,23 +29,28 @@ logger = getLogger(__name__)
 # ALL sheets are "drawing sheets". ALL sheets have children. ALL
 # sheets participate in layout.
 class Sheet():
+    """Region of the screen.
 
-    #_parent = None
-    #_region = None  # width x height allocated to the sheet, at 0,0
-    #_transform = IDENTITY_TRANSFORM  # sheet coords -> parent coords
+    Sheets have:
 
-    # children at the front are lower in the z-order (get rendered
-    # first)
-    #_children = None
+      +  a parent;
 
-    # really this should be False by default and should be updated
-    # when the sheet's top-level-sheet is attached to the display
-    #_attached = True
+      + a transform that converts coords in the sheet's coordinate
+    system into coordinates in the parent sheet's coordinate system;
 
-#    _default_pen = None
+      + a region;
 
+      + children - children at the end of the child list are higher in
+      the z-order (get rendered last);
+
+      + a default pen indicating the foreground and background to use
+    to draw by default;
+
+      + may be attached to a display device;
+    """
     def __init__(self, default_pen=None, pen=None):
-        # Fixme: should default to False
+        # Fixme: should default to False and changed to True when the
+        # top level sheet is grafted
         self._attached = True
         self._children = []
         self._default_pen = default_pen
