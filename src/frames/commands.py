@@ -108,7 +108,11 @@ def populate_menubox():
     def _prev(menubox):
         selected = menubox._find_selected()
         if selected is not None:
-            return menubox._select_previous(selected)
+            if menubox._select_previous(selected):
+                return True
+#        if menubox.has_menubar_button():
+#            # FIXME: close self, select menubar button
+#            return True
         return False
 
     keycode = [Screen.ctrl("p"), Screen.KEY_UP]
@@ -125,6 +129,10 @@ def populate_menubox():
     keycode = [Screen.ctrl("n"), Screen.KEY_DOWN]
     register_command(keycode, Command("next", _next), command_table="menubox")
 
+    # FIXME: KEY_LEFT and KEY_RIGHT should select prev and next menu
+    # items if menubox is shown from a menubar. Also KEY_UP should
+    # close the menu and put the focus back to the menubar in this
+    # case.
 
 ### Commands on dialogs
 def populate_dialog():
@@ -185,10 +193,64 @@ def populate_menubar():
     keycode = [Screen.ctrl("l"), Screen.KEY_RIGHT]
     register_command(keycode, Command("next", _next), command_table="menubar")
 
+    # CTRL-N, DOWN-ARROW - open item
+    # FIXME: need to support going up from the menubox back into the
+    # menubar also...
+    def _activate(menubar):
+        button = menubar._find_selected()
+        if button is not None:
+            button.activate()
+            return True
+        return False
+
+    keycode = [Screen.ctrl("n"), Screen.KEY_DOWN]
+    register_command(keycode, Command("open", _activate), command_table="menubar")
+
 # FIXME: "select previous" on menubox should select menubar containing
 # button that spawned menu box in the first place, if there is
 # one. Need to capture the menubar in the menubox state since the
 # menubar isn't actually a parent of the menubox.
+
+### Commands on text entry boxes
+def populate_textentry():
+    # CTRL-A, HOME - start of line
+    def _start_of_line(entry):
+        return entry.move_start()
+    keycode = [Screen.KEY_HOME, Screen.ctrl("a")]
+    register_command(keycode, Command("move start", _start_of_line), command_table="textentry")
+
+    # CTRL-E, END - end of line
+    def _end_of_line(entry):
+        return entry.move_end()
+    keycode = [Screen.KEY_END, Screen.ctrl("e")]
+    register_command(keycode, Command("move end", _end_of_line), command_table="textentry")
+
+    # CTRL-F, KEY_RIGHT - forward 1 char
+    def _forward(entry):
+        return entry.move_forward()
+    keycode = [Screen.KEY_RIGHT, Screen.ctrl("f")]
+    register_command(keycode, Command("forward", _forward), command_table="textentry")
+
+    # CTRL-B, KEY_LEFT - backward 1 char
+    def _backward(entry):
+        return entry.move_backward()
+    keycode = [Screen.KEY_LEFT, Screen.ctrl("b")]
+    register_command(keycode, Command("backward", _backward), command_table="textentry")
+
+    # CTRL-D, DELETE - delete forward
+    def _delete(entry):
+        return entry.delete()
+    keycode = [Screen.ctrl("d"), Screen.KEY_DELETE]
+    register_command(keycode, Command("delete", _delete), command_table="textentry")
+
+    # BACKSPACE - delete backward
+    def _backspace(entry):
+        return entry.backspace()
+    keycode = Screen.KEY_BACK
+    register_command([keycode], Command("backspace", _backspace), command_table="textentry")
+
+    # PRINTING CHAR - insert char; implemented in widget itself
+    pass
 
 #
 # actually populate the command tables.
@@ -198,6 +260,7 @@ populate_menubox()
 populate_dialog()
 populate_button()
 populate_menubar()
+populate_textentry()
 
 # when a new TOP LEVEL SHEET type is displayed, it needs to identify
 # the FOCUS WIDGET. Until that TOP LEVEL SHEET is closed (or

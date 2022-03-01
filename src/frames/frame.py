@@ -53,13 +53,14 @@ class Frame():
             "yes/no": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_YELLOW),
             "composite": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_WHITE),
 
+            "edit_text": (Screen.COLOUR_BLUE, Screen.A_NORMAL, Screen.COLOUR_YELLOW),
+            "focus_edit_text": (Screen.COLOUR_YELLOW, Screen.A_NORMAL, Screen.COLOUR_BLUE),
+
             "disabled": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_BLUE),
             "invalid": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED),
             "label": (Screen.COLOUR_GREEN, Screen.A_BOLD, Screen.COLOUR_BLUE),
             "borders": (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_BLUE),
             "title": (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_BLUE),
-            "edit_text": (Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLUE),
-            "focus_edit_text": (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN),
             "readonly": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_BLUE),
             "focus_readonly": (Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_CYAN),
             "focus_button": (Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_GREEN),

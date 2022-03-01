@@ -86,6 +86,7 @@ class Dialog(TopLevelSheet):
             hbox.add_child(yes)
             hbox.add_child(no)
 
+            # fixme: callback needs to be supplied by caller
             def yncallback(button):
                 # save frame because the call to dialog_quit destroys
                 # the reference held in button arg

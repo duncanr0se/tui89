@@ -33,6 +33,7 @@ from sheets.separators import HorizontalSeparator, VerticalSeparator
 from sheets.listlayout import ListLayout
 from sheets.menubar import MenubarLayout
 from sheets.menubox import MenuBox
+from sheets.textentry import TextEntry
 
 from dcs.ink import Pen
 
@@ -120,6 +121,11 @@ def demo(screen):
     listlayout.add_child(row7)
     row7.add_child(Label("Left align:"))
     row7.add_child(Label("align", align="left"))
+
+    row8 = HorizontalLayout([])
+    listlayout.add_child(row8)
+    row8.add_child(Label("Text entry:"))
+    row8.add_child(TextEntry())
 
     #### "green"
 
