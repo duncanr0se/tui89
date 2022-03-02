@@ -31,6 +31,7 @@ add more widgets:
    - progress bar
    - status bar
    - context menu
+   - split pane
 
 add controls:
    - list control (scrolling list view)
@@ -116,6 +117,10 @@ like "convert_to_screen_coordinate"?
 
 Migrate everything to LTRBs.
 
+If label shrinks too much it gives up trying to display in a reduced
+space. Should either prevent resize below the minimum space, or allow
+the label to shrink to nothing.
+
 
 EVENT HANDLING
 ==============
@@ -145,15 +150,6 @@ EVENT HANDLING - HOW MUCH IS NEEDED?
   - on_activate
   - focus_in
   - focus_out
-
-BUTTON LABEL ALIGNMENT - do with label
-
-Replace button hard-coded label with label sheet, implement alignments
-in that type so it doesn't need to be done all over. Use in other
-places also, such as when drawing text for borders.
-
-PUSH BUTTONS: CENTER ALIGN BY DEFAULT
-RADIO + CHECK BUTTONS: LEFT ALIGN BY DEFAULT
 
 Key events go to frame, then frame focus, and ascend to parents and
 finally back to the frame. Maybe should go to focus directly first?

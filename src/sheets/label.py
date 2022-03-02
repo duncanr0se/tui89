@@ -41,7 +41,7 @@ class Label(Sheet):
 
     def pen(self):
         if self._pen is None:
-            self._pen = Frame.THEME["tv"]["label"]
+            self._pen = self.frame().theme("label")
         return self._pen
 
     def add_child(self):
@@ -50,7 +50,7 @@ class Label(Sheet):
     # drawing / redisplay
     def render(self):
         # todo: label alignment
-        pen = self.frame().theme("label")
+        pen = self.pen()
         display_text = self._label_text
         # truncate so it's possible to see at least 3+ label chars +
         # "...". If text has 3 or fewer characters and doesn't fit in

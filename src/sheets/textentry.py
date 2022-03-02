@@ -122,10 +122,16 @@ class TextEntry(Sheet):
         if key_event.key_code < 0:
             return False
 
+        # FIXME: add commands to support usual editing operations:
+        #
         # SHIFT+KEY_RIGHT=402
         # SHIFT+KEY_UP=337
         # SHIFT+KEY_LEFT=393
         # SHIFT+KEY_DOWN=336
+        # CTRL+KEY_LEFT (back word)
+        # CTRL+KEY_RIGHT (forward word)
+        # CTRL+KEY_UP (up paragraph)
+        # CTRL+KEY_DOWN (down paragraph)
 
         pos = self._insertion_point
         self._text = self._text[:pos] + chr(key_event.key_code) + self._text[pos:]

@@ -78,6 +78,9 @@ class Sheet():
             self._pen = self.default_pen()
         return self._pen
 
+    def set_pen(self, pen):
+        self._pen = pen
+
     # drawing
     def clear(self, origin, region):
         porigin = self._transform.apply(origin)

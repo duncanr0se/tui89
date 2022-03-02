@@ -26,6 +26,7 @@ from frames.commands import find_command
 from dcs.ink import Pen
 
 from logging import getLogger
+from sheets.label import Label
 
 logger = getLogger(__name__)
 
@@ -42,7 +43,6 @@ class Button(Sheet):
 
     Can be aligned left, center, or right.
     Can have fixed width forced using "width".
-
     """
     def __init__(self,
                  label="--",
@@ -53,12 +53,9 @@ class Button(Sheet):
                  pressed_pen=None,
                  pen=None):
         super().__init__(default_pen=default_pen, pen=pen)
-        self._label = label
+        self._label = Label(label_text=label, align=label_align)
+        self.add_child(self._label)
         self._decorated = decorated
-        valid_label_aligns = {"left", "center", "centre"}
-        if not label_align in valid_label_aligns:
-            raise RuntimeError("Unsupported alignment", label_align, valid_label_aligns)
-        self._label_align = label_align
         self._width = width
         self._pressed = False
         self._pressed_pen=pressed_pen
@@ -70,7 +67,8 @@ class Button(Sheet):
         (width, height) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "Button({}x{}@{},{}: '{}')".format(width, height, tx, ty, self._label)
+        return "Button({}x{}@{},{}: '{}')".format(width, height, tx, ty,
+                                                  self._label._label_text)
 
     ####
 
@@ -89,46 +87,64 @@ class Button(Sheet):
 
     ####
 
-    def add_child(self, child):
-        # default Button has no children
-        pass
-
     # default button expects to be able to fit its label + some
     # padding. It can grow as big as you like, but won't go smaller
     # than 2x4.  How about dealing with multi-line labels? Image
     # buttons?
     def compose_space(self):
 
+        # fixme: delegate half of this to the wrapped Label widget
+
         # Undecorated buttons can shrink to 1x1; decorated buttons
         # also, but they retain space for the decoration.
 
-        button_length = len(self._label) + 2
-        button_height = 1
+        label_sr = self._label.compose_space()
 
-        # decoration includes 1 unit wide border around the button
-        # + dropshadow.
+        x_padding = 2
+        y_padding = 0
+
         if self._decorated:
-            # 2 for padding + 1 for dropshadow
-            button_length += 3
-            button_height += 3
+            x_padding += 3
+            y_padding += 3
 
         # supplied width overrides calculated size
         if self._width is not None:
             fw = self._width
             return SpaceReq(fw, fw, fw,
-                            button_height, button_height, button_height)
+                            label_sr.y_min(),
+                            label_sr.y_preferred()+y_padding,
+                            label_sr.y_preferred()+y_padding)
         else:
-            return SpaceReq(button_height, button_length, FILL,
-                            button_height, button_height, FILL)
+            return SpaceReq(label_sr.x_min(),
+                            label_sr.x_preferred()+x_padding,
+                            FILL,
+                            label_sr.y_min(),
+                            label_sr.y_preferred()+y_padding,
+                            FILL)
 
     def allocate_space(self, allocation):
         # no children to share the allocation out to, but the widget
         # doesn't have to fill the allocated space...
         self._region = allocation
+        (l, t, r, b) = self._button_background_region()
+        # single child (the label)
+        for child in self._children:
+            child.allocate_space((r-l, b-t))
 
     def layout(self):
         # default Button has no children
-        pass
+        # fixme: layout the label
+        (l, t, r, b) = self._button_background_region()
+        # single child (the label)
+        for child in self._children:
+            coord = (l, t)
+            # if label is left aligned and there is space to leave 1
+            # char padding between the button's left side and the
+            # label, then leave the space.
+            if self._label._align == "left":
+                if r-l > len(self._label._label_text)+1:
+                    coord = (l+1, t)
+            child.move_to(coord)
 
     # decorated buttons fill excess space with padding; undecorated
     # buttons fill x-space with their background and y-space with
@@ -164,13 +180,11 @@ class Button(Sheet):
         # region width.
         # If insufficient space for dropshadow, draw padding.
         # If insufficient space for padding, just draw background.
-        x_shadow = width >= len(self._label)+3 and self._decorated
-        x_padding = width >= len(self._label)+2 and self._decorated
+        x_shadow = width >= len(self._label._label_text)+3 and self._decorated
+        x_padding = width >= len(self._label._label_text)+2 and self._decorated
         y_shadow = height >= 3 and self._decorated
         y_padding = height >= 2 and self._decorated
 
-        # fixme: this is not right, what if the button background
-        # needs centering in a relatively high parent sheet?
         left = 1 if x_padding else 0
         top = 1 if y_padding else 0
 
@@ -198,7 +212,7 @@ class Button(Sheet):
         (left, top, right, bottom) = self._button_background_region()
 
         # is region wide enough to include side dropshadow?
-        draw_dropshadow_side = width > len(self._label)+2
+        draw_dropshadow_side = width > self._label.width()+2
         # is region high enough to include bottom dropshadow?
         draw_dropshadow_below = height >= 2
 
@@ -212,23 +226,9 @@ class Button(Sheet):
             self.draw_to((right+1, 2), dropshadow_below, pen)
 
     def _draw_button_label(self):
-        # fixme: this should be an actual label to deal with alignment
-        # and truncation consistently
-        pen = self.pen()
-        (left, top, right, bottom) = self._button_background_region()
-        label = self._label
-
-        if self._label_align == "left":
-            left_pad = True if len(label)+1 < right-left else False
-            xoffset = 1 if left_pad else 0
-            self.display_at((xoffset, top), label, pen)
-
-        elif self._label_align in {"center", "centre"}:
-            # assume single-line label, for now
-            label_length = len(label) if self._label else 2
-            center_x = left + ((right-left - label_length) // 2)
-            # todo: truncate label if it's too long...
-            self.display_at((center_x, top), label, pen)
+        # fixme: with-pen ()...
+        self._label.set_pen(self.pen())
+        self._label.render()
 
     # There are 4 pens that affect the appearance of buttons:
     #   - resting button: use frame "button" colours
@@ -318,10 +318,10 @@ class RadioButton(Button):
         # Need more complexity here; there should only ever be a
         # single radio button in the same group active
         if event.buttons == MouseEvent.LEFT_CLICK:
-            if self._label[:3] == "( )":
+            if self._label._label_text[:3] == "( )":
                 self.activate()
             else:
-                self._label = "( )" + self._label[3:]
+                self._label._label_text = "( )" + self._label._label_text[3:]
             self.invalidate()
         return False
 
@@ -333,17 +333,17 @@ class RadioButton(Button):
         for sibling in siblings:
             if sibling != self:
                 if isinstance(sibling, RadioButton):
-                    if sibling._label[:3] == "(•)":
-                        sibling._label = "( )" + sibling._label[3:]
+                    if sibling._label._label_text[:3] == "(•)":
+                        sibling._label._label_text = "( )" + sibling._label._label_text[3:]
                         sibling.invalidate()
 
     # key event invokes activate() which needs to queue the visual
     # changes
     def activate(self):
-        if self._label[:3] == "( )":
-            self._label = "(•)" + self._label[3:]
+        if self._label._label_text[:3] == "( )":
+            self._label._label_text = "(•)" + self._label._label_text[3:]
         else:
-            self._label = "( )" + self._label[3:]
+            self._label._label_text = "( )" + self._label._label_text[3:]
         self._disable_others()
         self.invalidate()
         # fixme: should be a delayed action
@@ -360,22 +360,24 @@ class CheckBox(Button):
                          decorated=decorated,
                          default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
 
+    # fixme: make Label subscriptable? Really should not be hacking
+    # around with the label contents this way
     def _handle_mouse_event(self, event):
         if event.buttons == MouseEvent.LEFT_CLICK:
-            if self._label[:3] == "[ ]":
+            if self._label._label_text[:3] == "[ ]":
                 self.activate()
             else:
-                self._label = "[ ]" + self._label[3:]
+                self._label._label_text = "[ ]" + self._label._label_text[3:]
             self.invalidate()
         return False
 
     # key event invokes activate() which needs to queue the visual
     # changes
     def activate(self):
-        if self._label[:3] == "[ ]":
-            self._label = "[✘]" + self._label[3:]
+        if self._label._label_text[:3] == "[ ]":
+            self._label._label_text = "[✘]" + self._label._label_text[3:]
         else:
-            self._label = "[ ]" + self._label[3:]
+            self._label._label_text = "[ ]" + self._label._label_text[3:]
         self.invalidate()
         # fixme: should be a delayed action
         return self.on_click_callback and self.on_click_callback(self)
