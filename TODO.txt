@@ -63,8 +63,6 @@ ACCELERATORS + MNEMONICS - for buttons and generic commands
 
 No part of scroll bars should take focus - I think
 
-When radio buttons in group one should be selected by default.
-
 Widgets (and dialogs) should have a "value" that can be queried.
 
 Text edit components should support select, cut, paste
@@ -106,8 +104,7 @@ ETC.
 BORDERLAYOUT CLEAR METHOD ISN'T SETTING BACKGROUND COLOUR PROPERLY
 (SEE "green" BORDER IN BASIC.PY)
 
-Unit tests, documentation, project setup. Make it more professional,
-push to gitlab. Maybe people will use it... given the chance.
+Unit tests, documentation, project setup.
 
 Migrate everything that displays text into having a contained Label
 that holds the text instead.

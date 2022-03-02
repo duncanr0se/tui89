@@ -93,10 +93,12 @@ class Button(Sheet):
     # buttons?
     def compose_space(self):
 
-        # fixme: delegate half of this to the wrapped Label widget
-
         # Undecorated buttons can shrink to 1x1; decorated buttons
         # also, but they retain space for the decoration.
+
+        # FIXME: actually, since labels can only shrink to 6x1,
+        # buttons are not going to shrink down to 1x1. Need to address
+        # this if using buttons for ends of scroll bars!
 
         label_sr = self._label.compose_space()
 
@@ -123,8 +125,6 @@ class Button(Sheet):
                             FILL)
 
     def allocate_space(self, allocation):
-        # no children to share the allocation out to, but the widget
-        # doesn't have to fill the allocated space...
         self._region = allocation
         (l, t, r, b) = self._button_background_region()
         # single child (the label)
@@ -132,8 +132,6 @@ class Button(Sheet):
             child.allocate_space((r-l, b-t))
 
     def layout(self):
-        # default Button has no children
-        # fixme: layout the label
         (l, t, r, b) = self._button_background_region()
         # single child (the label)
         for child in self._children:
@@ -141,6 +139,8 @@ class Button(Sheet):
             # if label is left aligned and there is space to leave 1
             # char padding between the button's left side and the
             # label, then leave the space.
+            # FIXME: should reduce child's allocation by 1 in this
+            # case...
             if self._label._align == "left":
                 if r-l > len(self._label._label_text)+1:
                     coord = (l+1, t)
@@ -152,6 +152,10 @@ class Button(Sheet):
     # button background > padding decoration > drop shadow decoration
     def _draw_padding(self):
         # fixme: method on Pen to return a "draw in bg colour" pen
+        # fixme: sheets should define a bg + fg, and Pen instances
+        # should be constructed as needed.
+        # fixme: fg must have an attr specified, bg always has attr
+        # NORMAL.
         pen = self._parent.pen()
         pen = Pen(pen.bg(), pen.attr(), pen.bg())
         (width, height) = self._region
@@ -268,6 +272,7 @@ class Button(Sheet):
         self._draw_button_background()
         self._draw_button_label()
 
+    # FIXME: event handling methods are unclear
     def handle_event(self, event):
         if isinstance(event, MouseEvent):
             return self._handle_mouse_event(event)
@@ -301,16 +306,17 @@ class RadioButton(Button):
     def __init__(self, label="--",
                  label_align="left",
                  decorated=False,
-                 default_pen=None, pen=None, pressed_pen=None):
+                 default_pen=None, pen=None, pressed_pen=None,
+                 selected=False):
         super().__init__(label="( ) " + label,
                          label_align=label_align,
                          decorated=decorated,
                          default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
+        self._selected = selected
 
-    # needs to be part of a button group to be useful
-    #
-    # For now define a button group as a bunch of RadioButton
-    # instances that share the same parent sheet.
+    # Needs to be part of a button group to be useful; a button group
+    # is a bunch of RadioButton instances that share the same parent
+    # sheet.
     #
     # FIXME: split label and visual selection indicator - also for checkbox
 
@@ -318,36 +324,64 @@ class RadioButton(Button):
         # Need more complexity here; there should only ever be a
         # single radio button in the same group active
         if event.buttons == MouseEvent.LEFT_CLICK:
-            if self._label._label_text[:3] == "( )":
-                self.activate()
-            else:
+            if self.is_selected():
                 self._label._label_text = "( )" + self._label._label_text[3:]
+            else:
+                self.activate()
             self.invalidate()
         return False
+
+    def is_selected(self):
+        return self._selected
+
+    def buttons_in_group(self):
+        group = []
+        for sibling in self._parent._children:
+            if isinstance(sibling, RadioButton):
+                group.append(sibling)
+        return group
 
     def _disable_others(self):
         # find all other radio buttons that are selected (fixme: work
         # out if selected by having a flag instead of checking visual
         # state) and unselect them.
-        siblings = self._parent._children
+        siblings = self.buttons_in_group()
         for sibling in siblings:
             if sibling != self:
-                if isinstance(sibling, RadioButton):
-                    if sibling._label._label_text[:3] == "(•)":
-                        sibling._label._label_text = "( )" + sibling._label._label_text[3:]
-                        sibling.invalidate()
+                if sibling.is_selected():
+                    sibling.set_selected(False)
 
-    # key event invokes activate() which needs to queue the visual
-    # changes
     def activate(self):
-        if self._label._label_text[:3] == "( )":
-            self._label._label_text = "(•)" + self._label._label_text[3:]
-        else:
-            self._label._label_text = "( )" + self._label._label_text[3:]
-        self._disable_others()
-        self.invalidate()
+        if self.is_selected():
+            return None
+        self.set_selected(True)
         # fixme: should be a delayed action
         return self.on_click_callback and self.on_click_callback(self)
+
+    def set_selected(self, selected):
+        if selected:
+            self._selected = True
+            self._label._label_text = "(•)" + self._label._label_text[3:]
+            self._disable_others()
+        else:
+            self._selected = False
+            self._label._label_text = "( )" + self._label._label_text[3:]
+        self.invalidate()
+
+    def render(self):
+        # if no buttons in the group have "selected" set and this is
+        # the first button in the group, select this one so there is
+        # always a radio button selected in any group.
+        group = self.buttons_in_group()
+        sibling_selected = False
+        for sibling in group:
+            if sibling.is_selected():
+                sibling_selected = True
+        if not sibling_selected:
+            self._selected = True
+            self._label._label_text = "(•)" + self._label._label_text[3:]
+        super().render()
+
 
 class CheckBox(Button):
 
@@ -381,6 +415,7 @@ class CheckBox(Button):
         self.invalidate()
         # fixme: should be a delayed action
         return self.on_click_callback and self.on_click_callback(self)
+
 
 class MenuButton(Button):
 
