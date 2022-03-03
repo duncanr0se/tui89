@@ -12,6 +12,7 @@ add more widgets:
        - menu button (✔)
    - button group (✔)
    - label (✔)
+   - multi-line label
    - scroll bars (✔)
    - viewport (✔)
    - menu bar (✔)
@@ -57,15 +58,9 @@ widgets that could be useful.
 
 *. menu bar / box from command table
 
+
 USABILITY
 =========
-ACCELERATORS + MNEMONICS - for generic commands (labels).  Need
-"activatable labels" that can be linked to widgets that can't be
-activated, such as text entry boxes - activating the label shifts
-focus to the associated widget.
-
----
-
 No part of scroll bars should take focus - I think
 
 Widgets (and dialogs) should have a "value" that can be queried.
@@ -84,8 +79,6 @@ and SHIFT+TAB then could use arrow keys for scrolling.
 LAYOUT IMPROVEMENTS
 ===================
 TEXT ALIGNMENT and truncation ON BORDER TITLES
-
-Multiline labels
 
 Measuring text needs to be better; len(str) might not be effective for
 multibyte characters.
