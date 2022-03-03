@@ -39,15 +39,20 @@ from dcs.ink import Pen
 
 import sys
 import logging
+from logging import getLogger
 
 def demo(screen):
 
     logging.basicConfig(filename="tui.log", level=logging.DEBUG)
 
     frame = Frame(screen)
-    # fixme: explicitly graft top level sheet instead of passing frame
-    # as constructor arg
-    top_level_sheet = TopLevelSheet(frame)
+    # FIXME: should top-level-sheets be special? They really aren't in
+    # this implementation.
+    top_level_sheet = TopLevelSheet()
+
+    # grafting early doesn't break things; likely still better to do
+    # later.
+    #top_level_sheet.graft(frame)
 
     border_layout = BorderLayout(title="Basic")
     top_level_sheet.add_child(border_layout)
@@ -62,8 +67,6 @@ def demo(screen):
 
     one = VerticalLayout([(7, "%"), (7, "%"), (56, "%"), 1, 1])
     oneb.add_child(one)
-
-    # FIXME: allocate_space method on buttons is not right
 
     button = Button(label="Pancakes!", decorated=True)
     button.on_click_callback = _make_dialog_callback()
@@ -178,6 +181,8 @@ def demo(screen):
     contentpane.render = draw
 
     ####
+
+    top_level_sheet.graft(frame)
 
     frame.lay_out_frame()
 

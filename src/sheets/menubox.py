@@ -32,10 +32,7 @@ from asciimatics.screen import Screen
 class MenuBox(TopLevelSheet):
 
     def __init__(self, default_pen=None, pen=None):
-        # fixme: TopLevelSheet constructor does some nasty stuff with
-        # frames - do not call it for other top level sheet
-        # types. Rework TopLevelSheet to make it safe.
-        #super().__init__(default_pen=default_pen, pen=pen)
+        super().__init__(default_pen=default_pen, pen=pen)
         self._children = []
         self._border = BorderLayout(style="single")
         self.add_child(self._border)
@@ -43,7 +40,7 @@ class MenuBox(TopLevelSheet):
         self._border.add_child(self._item_pane)
         self._default_pen=default_pen
         self._pen=pen
-        self._focus = None
+#        self._focus = None
 
     def __repr__(self):
         return "MenuBox({} entries)".format(len(self._item_pane._children))

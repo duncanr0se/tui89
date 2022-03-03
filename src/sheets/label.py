@@ -38,6 +38,7 @@ class Label(Sheet):
                  pen=None,
                  align=None):
         super().__init__(default_pen=default_pen, pen=pen)
+        self._accelerator_char = None
         self._label_text = label_text
         valid_aligns = { None, "left", "right", "center", "centre" }
         if align not in valid_aligns:
@@ -65,6 +66,18 @@ class Label(Sheet):
         display_text = self.truncate_text_to_width(self._label_text, self.width())
         coord = (self.line_offset(self._align, display_text, self.width()), 0)
         self.display_at(coord, display_text, pen)
+        # overwrite accelerator (if present ofc) in accelerator colour scheme
+        if self._accelerator_char is not None:
+            accelerator_index = self._find_index_of_accelerator(display_text,
+                                                                self._accelerator_char)
+            if accelerator_index >= 0:
+                accelerator_pen = self.frame().theme("selected_focus_control")
+                (x, _) = coord
+                self.display_at((x+accelerator_index, 0),
+                                self._accelerator_char, accelerator_pen)
+
+    def _find_index_of_accelerator(self, display_text, accel_char):
+        return display_text.find(self._accelerator_char)
 
     def truncate_text_to_width(self, display_text, width):
         """Truncate text to fit widget.
@@ -100,3 +113,6 @@ class Label(Sheet):
         # Won't shrink below 3 chars from label + "..." (= 6 chars)
         label_min = min(len(self._label_text), 6)
         return SpaceReq(label_min, len(self._label_text), FILL, 1, 1, FILL)
+
+    def set_accelerator_char(self, char):
+        self._accelerator_char = char

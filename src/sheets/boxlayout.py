@@ -65,9 +65,6 @@ class BoxLayout(Sheet):
         super().__init__(default_pen=default_pen, pen=pen)
         self._portions = portions
 
-    def add_child(self, child):
-        super().add_child(child)
-
     def major_size_component(self, sheet):
         pass
 
@@ -160,7 +157,8 @@ class BoxLayout(Sheet):
                 totalSpaceAllocated += callocq
                 child.allocate_space(child_region)
 
-        logger.debug("total space allocated %s from allocation %s", totalSpaceAllocated, major_component)
+        logger.debug("total space allocated %s from allocation %s",
+                     totalSpaceAllocated, major_component)
         for child in self._children:
             logger.debug("allocated space on child %s", child)
 
@@ -196,11 +194,14 @@ class HorizontalLayout(BoxLayout):
         super().__init__(columns)
 
     def __repr__(self):
-        (width, height) = self._region
-        tx = self._transform._dx
-        ty = self._transform._dy
-        return "HorizontalLayout({}x{}@{},{}: {} cols)".format(
-            width, height, tx, ty, len(self._portions))
+        if not self._attached:
+            return "HorizontalLayout(detached: {} cols)".format(len(self._portions))
+        else:
+            (width, height) = self._region
+            tx = self._transform._dx
+            ty = self._transform._dy
+            return "HorizontalLayout({}x{}@{},{}: {} cols)".format(
+                width, height, tx, ty, len(self._portions))
 
     def compose_space(self):
         min_height = 1
@@ -231,7 +232,6 @@ class HorizontalLayout(BoxLayout):
     def major_size_component(self, sheet):
         return sheet.width()
 
-
     def minor_size_component(self, sheet):
         return sheet.height()
 
@@ -246,11 +246,14 @@ class VerticalLayout(BoxLayout):
         super().__init__(rows)
 
     def __repr__(self):
-        (width, height) = self._region
-        tx = self._transform._dx
-        ty = self._transform._dy
-        return "VerticalLayout({}x{}@{},{}: {} rows)".format(
-            width, height, tx, ty, len(self._portions))
+        if not self._attached:
+            return "VerticalLayout(detached: {} cols)".format(len(self._portions))
+        else:
+            (width, height) = self._region
+            tx = self._transform._dx
+            ty = self._transform._dy
+            return "VerticalLayout({}x{}@{},{}: {} rows)".format(
+                width, height, tx, ty, len(self._portions))
 
     def compose_space(self):
         min_height = 1

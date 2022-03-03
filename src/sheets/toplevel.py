@@ -19,11 +19,10 @@ from dcs.ink import Pen
 
 class TopLevelSheet(Sheet):
 
-    def __init__(self, frame, default_pen=None, pen=None):
+    def __init__(self, default_pen=None, pen=None):
         super().__init__(default_pen=default_pen, pen=pen)
-        # fixme: use "set_frame" instead of passing as initarg
-        self._frame = frame
-        frame.set_top_level_sheet(self)
+        self._accelerator_to_widget = dict()
+        self._frame = None
 
     def __repr__(self):
         (width, height) = self._region
@@ -90,6 +89,10 @@ class TopLevelSheet(Sheet):
         # False == not handled, not that anybody cares at this point
         return False
 
+    def graft(self, frame):
+        frame.set_top_level_sheet(self)
+        self.attach(frame)
+
     # attach from lowest z-order up
     def attach(self, frame):
         self._frame = frame
@@ -105,6 +108,9 @@ class TopLevelSheet(Sheet):
 
     def is_detached(self):
         return self._frame is None
+
+    def is_attached(self):
+        return self._frame is not None
 
     # events
     def handle_key_event(self, event):

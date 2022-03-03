@@ -82,10 +82,14 @@ class BorderLayout(Sheet):
         if vertical_scrollbar is not None:
             self._vertical_sb = vertical_scrollbar
             vertical_scrollbar._parent = self
+            if self.is_attached():
+                vertical_scrollbar.attach()
 
         if horizontal_scrollbar is not None:
             self._horizontal_sb = horizontal_scrollbar
             horizontal_scrollbar._parent = self
+            if self.is_attached():
+                horizontal_scrollbar.attach()
 
     # specialise find_highest_sheet... to cater for scroll bars.
     def find_highest_sheet_containing_position(self, parent_coord):
@@ -107,6 +111,20 @@ class BorderLayout(Sheet):
             return self
         # this sheet doesn't contain the position
         return None
+
+    def attach(self):
+        super().attach()
+        if self._horizontal_sb is not None:
+            self._horizontal_sb.attach()
+        if self._vertical_sb is not None:
+            self._vertical_sb.attach()
+
+    def detach(self):
+        if self._horizontal_sb is not None:
+            self._horizontal_sb.detach()
+        if self._vertical_sb is not None:
+            self._vertical_sb.detach()
+        super().detach()
 
     # Ask children how much space it needs, add in the border, use
     # that as the space request

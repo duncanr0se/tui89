@@ -43,9 +43,7 @@ class Dialog(TopLevelSheet):
     """
     def __init__(self, title=None, text=None, style="info",
                  default_pen=None, pen=None):
-        # Can't call super here or this dialog is set as the frame's
-        # top level sheet! Ouch, maybe make this a frame after all...
-        #super().__init__(frame=frame)
+        super().__init__(default_pen=default_pen, pen=pen)
         self._children = []
         self._title = title if title is not None else "unnamed"
         self._style = style

@@ -64,11 +64,14 @@ class Button(Sheet):
         self.on_click_callback = None
 
     def __repr__(self):
-        (width, height) = self._region
-        tx = self._transform._dx
-        ty = self._transform._dy
-        return "Button({}x{}@{},{}: '{}')".format(width, height, tx, ty,
-                                                  self._label._label_text)
+        if not self._attached:
+            return "Button(detached: '{}')".format(self._label._label_text)
+        else:
+            (width, height) = self._region
+            tx = self._transform._dx
+            ty = self._transform._dy
+            return "Button({}x{}@{},{}: '{}')".format(width, height, tx, ty,
+                                                      self._label._label_text)
 
     ####
 
@@ -232,6 +235,8 @@ class Button(Sheet):
     def _draw_button_label(self):
         # fixme: with-pen ()...
         self._label.set_pen(self.pen())
+        self._label.set_accelerator_char(
+            self.frame().accelerator_for_widget(self))
         self._label.render()
 
     # There are 4 pens that affect the appearance of buttons:
@@ -299,6 +304,17 @@ class Button(Sheet):
         self._pressed = False
         self.invalidate()
         return self.on_click_callback and self.on_click_callback(self)
+
+    # stuff that accepts focus and has an activate method should
+    # register / deregister accelerators when attached / detached
+
+    def detach(self):
+        self.frame().discard_accelerator(self)
+        super().detach()
+
+    def attach(self):
+        super().attach()
+        self.frame().register_accelerator(self._label._label_text, self)
 
 
 class RadioButton(Button):

@@ -143,20 +143,6 @@ class Frame():
         # if event has caused widget to need redrawing, do it now
         self.render_invalidated_sheets()
 
-    # returns sheet that deals with key events
-    def focus(self):
-        return self._focus
-
-    # updates sheet that will deal with key events
-    def set_focus(self, focus):
-        logger.debug("setting focus to %s", focus)
-        if self._focus is not None and not self._focus.is_detached():
-            self._focus.invalidate()
-        self._focus = focus
-        if self._focus is not None:
-            self._focus.invalidate()
-        self._process_event()
-
     def _handle_key_event(self, event):
         # Handle accelerators from the "command table"
         # Who handles navigation? The frame or the sheets?
@@ -165,6 +151,8 @@ class Frame():
         if command is not None:
             if command.apply(self):
                 return True
+
+        focus_top_level = self._get_focus_top_level()
 
         # Do what if there is no focus?
         if self.focus() is None:
@@ -176,22 +164,29 @@ class Frame():
             # Set the focus to the highest priority top level
             # sheet. When it is asked to deal with an event it can
             # identify a more specific focus, if it is coded to.
-            if self._menu:
-                focus_sheet = self._menu.find_focus_candidate()
-                self.set_focus(focus_sheet)
-            elif self._dialog:
-                self.set_focus(self._dialog)
-                focus_sheet = self._dialog.find_focus_candidate()
-                self.set_focus(focus_sheet)
-            else:
-                focus_sheet = self._top_level_sheet.find_focus_candidate()
-                self.set_focus(focus_sheet)
+            focus_sheet = focus_top_level.find_focus_candidate()
+            self.set_focus(focus_sheet)
 
         # When a top level sheet, a dialog, or a menu is displayed it
         # takes control of the current focus. When a menu or dialog is
         # closed, the frame focus is cleared and the branch above is
         # entered so the next highest priority focus can be selected.
         handled = self.focus().handle_key_event(event)
+        # If the key event wasn't handled yet look for the key in the
+        # accelerator table and if the active top-level contains the
+        # identified widget, activate that widget.
+        # Hold accelerators in one of multiple dicts based on
+        # top-level sheet.  Can then check exactly the right accels
+        # and just activate.
+        if event.key_code > 0:
+            key = chr(event.key_code)
+            if key.isalpha():
+                if key in self.accelerator_table(focus_top_level):
+                    widget = self.accelerator_table(focus_top_level)[key]
+                    if widget is not None:
+                        if focus_top_level.find_widget(widget) is not None:
+                            widget.activate()
+                            handled = True
         # Could introduce some extra steps here if handled == False
         # but for now there are none
         return handled
@@ -375,6 +370,22 @@ class Frame():
                 sheet.render()
         self._screen.refresh()
 
+    #### focus #########################################################
+
+    def focus(self):
+        "Return the sheet that will be sent key events"
+        return self._focus
+
+    # updates sheet that will deal with key events
+    def set_focus(self, focus):
+        logger.debug("setting focus to %s", focus)
+        if self._focus is not None and not self._focus.is_detached():
+            self._focus.invalidate()
+        self._focus = focus
+        if self._focus is not None:
+            self._focus.invalidate()
+        self._process_event()
+
     def _get_focus_top_level(self):
         focus_top_level = self._top_level_sheet
         if self._dialog is not None:
@@ -430,3 +441,66 @@ class Frame():
             return True
 
         return False
+
+    #### accelerators ##################################################
+
+    # FIXME: for now only work on buttons. Extend to also work on
+    # widgets associated with a specific label.
+
+    # Accelerators are unique to specific top levels; since top levels
+    # are modal only one can be active at a time, so it's fine to
+    # duplicate accelerators across top-levels.
+
+    def accelerator_table(self, widget):
+        # fixme: could maybe just support case-insensitive
+        # accelerators?
+
+        # fixme: if accelerators were displayed next to activatable
+        # widget instead of in the label itself, could use
+        # accelerators not present in the label. This would allow up
+        # to 52 accelerators per top level (assuming case sensitive
+        # accelerators).
+
+        # fixme: if number of accelerators is an issue, could also
+        # maybe only register accelerators for button groups etc. when
+        # the group has focus?
+        tls = widget.top_level_sheet()
+        return tls._accelerator_to_widget
+
+    def register_accelerator(self, label, widget):
+        accelerator = self.accelerator_from_label(label, widget.top_level_sheet())
+        self.accelerator_table(widget)[accelerator] = widget
+
+    def discard_accelerator(self, widget):
+        accelerator = self.accelerator_for_widget(widget)
+        if accelerator is not None:
+            del self.accelerator_table(widget)[accelerator]
+
+    def accelerator_for_widget(self, widget):
+        for key, value in self.accelerator_table(widget).items():
+            if value == widget:
+                return key
+        return None
+
+    def accelerator_from_label(self, label, top_level):
+        # check first char of words first
+        accel_candidates = ""
+        for c in [x[0] for x in label.split()]:
+            if c.isalpha() and c not in accel_candidates:
+                accel_candidates += c
+
+        # add chars from label ignoring non-alpha
+        for c in label:
+            if c.isalpha() and c not in accel_candidates:
+                accel_candidates += c
+
+        for c in accel_candidates:
+            if c not in self.accelerator_table(top_level):
+                # reserve O and K (in any case) for ok buttons
+                if c in "OoKk" and label.casefold() != "ok".casefold():
+                    continue
+                logger.debug("Found accelerator %s for label %s", c, label)
+                return c
+        # Is there anything to be done here? Maybe just fail to make
+        # an accelerator instead of just failing?
+        raise RuntimeError("Ran out of accelerators for label", label)

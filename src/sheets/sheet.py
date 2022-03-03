@@ -51,7 +51,7 @@ class Sheet():
     def __init__(self, default_pen=None, pen=None):
         # Fixme: should default to False and changed to True when the
         # top level sheet is grafted
-        self._attached = True
+        self._attached = False
         self._children = []
         self._default_pen = default_pen
         self._pen = pen
@@ -127,16 +127,28 @@ class Sheet():
     def add_child(self, child):
         self._children.append(child)
         child._parent = self
+        if self.is_attached():
+            child.attach()
 
-    #genealogy
+    # genealogy
     def set_children(self, children):
         self._children = children
         for child in children:
             child._parent = self
+            if self.is_attached():
+                child.attach()
 
     # genealogy
     def frame(self):
+        if self.is_detached():
+            raise RuntimeError("Sheet {} not attached".format(self))
         return self.top_level_sheet().frame()
+
+    def is_attached(self):
+        return self._attached
+
+    def is_detached(self):
+        return not self._attached
 
     def top_level_sheet(self):
         return self._parent.top_level_sheet()
@@ -333,11 +345,23 @@ class Sheet():
         return not self._attached
 
     def detach(self):
-        for child in self._children:
+        # detach from top down - fixme: not sure this is the best
+        # order. Ditto for "attach()"
+        for child in reversed(self._children):
             child.detach()
         self._attached = False
 
     def attach(self):
+        # attach from bottom up
         self._attached = True
         for child in self._children:
             child.attach()
+
+    def find_widget(self, widget):
+        if self == widget:
+            return self
+        for child in self._children:
+            found = child.find_widget(widget)
+            if found is not None:
+                return found
+        return None

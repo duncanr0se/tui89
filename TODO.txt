@@ -59,7 +59,12 @@ widgets that could be useful.
 
 USABILITY
 =========
-ACCELERATORS + MNEMONICS - for buttons and generic commands
+ACCELERATORS + MNEMONICS - for generic commands (labels).  Need
+"activatable labels" that can be linked to widgets that can't be
+activated, such as text entry boxes - activating the label shifts
+focus to the associated widget.
+
+---
 
 No part of scroll bars should take focus - I think
 
@@ -70,10 +75,15 @@ Text edit components should support select, cut, paste
 Expand inks so can paint a background in a fg/bg colour and using a
 specific character for the bg.
 
+Scroll up / down / left / right line / page commands on
+viewport. Might not be too easy to do if arrows already used to
+navigating between widgets... could change navigate to just use TAB
+and SHIFT+TAB then could use arrow keys for scrolling.
+
 
 LAYOUT IMPROVEMENTS
 ===================
-TEXT ALIGNMENT ON BUTTONS / BORDER TITLES
+TEXT ALIGNMENT and truncation ON BORDER TITLES
 
 Multiline labels
 
@@ -100,6 +110,8 @@ DOCUMENTATION - write some
 USE THE SHEET TYPES ALREADY PRESENT TO BUILD CONTROLS OUT OF; E.G.,
 SCROLLBAR BUTTONS SHOULD BE BUTTONS, PADDING SHOULD BE BORDER PANE,
 ETC.
+In order to implement this for scroll bar buttons at least, the button
+labels must be able to shrink to 1x1
 
 BORDERLAYOUT CLEAR METHOD ISN'T SETTING BACKGROUND COLOUR PROPERLY
 (SEE "green" BORDER IN BASIC.PY)
@@ -134,6 +146,7 @@ that will make a difference to anything, might be worth trying.
 
 Change "find_next_focus" and "find_prev_focus" methods so they wrap
 instead of stopping at end of sheet hierarchy.
+
 
 ===============================================
 
