@@ -128,8 +128,10 @@ def demo(screen):
 
     row8 = HorizontalLayout([])
     listlayout.add_child(row8)
-    row8.add_child(Label("Text entry:"))
-    row8.add_child(TextEntry())
+    entry = TextEntry()
+    label = Label("Text entry:", label_widget=entry)
+    row8.add_child(label)
+    row8.add_child(entry)
 
     #### "green"
 

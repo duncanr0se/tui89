@@ -139,6 +139,9 @@ class TextEntry(Sheet):
         self.invalidate()
         return True
 
+    def activate(self):
+        self.frame().set_focus(self)
+
     # _insertion_point min needs always be in visible window;
     # attempting to move left out of visible region scrolls text
     # right; attempting to move right out of visible region scrolls
