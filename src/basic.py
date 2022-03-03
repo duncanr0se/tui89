@@ -51,7 +51,8 @@ def demo(screen):
     top_level_sheet = TopLevelSheet()
 
     # grafting early doesn't break things; likely still better to do
-    # later.
+    # later. Code might be simpler if early grafting was not
+    # permitted.
     #top_level_sheet.graft(frame)
 
     border_layout = BorderLayout(title="Basic")

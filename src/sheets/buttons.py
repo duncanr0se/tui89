@@ -53,7 +53,7 @@ class Button(Sheet):
                  pressed_pen=None,
                  pen=None):
         super().__init__(default_pen=default_pen, pen=pen)
-        self._label = Label(label_text=label, align=label_align)
+        self._label = Label(label_text=label, align=label_align, label_widget=self)
         self.add_child(self._label)
         self._decorated = decorated
         self._width = width
@@ -235,8 +235,6 @@ class Button(Sheet):
     def _draw_button_label(self):
         # fixme: with-pen ()...
         self._label.set_pen(self.pen())
-        self._label.set_accelerator_char(
-            self.frame().accelerator_for_widget(self))
         self._label.render()
 
     # There are 4 pens that affect the appearance of buttons:
@@ -304,17 +302,6 @@ class Button(Sheet):
         self._pressed = False
         self.invalidate()
         return self.on_click_callback and self.on_click_callback(self)
-
-    # stuff that accepts focus and has an activate method should
-    # register / deregister accelerators when attached / detached
-
-    def detach(self):
-        self.frame().discard_accelerator(self)
-        super().detach()
-
-    def attach(self):
-        super().attach()
-        self.frame().register_accelerator(self._label._label_text, self)
 
 
 class RadioButton(Button):

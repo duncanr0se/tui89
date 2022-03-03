@@ -36,7 +36,8 @@ class Label(Sheet):
                  label_text="",
                  default_pen=None,
                  pen=None,
-                 align=None):
+                 align=None,
+                 label_widget=None):
         super().__init__(default_pen=default_pen, pen=pen)
         self._accelerator_char = None
         self._label_text = label_text
@@ -44,6 +45,13 @@ class Label(Sheet):
         if align not in valid_aligns:
             raise RuntimeError("label align not in valid set", align, valid_aligns)
         self._align = align
+        # if a label is associated with a widget then an accelerator
+        # will be generated in the frame's accelerator table and when
+        # the accelerator is used the associated widget's "activate"
+        # method is invoked. For buttons this will do the same thing
+        # as a button click, for text entry widgets it sets the focus
+        # in the widget.
+        self._label_widget = label_widget
 
     def __repr__(self):
         (width, height) = self._region
@@ -67,17 +75,21 @@ class Label(Sheet):
         coord = (self.line_offset(self._align, display_text, self.width()), 0)
         self.display_at(coord, display_text, pen)
         # overwrite accelerator (if present ofc) in accelerator colour scheme
-        if self._accelerator_char is not None:
-            accelerator_index = self._find_index_of_accelerator(display_text,
-                                                                self._accelerator_char)
-            if accelerator_index >= 0:
-                accelerator_pen = self.frame().theme("selected_focus_control")
-                (x, _) = coord
-                self.display_at((x+accelerator_index, 0),
-                                self._accelerator_char, accelerator_pen)
+
+        if self._label_widget is not None:
+            accel_char = self.frame().accelerator_for_widget(self._label_widget)
+
+            if accel_char is not None:
+                accelerator_index = self._find_index_of_accelerator(display_text,
+                                                                    accel_char)
+                if accelerator_index >= 0:
+                    accelerator_pen = self.frame().theme("selected_focus_control")
+                    (x, _) = coord
+                    self.display_at((x+accelerator_index, 0),
+                                    accel_char, accelerator_pen)
 
     def _find_index_of_accelerator(self, display_text, accel_char):
-        return display_text.find(self._accelerator_char)
+        return display_text.find(accel_char)
 
     def truncate_text_to_width(self, display_text, width):
         """Truncate text to fit widget.
@@ -114,5 +126,20 @@ class Label(Sheet):
         label_min = min(len(self._label_text), 6)
         return SpaceReq(label_min, len(self._label_text), FILL, 1, 1, FILL)
 
-    def set_accelerator_char(self, char):
-        self._accelerator_char = char
+    # Buttons have labels; when accelerator on label is clicked the
+    # associated widget is activated. This happens automatically if
+    # the label is associated with the button via the label's
+    # "label_widget" initarg.
+
+    # This functionality is supported for all widgets that are
+    # associated with a label and that implement an "activate" method.
+
+    def detach(self):
+        if self._label_widget is not None:
+            self.frame().discard_accelerator(self._label_widget)
+        super().detach()
+
+    def attach(self):
+        super().attach()
+        if self._label_widget is not None:
+            self.frame().register_accelerator(self._label_text, self._label_widget)
