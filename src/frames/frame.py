@@ -178,15 +178,16 @@ class Frame():
         # Hold accelerators in one of multiple dicts based on
         # top-level sheet.  Can then check exactly the right accels
         # and just activate.
-        if event.key_code > 0:
-            key = chr(event.key_code)
-            if key.isalpha():
-                if key in self.accelerator_table(focus_top_level):
-                    widget = self.accelerator_table(focus_top_level)[key]
-                    if widget is not None:
-                        if focus_top_level.find_widget(widget) is not None:
-                            widget.activate()
-                            handled = True
+        if not handled:
+            if event.key_code > 0:
+                key = chr(event.key_code)
+                if key.isalpha():
+                    if key in self.accelerator_table(focus_top_level):
+                        widget = self.accelerator_table(focus_top_level)[key]
+                        if widget is not None:
+                            if focus_top_level.find_widget(widget) is not None:
+                                widget.activate()
+                                handled = True
         # Could introduce some extra steps here if handled == False
         # but for now there are none
         return handled
