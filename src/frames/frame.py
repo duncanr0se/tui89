@@ -144,6 +144,9 @@ class Frame():
         "menubox": {
             "default": {
                 "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' ')
+            },
+            "border": {
+                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' ')
             }
         },
         "menubutton": {
