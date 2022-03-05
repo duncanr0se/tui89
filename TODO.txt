@@ -85,9 +85,8 @@ with by the frame that select menu bar items without associated popup
 menus are not given focus - they likely should do ("activate" on
 button needs to set focus if button is not already focus)
 
-Borders and separators drawn using the "draw_to" primitive aren't
-visible because the "A_BOLD" attribute is not observed by that method.
-
+Scrollbars pass float "draw to" coordinates; ensure scrollbar uses
+floor or ceil and converts to appropriate ints.
 
 LAYOUT IMPROVEMENTS
 ===================
