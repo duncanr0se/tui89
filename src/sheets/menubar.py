@@ -22,9 +22,19 @@ from sheets.buttons import Button
 from frames.frame import Frame
 from frames.commands import find_command
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 # A layout that arranges its children in a row. Each child is
 # packed as closely as possible to its siblings
 class MenubarLayout(Sheet):
+
+    def __repr__(self):
+        (w, h) = self._region
+        tx = self._transform._dx
+        ty = self._transform._dy
+        return f"Menubar({w}x{h}@{tx},{ty})"
 
     def layout(self):
         offset = 0
@@ -42,6 +52,7 @@ class MenubarLayout(Sheet):
         # default background colour.
         (w, h) = self._region
         self.clear((0, 0), self._region)
+        logger.info("render on menubar %s", self)
         self.move((0, 0))
         self.draw_to((w, 0), ' ', self.pen(role="menubar", state="default", pen="pen"))
         for child in self._children:

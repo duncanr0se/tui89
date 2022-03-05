@@ -42,6 +42,12 @@ class MenuBox(TopLevelSheet):
     def __repr__(self):
         return "MenuBox({} entries)".format(len(self._item_pane._children))
 
+    def pen(self, role="menubox", state="default", pen="pen"):
+        if role == "undefined":
+            role, state, pen = "menubox", "default", "pen"
+        drawing_pen = super().pen(role=role, state=state, pen=pen)
+        return drawing_pen
+
     def layout(self):
         for child in self._children:
             child.move_to((0, 0))
@@ -50,7 +56,7 @@ class MenuBox(TopLevelSheet):
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
-        self.clear((0, 0), self._region)
+        self.clear((0, 0), self._region, self.pen())
         for child in self._children:
             child.render()
 

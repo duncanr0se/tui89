@@ -49,10 +49,13 @@ class Viewport(Sheet):
             self._horizontal_sb._viewport = self
 
     def __repr__(self):
-        (width, height) = self._region
-        tx = self._transform._dx
-        ty = self._transform._dy
-        return "Viewport({}x{}@{},{})".format(width, height, tx, ty)
+        if self._region is None:
+            return "Viewport(=unallocated=)"
+        else:
+            (width, height) = self._region
+            tx = self._transform._dx
+            ty = self._transform._dy
+            return "Viewport({}x{}@{},{})".format(width, height, tx, ty)
 
     def add_child(self, child):
         if self._children:

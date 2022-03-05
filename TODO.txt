@@ -88,6 +88,12 @@ button needs to set focus if button is not already focus)
 Scrollbars pass float "draw to" coordinates; ensure scrollbar uses
 floor or ceil and converts to appropriate ints.
 
+Background colour selection for "transparent" widgets isn't
+implemented well. Probably need fg pens and default bg pens.
+At least document how the "pen" stuff fits together (or doesn't). Even
+just for personal rememberance since I'm already forgetting it.
+
+
 LAYOUT IMPROVEMENTS
 ===================
 TEXT ALIGNMENT and truncation ON BORDER TITLES

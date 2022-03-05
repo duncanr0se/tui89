@@ -50,7 +50,8 @@ class HorizontalSeparator(Separator):
     def render(self):
         # todo: label alignment
         # todo: label truncation
-        pen = self.pen(role="separator", state="default", pen="pen")
+        # fixme: split fg/bg and do better inheritance of bg
+        pen = self.pen(role="border", state="default", pen="pen")
         (w, h) = self._region
         self.move((0, 0))
         self.draw_to((w, 0), HorizontalSeparator._line_chars[self._style], pen)
@@ -77,7 +78,8 @@ class VerticalSeparator(Separator):
     def render(self):
         # todo: label alignment
         # todo: label truncation
-        pen = self.pen(role="separator", state="default", pen="pen")
+        # fixme: split fg/bg and do better inheritance of bg
+        pen = self.pen(role="border", state="default", pen="pen")
         (w, h) = self._region
         self.move((0, 0))
         self.draw_to((0, h), VerticalSeparator._line_chars[self._style], pen)

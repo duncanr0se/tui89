@@ -71,16 +71,16 @@ class Frame():
                 "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
             },
             "alert": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_RED, '#')
+                "pen": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_RED, ' ')
             },
             "info": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_CYAN, '?')
+                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
             },
             "yes/no": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_YELLOW, '@')
+                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_MAGENTA, ' ')
             },
             "composite": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_WHITE, '!')
+                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
             }
          },
         "shadow": {
@@ -90,9 +90,22 @@ class Frame():
                 "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, None, None)
             }
         },
+        # border role used by border panes and separator panes
         "border": {
             "default": {
                 "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
+            },
+            "alert": {
+                "pen": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_RED, ' ')
+            },
+            "info": {
+                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
+            },
+            "yes/no": {
+                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_MAGENTA, ' ')
+            },
+            "composite": {
+                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
             }
         },
         "button": {
@@ -113,7 +126,7 @@ class Frame():
                 "accelerator": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
             }
         },
-        "unspecified": {
+        "undefined": {
             "default": {
                 "pen": Pen(Screen.COLOUR_GREEN, Screen.A_BOLD, Screen.COLOUR_YELLOW, 'X')
             }
@@ -123,14 +136,26 @@ class Frame():
                 "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, None, ' ')
             }
         },
-        "separator": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
-            }
-        },
         "menubar": {
             "default": {
                 "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' ')
+            }
+        },
+        "menubox": {
+            "default": {
+                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' ')
+            }
+        },
+        "menubutton": {
+            "default": {
+                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' '),
+                "accelerator": Pen(Screen.COLOUR_RED, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
+            },
+            "focus": {
+                "pen": Pen(Screen.COLOUR_CYAN, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
+            },
+            "transient": {
+                "pen": Pen(Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_MAGENTA, ' ')
             }
         },
         "editable": {
@@ -158,7 +183,8 @@ class Frame():
 
     def pen(self, role, state, pen):
         if role not in self.THEMES:
-            raise RuntimeError("role not found in themes", role)
+            logger.info(f"Role entry '{role}' not found. Using role 'undefined'")
+            role = "undefined"
         # If desired pen not found in role / state, try to find it in
         # role / default state (and log it).
         #
@@ -174,11 +200,14 @@ class Frame():
                             + "Looking in state 'default'",
                             pen, role, state)
                 state = "default"
-                if pen not in self.THEMES[role][state] and state == "default":
-                    logger.info("Pen type '%s' not found for theme[%s][%s]. Using 'pen'",
-                                pen, role, state)
-                    pen = "pen"
-        return self.THEMES[role][state][pen]
+            if pen not in self.THEMES[role][state]:
+                logger.info("Pen type '%s' not found for theme[%s][%s]. Using 'pen'",
+                            pen, role, state)
+                pen = "pen"
+        try:
+            return self.THEMES[role][state][pen]
+        except KeyError:
+            raise KeyError(f"Failed to find self.THEMES[{role}][{state}][{pen}]")
 
     def set_top_level_sheet(self, sheet):
         self._top_level_sheet = sheet

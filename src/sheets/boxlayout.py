@@ -143,8 +143,6 @@ class BoxLayout(Sheet):
         segmentSize = major_component // totalSegments
         surplus = major_component - segmentSize*totalSegments
 
-        logger.debug("%s, segment size = %s", self, segmentSize)
-
         for index, column in enumerate(self._portions):
             (n, unit) = _destructure(column)
             if unit == "ratio":
@@ -156,12 +154,6 @@ class BoxLayout(Sheet):
                 child_region = self._make_region(callocq, minor_component)
                 totalSpaceAllocated += callocq
                 child.allocate_space(child_region)
-
-        logger.debug("total space allocated %s from allocation %s",
-                     totalSpaceAllocated, major_component)
-        for child in self._children:
-            logger.debug("allocated space on child %s", child)
-
 
     # perhaps this should be the thing that calls compose-space
     # followed by allocate-space? With compose-space on kids in turn
@@ -175,6 +167,10 @@ class BoxLayout(Sheet):
             self.move_to_major_offset(child, offset)
             offset += self.major_size_component(child)
             child.layout()
+
+    def pen(self, role="undefined", state="undefined", pen="undefined"):
+        drawing_pen = super().pen(role, state, pen)
+        return drawing_pen
 
     def render(self):
         if not self._region:
@@ -195,7 +191,7 @@ class HorizontalLayout(BoxLayout):
         super().__init__(columns)
 
     def __repr__(self):
-        if not self._attached:
+        if not self._attached or self._region is None:
             return "HorizontalLayout(detached: {} cols)".format(len(self._portions))
         else:
             (width, height) = self._region
@@ -247,7 +243,7 @@ class VerticalLayout(BoxLayout):
         super().__init__(rows)
 
     def __repr__(self):
-        if not self._attached:
+        if not self._attached or self._region is None:
             return "VerticalLayout(detached: {} cols)".format(len(self._portions))
         else:
             (width, height) = self._region

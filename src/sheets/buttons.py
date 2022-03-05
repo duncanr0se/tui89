@@ -59,7 +59,7 @@ class Button(Sheet):
         self.on_click_callback = None
 
     def __repr__(self):
-        if not self._attached:
+        if not self._attached or self._region is None:
             return "Button(detached: '{}')".format(self._label._label_text)
         else:
             (width, height) = self._region
@@ -79,7 +79,8 @@ class Button(Sheet):
             (x, y) = coord
             # Is the mouse over the button background?
             (l, t, r, b) = self._button_background_region()
-            if l <= x and y <= t and x < r and y < b:
+            # "r" seems to include the shadow on the rhs. Investigate
+            if l <= x and t <= y and x <= r-1 and y <= b:
                 return self
         return None
 
@@ -104,8 +105,8 @@ class Button(Sheet):
         y_padding = 0
 
         if self._decorated:
-            x_padding += 3
-            y_padding += 3
+            x_padding += 3  # left border + right border + shadow
+            y_padding += 2  # top border + shadow
 
         # supplied width overrides calculated size
         if self._width is not None:
@@ -154,10 +155,14 @@ class Button(Sheet):
         # should be constructed as needed.
         # fixme: fg must have an attr specified, bg always has attr
         # NORMAL.
-        pen = self._parent.pen()
+
+        # fixme: go back to parent pen once sorted out button layout
+        # issues
+        pen = self.pen("button", "transient", "pen")
+        #pen = self._parent.pen()
         pen = Pen(pen.bg(), pen.attr(), pen.bg())
         (width, height) = self._region
-        for y in range(0, height-1):
+        for y in range(0, height):
             self.move((0, y))
             self.draw_to((width, y), ' ', pen)
 
@@ -169,13 +174,18 @@ class Button(Sheet):
         (left, top, right, bottom) = self._button_background_region()
 
         self.move((left, top))
-        self.draw_to((right, bottom-1), ' ', pen)
+        self.draw_to((right, bottom), ' ', pen)
 
     def _button_background_region(self):
         (width, height) = self._region
 
         if self._width is not None:
             width = self._width
+
+        # fixme: this needs more thought. Don't want a bottom
+        # background border if there is a dropshadow because the
+        # dropshadow leaves 1/2 the line holding the shadow in the
+        # background colour already.
 
         # fixme: if width is large enough to hold the label but not
         # the decoration, draw the button background over the whole
@@ -184,7 +194,9 @@ class Button(Sheet):
         # If insufficient space for padding, just draw background.
         x_shadow = width >= len(self._label._label_text)+3 and self._decorated
         x_padding = width >= len(self._label._label_text)+2 and self._decorated
-        y_shadow = height >= 3 and self._decorated
+        # y-padding uses the same space for the border and the padding
+        # - the padding is part of the dropshadow visual
+        y_shadow = height >= 2 and self._decorated
         y_padding = height >= 2 and self._decorated
 
         left = 1 if x_padding else 0
@@ -193,7 +205,7 @@ class Button(Sheet):
         right = width-1 if x_padding else width
         right = right-1 if x_shadow else right
 
-        bottom = top+1
+        bottom = top
 
         # center button background in available height
         top_padding = max((height-4) // 2, 0)
@@ -227,21 +239,23 @@ class Button(Sheet):
         dropshadow_below = u'▀'
 
         if draw_dropshadow_side:
-            self.display_at((right, 1), dropshadow_right, pen)
+            self.display_at((right, top), dropshadow_right, pen)
         if draw_dropshadow_below:
-            self.move((2, 2))
-            self.draw_to((right+1, 2), dropshadow_below, pen)
+            self.move((left+1, bottom+1))
+            self.draw_to((right+1, bottom+1), dropshadow_below, pen)
 
     def pen(self, role="button", state="default", pen="pen"):
         # force role of "button" always - this will force labels to be
         # drawn with the fg/bg specified for the button role.
+        if role == "label":
+            role = "button"
 
         # deal with transitory colour scheme
         # check transitory state first
         if self._pressed:
             state = "transient"
 
-        return super().pen(role="button", state=state, pen=pen)
+        return super().pen(role=role, state=state, pen=pen)
 
     def _draw_button_label(self):
         self._label.render()
@@ -408,6 +422,9 @@ class MenuButton(Button):
                          label_align=label_align,
                          decorated=decorated)
         self._menubox = None
+
+    def pen(self, role="menubutton", state="default", pen="pen"):
+        return super().pen(role="menubutton", state=state, pen=pen)
 
     def set_menu_box(self, menubox):
         self._menubox = menubox

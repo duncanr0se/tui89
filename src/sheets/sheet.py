@@ -58,14 +58,17 @@ class Sheet():
         self._transform = IDENTITY_TRANSFORM
 
     def __repr__(self):
-        (width, height) = self._region
-        return "Sheet({}x{})".format(width, height)
+        if self._region is None:
+            return "Sheet(=unallocated= {})".format(type(self))
+        else:
+            (width, height) = self._region
+            return "Sheet({}x{})".format(width, height)
 
     # drawing
     #
-    # Make "unspecified" a really horrid colour scheme if that's even
-    # possible...
-    def pen(self, role="unspecified", state="default", pen="pen"):
+    # Delegate to top-level-sheet for colourscheme if nothing
+    # specified
+    def pen(self, role="toplevel", state="default", pen="pen"):
         if self._pens is None:
             return self._parent.pen(role=role, state=state, pen=pen)
         # default method looks for requested pen but if it can't find
@@ -89,9 +92,29 @@ class Sheet():
         self._pens[role][state][which] = pen
 
     # drawing
-    def clear(self, origin, region):
+    def clear(self, origin, region, pen=None):
+        # in order for pens to work properly this method needs to pass
+        # the pen up to the top-level.
+
+        # fixme: at this point if the pen is None (such as when the
+        # vbox contained in the green border) it calls the default
+        # pen() method for the vbox which provides the helpful
+        # "toplevel/default/pen" defaults in the pen method in this
+        # file.
+
+        # The fact that it queries the parent for this information
+        # whilst passing these args is kinda irrelevent.
+
+        # So for sure this logic is wrong, but how to fix?
+
+        # Maybe use special values that tell the parent "overwrite
+        # me". So could fill in defaults for the border layout if any
+        # of its children pass "undefined" for the role?
+        logger.info("clear entered for sheet %s", self)
+        if pen is None:
+            pen = self.pen()
         porigin = self._transform.apply(origin)
-        self._parent.clear(porigin, region)
+        self._parent.clear(porigin, region, pen)
 
     # drawing
     def display_at(self, coord, text, pen):

@@ -47,20 +47,16 @@ class TopLevelSheet(Sheet):
         logger.debug("returning pen for use: %s", spen)
         return spen
 
-    def clear(self, origin, region):
-        pen = self.pen()
+    def clear(self, origin, region, pen):
         (x, y) = self._transform.apply(origin)
         (w, h) = region
         for line in range(0, h):
             self._frame._screen.move(x, y + line)
-            self._frame._screen.draw(x + w, y + line, u' ', colour=pen.bg(), bg=pen.bg())
+            self._frame._screen.draw(x + w, y + line, pen.fill(), colour=pen.fg(), bg=pen.bg())
 
     def display_at(self, coord, text, pen):
         (x, y) = self._transform.apply(coord)
-        try:
-            self._frame._screen.print_at(text, x, y, colour=pen.fg(), attr=pen.attr(), bg=pen.bg())
-        except AttributeError:
-            raise AttributeError("error", pen)
+        self._frame._screen.print_at(text, x, y, colour=pen.fg(), attr=pen.attr(), bg=pen.bg())
 
     def move(self, coord):
         (x, y) = self._transform.apply(coord)

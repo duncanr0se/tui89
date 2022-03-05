@@ -20,6 +20,10 @@ from sheets.spacereq import SpaceReq, FILL
 from dcs.ink import Pen
 from frames.frame import Frame
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 class BorderLayout(Sheet):
     """Sheet that draws a border around itself.
 
@@ -213,8 +217,22 @@ class BorderLayout(Sheet):
         }
     }
 
+    def pen(self, role="border", state="default", pen="pen"):
+        # use defaults for sheet, if there are any
+        if role == "undefined":
+            # child has basically asked the parent to use the parent
+            # colours
+
+            # FIXME: not sure this is a good thing to do. Must be able
+            # to do this better...
+            role, state, pen = "border", "default", "pen"
+        drawing_pen = super().pen(role=role, state=state, pen=pen)
+        logger.debug("border pen returning %s", drawing_pen)
+        return drawing_pen
+
     def _draw_border(self):
         pen = self.pen(role="border", state="default", pen="pen")
+        self._cached_pen = pen
         (left, top) = (0, 0)
         (width, height) = self._region
         right = self.width()-1

@@ -143,9 +143,13 @@ def demo(screen):
     # internals, but this is really not satisfactory and needs
     # reworking.
     green_border = BorderLayout(title="green", style="spacing")
-    green_border.set_pen(pen=green_bg, role="border", state="default", which="pen")
     child_sheet.add_child(green_border)
-    green_vert = VerticalLayout([1, 10])
+    green_border.set_pen(pen=green_bg, role="border", state="default", which="pen")
+    # fixme: not sure it's right that the boxlayouts force more space
+    # on their children than the children can cope with. Removing
+    # spacer sheet and making the ratio 1 forces the menubar to fill
+    # the available space. Seems wrong.
+    green_vert = VerticalLayout([(1, "char"), 1])
     menubar = _make_menubar()
     green_border.add_child(green_vert)
     green_vert.add_child(menubar)
@@ -184,7 +188,7 @@ def demo(screen):
     border4.add_child(viewport)
 
     def draw():
-        pen = frame.pen("unspecified", "default", "pen")
+        pen = frame.pen("undefined", "default", "pen")
         contentpane.display_at((0, 0), "Hello, world!", pen)
         contentpane.display_at((10, 30), "What's the world coming to?", pen)
         contentpane.display_at((100, 60), "Goodbye, cruel world!", pen)

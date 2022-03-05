@@ -56,7 +56,7 @@ class Dialog(TopLevelSheet):
         # wants a horizontal layout
         # FILL isn't a requirement, it's a non-requirement so should
         # be ignored for composition / allocation.
-        self._wrapper = VerticalLayout([4, (1, "char"), 1])
+        self._wrapper = VerticalLayout([1, (1, "char"), (3, "char")])
         border.add_child(self._wrapper)
         # fixme: scrolling dialog content?
         self._wrapper.add_child(self._make_content_pane(text))
@@ -157,7 +157,15 @@ class Dialog(TopLevelSheet):
         border_layout.allocate_space((calloc_x, calloc_y))
 
     def pen(self, role="toplevel", state="info", pen="pen"):
-        if role == "toplevel":
+        # FIXME: Ugh! pens need to find a way to compose better!
+
+        # FIXME: It would be better if "transparent" widgets took
+        # their background from their parent and just set the
+        # foreground. Could indicate this happen using partial pens
+        # maybe?
+        # FIXME: need same fix for separators.
+        # FIXME: maybe role should be "decoration"
+        if role == "toplevel" or role == "border":
             state = self._style
         logger.debug(f"finding pen: {role}, {state}, {pen}")
         return super().pen(role=role, state=state, pen=pen)
@@ -186,9 +194,7 @@ class Dialog(TopLevelSheet):
         dropshadow_right = u'█'
         dropshadow_below = u'█'
         self.move((width-1, 1))
-        self.draw_to((width-1, height-1), dropshadow_right, shadow_pen)
-        # x is not included when using "draw" but is when using
-        # "print_at". Maybe that's as it should be?
+        self.draw_to((width-1, height), dropshadow_right, shadow_pen)
         self.draw_to((1, height-1), dropshadow_below, shadow_pen)
 
     # events - top level sheets don't pass event on to a parent,
