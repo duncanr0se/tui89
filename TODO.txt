@@ -75,6 +75,19 @@ viewport. Might not be too easy to do if arrows already used to
 navigating between widgets... could change navigate to just use TAB
 and SHIFT+TAB then could use arrow keys for scrolling.
 
+"ESC" in text entry widgets should move the focus off the entry so
+that keyboard nav can be used without the entry capturing the input
+(i.e., ESC should act as TAB does in entry widgets). This wouldn't be
+necessary if could use ALT to indicate acccelerator usage :/
+
+Menubar event handling not right - in particular accelerators dealt
+with by the frame that select menu bar items without associated popup
+menus are not given focus - they likely should do ("activate" on
+button needs to set focus if button is not already focus)
+
+Borders and separators drawn using the "draw_to" primitive aren't
+visible because the "A_BOLD" attribute is not observed by that method.
+
 
 LAYOUT IMPROVEMENTS
 ===================
@@ -87,6 +100,9 @@ Widgets need a "fill" initarg to indicate if their preferred size
 should be FILL rather than an explicit preferred size. Some layouts /
 parents will want the widgets to take all available space, and some
 won't. Also - spacing / padding / null sheets to take excess space.
+
+Decorated buttons are not tall enough; should be room for "top border"
++ "button" + "drop shadow" + "bottom border". Currently there isn't.
 
 
 VISUAL FEEDBACK
