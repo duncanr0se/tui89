@@ -156,10 +156,7 @@ class Button(Sheet):
         # fixme: fg must have an attr specified, bg always has attr
         # NORMAL.
 
-        # fixme: go back to parent pen once sorted out button layout
-        # issues
-        pen = self.pen("button", "transient", "pen")
-        #pen = self._parent.pen()
+        pen = self._parent.pen()
         pen = Pen(pen.bg(), pen.attr(), pen.bg())
         (width, height) = self._region
         for y in range(0, height):
