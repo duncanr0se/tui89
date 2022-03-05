@@ -48,18 +48,13 @@ class Button(Sheet):
                  label="--",
                  decorated=True,
                  label_align="center",
-                 width=None,
-                 default_pen=None,
-                 pressed_pen=None,
-                 pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+                 width=None):
+        super().__init__()
         self._label = Label(label_text=label, align=label_align, label_widget=self)
         self.add_child(self._label)
         self._decorated = decorated
         self._width = width
         self._pressed = False
-        self._pressed_pen=pressed_pen
-        self._focus_pen = None
         # Function of 1 arg (button that was clicked)
         self.on_click_callback = None
 
@@ -212,9 +207,14 @@ class Button(Sheet):
     def _draw_button_dropshadow(self):
         # if the region isn't big enough for the decoration, don't
         # draw it even for decorated buttons
-        shadow_pen = self.frame().theme("shadow")
+        shadow_pen = self.pen(role="shadow")
         bg_pen = self._parent.pen()
-        pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg())
+        # in case pen is already fully merged, manually merge the
+        # bg. Add "pen-fully-merged?" type method? Also - this should
+        # never happen, shadow_pen should always be a partial pen.
+        #pen = shadow_pen.merge(bg_pen)
+        pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg(), bg_pen.fill())
+
         (width, height) = self._region
         (left, top, right, bottom) = self._button_background_region()
 
@@ -232,33 +232,19 @@ class Button(Sheet):
             self.move((2, 2))
             self.draw_to((right+1, 2), dropshadow_below, pen)
 
-    def _draw_button_label(self):
-        # fixme: with-pen ()...
-        self._label.set_pen(self.pen())
-        self._label.render()
+    def pen(self, role="button", state="default", pen="pen"):
+        # force role of "button" always - this will force labels to be
+        # drawn with the fg/bg specified for the button role.
 
-    # There are 4 pens that affect the appearance of buttons:
-    #   - resting button: use frame "button" colours
-    #   - focused button: use frame "focus_button" colours
-    #   - clicked button: use frame "pushed_button" colours
-    #   - mnemonic pen for button label: use frame "button_mnemonic" colours
-    def pen(self):
-        if self._pressed_pen is None:
-            self._pressed_pen = self.frame().theme("pushed_button")
-        if self._pen is None:
-            self._pen = self.frame().theme("button")
-        if self._focus_pen is None:
-            self._focus_pen = self.frame().theme("focus_button")
-
+        # deal with transitory colour scheme
         # check transitory state first
         if self._pressed:
-            return self._pressed_pen
-        # if button is the current focus use focus colour; otherwise
-        # use the default
-        logger.debug("is_focus = %s", self.is_focus())
-        if self.is_focus():
-            return self._focus_pen
-        return self._pen
+            state = "transient"
+
+        return super().pen(role="button", state=state, pen=pen)
+
+    def _draw_button_label(self):
+        self._label.render()
 
     def is_focus(self):
         return self.frame()._focus == self
@@ -309,12 +295,10 @@ class RadioButton(Button):
     def __init__(self, label="--",
                  label_align="left",
                  decorated=False,
-                 default_pen=None, pen=None, pressed_pen=None,
                  selected=False):
         super().__init__(label="( ) " + label,
                          label_align=label_align,
-                         decorated=decorated,
-                         default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
+                         decorated=decorated)
         self._selected = selected
 
     # Needs to be part of a button group to be useful; a button group
@@ -327,11 +311,8 @@ class RadioButton(Button):
         # Need more complexity here; there should only ever be a
         # single radio button in the same group active
         if event.buttons == MouseEvent.LEFT_CLICK:
-            if self.is_selected():
-                self._label._label_text = "( )" + self._label._label_text[3:]
-            else:
-                self.activate()
-            self.invalidate()
+            self.activate()
+            return True
         return False
 
     def is_selected(self):
@@ -390,12 +371,10 @@ class CheckBox(Button):
 
     def __init__(self, label="--",
                  label_align="left",
-                 decorated=False,
-                 default_pen=None, pen=None, pressed_pen=None):
+                 decorated=False):
         super().__init__(label="[ ] " + label,
                          label_align=label_align,
-                         decorated=decorated,
-                         default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
+                         decorated=decorated)
 
     # fixme: make Label subscriptable? Really should not be hacking
     # around with the label contents this way
@@ -424,42 +403,14 @@ class MenuButton(Button):
 
     def __init__(self, label="--",
                  label_align="left",
-                 decorated=False,
-                 default_pen=None, pen=None, pressed_pen=None):
+                 decorated=False):
         super().__init__(label=label,
                          label_align=label_align,
-                         decorated=decorated,
-                         default_pen=default_pen, pen=pen, pressed_pen=pressed_pen)
+                         decorated=decorated)
         self._menubox = None
-
-    def pen(self):
-        # Button states:
-        #   - resting
-        #   - focus
-        #   - pressed - not sure if needed
-        # +
-        #   - mnemonic
-        #
-        # fixme: mnemonic pen
-        if self._pen is None:
-            self._pen = self.frame().theme("menu")
-
-        if self._focus_pen is None:
-            self._focus_pen = self.frame().theme("focus_menu")
-        # also set self._pressed_pen here if no initarg supplied
-        # to prevent looking up the pen when _pressed_pen is
-        # needed
-        if self._pressed_pen is None:
-            self._pressed_pen = self.frame().theme("pushed_menu")
-        # still want the pressed toggle to be an effect
-        return super().pen()
-
-    def pressed_pen(self):
-        return self._pressed_pen
 
     def set_menu_box(self, menubox):
         self._menubox = menubox
-
         def show_menu(button):
             # fixme: this should probably be done by the frame?
             # Otherwise how to do nested menus?
@@ -467,5 +418,4 @@ class MenuButton(Button):
             transform = button.get_screen_transform()
             tcoord = transform.apply(coord)
             button.frame().show_popup(menubox, tcoord)
-
         self.on_click_callback = show_menu

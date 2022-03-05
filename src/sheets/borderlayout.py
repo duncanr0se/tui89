@@ -29,8 +29,6 @@ class BorderLayout(Sheet):
     Initargs:
         - title
         - style
-        - default_pen
-        - pen
 
     The following border styles are recognised:
         - double : border made of double bars
@@ -54,10 +52,8 @@ class BorderLayout(Sheet):
 
     def __init__(self,
                  title=None,
-                 style="double",
-                 default_pen=None,
-                 pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+                 style="double"):
+        super().__init__()
         if style not in BorderLayout.supported_styles:
             raise NotImplementedError("Border layout only supports {} style currently"
                                       .format(supported_styles))
@@ -218,7 +214,7 @@ class BorderLayout(Sheet):
     }
 
     def _draw_border(self):
-        pen = self.pen()
+        pen = self.pen(role="border", state="default", pen="pen")
         (left, top) = (0, 0)
         (width, height) = self._region
         right = self.width()-1

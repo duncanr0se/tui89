@@ -48,14 +48,12 @@ class Sheet():
 
       + may be attached to a display device;
     """
-    def __init__(self, default_pen=None, pen=None):
-        # Fixme: should default to False and changed to True when the
-        # top level sheet is grafted
+    def __init__(self):
         self._attached = False
         self._children = []
-        self._default_pen = default_pen
-        self._pen = pen
         self._parent = None
+        # sheets that manage pens need to set this to a dict()
+        self._pens = None
         self._region = None
         self._transform = IDENTITY_TRANSFORM
 
@@ -64,22 +62,31 @@ class Sheet():
         return "Sheet({}x{})".format(width, height)
 
     # drawing
-    def default_pen(self):
-        # What if the sheet is regrafted? if moving sheets between
-        # hierarchies is necessary, change this to always look up the
-        # default from its parent.
-        if self._default_pen is None:
-            self._default_pen = self._parent.default_pen()
-        return self._default_pen
+    #
+    # Make "unspecified" a really horrid colour scheme if that's even
+    # possible...
+    def pen(self, role="unspecified", state="default", pen="pen"):
+        if self._pens is None:
+            return self._parent.pen(role=role, state=state, pen=pen)
+        # default method looks for requested pen but if it can't find
+        # it it passes the query to its parent.
+        if role in self._pens:
+            if state in self._pens[role]:
+                if pen in self._pens[role][state]:
+                    return self._pens[role][state][pen]
+        return self._parent.pen(role=role, state=state, pen=pen)
 
-    # drawing
-    def pen(self):
-        if self._pen is None:
-            self._pen = self.default_pen()
-        return self._pen
-
-    def set_pen(self, pen):
-        self._pen = pen
+    # FIXME: this is a pretty horrible way to set colours for a
+    # sheet. It works but is low level. Find a better interface for
+    # devs to call.
+    def set_pen(self, pen, role="button", state="default", which="pen"):
+        if self._pens is None:
+            self._pens = dict()
+            if not role in self._pens:
+                self._pens[role] = dict()
+                if not state in self._pens[role]:
+                    self._pens[role][state] = dict()
+        self._pens[role][state][which] = pen
 
     # drawing
     def clear(self, origin, region):

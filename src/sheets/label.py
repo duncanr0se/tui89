@@ -34,11 +34,9 @@ class Label(Sheet):
     """
     def __init__(self,
                  label_text="",
-                 default_pen=None,
-                 pen=None,
                  align=None,
                  label_widget=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+        super().__init__()
         self._accelerator_char = None
         self._label_text = label_text
         valid_aligns = { None, "left", "right", "center", "centre" }
@@ -60,22 +58,20 @@ class Label(Sheet):
         return "Label({}x{}@{},{}: '{}')".format(width, height, tx, ty,
                                                  self._label_text)
 
-    def pen(self):
-        if self._pen is None:
-            self._pen = self.frame().theme("label")
-        return self._pen
-
     def add_child(self):
         raise RuntimeError("children not allowed")
 
     def render(self):
-        pen = self.pen()
+        state = "default"
+        if self._label_widget is not None:
+            if self._label_widget.is_focus():
+                state="focus"
+        pen = self.pen(role="label", state=state, pen="pen")
         # fixme: paint background, decide where label should be if height>1
         display_text = self.truncate_text_to_width(self._label_text, self.width())
         coord = (self.line_offset(self._align, display_text, self.width()), 0)
         self.display_at(coord, display_text, pen)
         # overwrite accelerator (if present ofc) in accelerator colour scheme
-
         if self._label_widget is not None:
             accel_char = self.frame().accelerator_for_widget(self._label_widget)
 
@@ -83,7 +79,7 @@ class Label(Sheet):
                 accelerator_index = self._find_index_of_accelerator(display_text,
                                                                     accel_char)
                 if accelerator_index >= 0:
-                    accelerator_pen = self.frame().theme("selected_focus_control")
+                    accelerator_pen = self.pen(role="label", state="default", pen="accelerator")
                     (x, _) = coord
                     self.display_at((x+accelerator_index, 0),
                                     accel_char, accelerator_pen)

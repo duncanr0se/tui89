@@ -23,8 +23,8 @@ from asciimatics.screen import Screen
 
 class Scrollbar(Sheet):
 
-    def __init__(self, orientation="vertical", default_pen=None, pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+    def __init__(self, orientation="vertical"):
+        super().__init__()
         # one of {"origin", "terminal"}
         self._highlight = None
         # one of {"horizontal", "vertical"}
@@ -34,14 +34,6 @@ class Scrollbar(Sheet):
         self._slug_offset = None
         self._slug_size = None
         self._viewport = None
-
-    def pen(self):
-        if self._pen is None:
-            self._pen = self.frame().theme("scroll")
-        return self._pen
-
-    def button_click_pen(self):
-        return self.frame().theme("borders")
 
     def render(self):
         pen = self.pen()
@@ -69,7 +61,7 @@ class Scrollbar(Sheet):
         (rw, rh) = self._region
         size = rw if self._orientation == "horizontal" else rh
 
-        button_click_pen = self.button_click_pen()
+        button_click_pen = self.pen("button", "transient", "pen")
 
         if self._highlight == "origin":
             save_pen = pen

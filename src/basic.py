@@ -135,15 +135,22 @@ def demo(screen):
 
     #### "green"
 
-    green_bg = Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_GREEN)
-    green_border = BorderLayout(title="green", style="spacing", default_pen=green_bg)
+    green_bg = Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_GREEN, ' ')
+    # associate the pen with the sheet;
+    #
+    # fixme: the pens being used are not clear any more. The interface
+    # sucks. It's a good job I have intimate knowledge of the
+    # internals, but this is really not satisfactory and needs
+    # reworking.
+    green_border = BorderLayout(title="green", style="spacing")
+    green_border.set_pen(pen=green_bg, role="border", state="default", which="pen")
     child_sheet.add_child(green_border)
     green_vert = VerticalLayout([1, 10])
     menubar = _make_menubar()
     green_border.add_child(green_vert)
     green_vert.add_child(menubar)
 
-    spacer = Sheet(default_pen=frame.theme("focus_edit_text"))
+    spacer = Sheet() #default_pen=frame.theme("focus_edit_text"))
     green_vert.add_child(spacer)
 
     #### "scrolling"
@@ -177,7 +184,7 @@ def demo(screen):
     border4.add_child(viewport)
 
     def draw():
-        pen = frame.theme("selected_focus_control")
+        pen = frame.pen("unspecified", "default", "pen")
         contentpane.display_at((0, 0), "Hello, world!", pen)
         contentpane.display_at((10, 30), "What's the world coming to?", pen)
         contentpane.display_at((100, 60), "Goodbye, cruel world!", pen)

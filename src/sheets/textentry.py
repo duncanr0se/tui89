@@ -34,16 +34,13 @@ from frames.commands import find_command
 class TextEntry(Sheet):
     """Text entry widget."""
 
-    def __init__(self, text="", default_pen=None, pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+    def __init__(self, text=""):
+        super().__init__()
         self._children = []
 #        border = BorderLayout(title=title)
 #        self.add_child(border)
         self._text = text
-        self._default_pen = default_pen
-        self._pen = pen
         self._focus = None
-        self._cursor_pen = None
         # insertion point = where in the text the cursor is
         self._insertion_point = 0
         # text offset = where in the box the text is (relative to 0)
@@ -55,20 +52,6 @@ class TextEntry(Sheet):
         ty = self._transform._dy
         return "TextEntry({}@{},{}: '{}')".format(width, tx, ty, self._text)
 
-    def pen(self):
-        if self.is_focus():
-            self._pen = self.frame().theme("focus_edit_text")
-        else:
-            self._pen = self.frame().theme("edit_text")
-        return self._pen
-
-    def cursor_pen(self):
-        if self._cursor_pen is None:
-            current_pen = self.pen()
-            self._cursor_pen = Pen(current_pen.fg(), Screen.A_REVERSE, current_pen.bg())
-        #return self.frame().theme("focus_edit_text")
-        return self._cursor_pen
-
     def accepts_focus(self):
         return True
 
@@ -79,13 +62,17 @@ class TextEntry(Sheet):
         # arbitrary: assume 20x1 edit field by default
         return SpaceReq(10, 20, FILL, 1, 1, FILL)
 
+    def pen(self, role="editable", state="default", pen="pen"):
+        pen_state = "focus" if self.is_focus() else "default"
+        return super().pen(role=role, state=pen_state, pen=pen)
+
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
 
         display_text = self._text[self._text_offset:self._text_offset+self.width()]
 
-        pen = self.pen()
+        pen = self.pen(role="editable", state="default", pen="pen")
 
         # draw background
         bgpen = Pen(pen.bg(), pen.attr(), pen.bg())
@@ -102,7 +89,8 @@ class TextEntry(Sheet):
             cursor = self._text[self._insertion_point] \
                 if self._insertion_point < len(self._text) \
                    else ' '
-            self.display_at((visual_insertion_pt, 0), cursor, self.cursor_pen())
+            cursor_pen = self.pen(role="editable", state="focus", pen="cursor")
+            self.display_at((visual_insertion_pt, 0), cursor, cursor_pen)
 
         # text entry boxes are leaf panes and don't have any children
         #for child in self._children:

@@ -25,13 +25,14 @@ from dcs.ink import Pen
 
 class Separator(Sheet):
 
-    def __init__(self, style="single", size=None, default_pen=None, pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+    def __init__(self, style="single", size=None):
+        super().__init__()
         self._style = style
         self._size = size
 
     def add_child(self):
         raise RuntimeError("children not allowed")
+
 
 class HorizontalSeparator(Separator):
 
@@ -49,7 +50,7 @@ class HorizontalSeparator(Separator):
     def render(self):
         # todo: label alignment
         # todo: label truncation
-        pen = self.pen()
+        pen = self.pen(role="separator", state="default", pen="pen")
         (w, h) = self._region
         self.move((0, 0))
         self.draw_to((w, 0), HorizontalSeparator._line_chars[self._style], pen)
@@ -76,7 +77,7 @@ class VerticalSeparator(Separator):
     def render(self):
         # todo: label alignment
         # todo: label truncation
-        pen = self.pen()
+        pen = self.pen(role="separator", state="default", pen="pen")
         (w, h) = self._region
         self.move((0, 0))
         self.draw_to((0, h), VerticalSeparator._line_chars[self._style], pen)

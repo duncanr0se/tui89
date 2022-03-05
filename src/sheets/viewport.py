@@ -37,21 +37,16 @@ class Viewport(Sheet):
 
     _scroll_extents = ((0, 0), (1, 1))
 
-    def __init__(self, contentpane, vertical_bar=None, horizontal_bar=None,
-                 default_pen=None, pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+    def __init__(self, contentpane, vertical_bar=None, horizontal_bar=None):
+        super().__init__()
         self._scrolled_sheet = contentpane
         self.add_child(contentpane)
         self._vertical_sb = vertical_bar
         self._horizontal_sb = horizontal_bar
         if self._vertical_sb is not None:
             self._vertical_sb._viewport = self
-            # is this really necessary?
-#            self._vertical_sb._scrolled_sheet = contentpane
         if self._horizontal_sb is not None:
             self._horizontal_sb._viewport = self
-            # is this really necessary?
-#            self._horizontal_sb._scrolled_sheet = contentpane
 
     def __repr__(self):
         (width, height) = self._region

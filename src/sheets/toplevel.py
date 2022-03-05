@@ -17,16 +17,35 @@
 from sheets.sheet import Sheet
 from dcs.ink import Pen
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 class TopLevelSheet(Sheet):
 
-    def __init__(self, default_pen=None, pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+    def __init__(self):
+        super().__init__()
         self._accelerator_to_widget = dict()
         self._frame = None
 
     def __repr__(self):
         (width, height) = self._region
         return "TopLevelSheet({}x{})".format(width, height)
+
+    def pen(self, role="toplevel", state="default", pen="pen"):
+        # default method looks for requested pen but if it can't find
+        # it it passes the query to its parent.
+        spen = None
+        if self._pens is not None:
+            if role in self._pens:
+                if state in self._pens[role]:
+                    if pen in self._pens[role][state]:
+                        spen = self._pens[role][state][pen]
+        # If not found get from frame
+        if spen is None:
+            spen = self.frame().pen(role, state, pen)
+        logger.debug("returning pen for use: %s", spen)
+        return spen
 
     def clear(self, origin, region):
         pen = self.pen()
@@ -36,15 +55,12 @@ class TopLevelSheet(Sheet):
             self._frame._screen.move(x, y + line)
             self._frame._screen.draw(x + w, y + line, u' ', colour=pen.bg(), bg=pen.bg())
 
-    # Return default pen from frame if no initarg
-    def default_pen(self):
-        if self._default_pen is None:
-            return self.frame().default_pen()
-        return super().default_pen()
-
     def display_at(self, coord, text, pen):
         (x, y) = self._transform.apply(coord)
-        self._frame._screen.print_at(text, x, y, colour=pen.fg(), attr=pen.attr(), bg=pen.bg())
+        try:
+            self._frame._screen.print_at(text, x, y, colour=pen.fg(), attr=pen.attr(), bg=pen.bg())
+        except AttributeError:
+            raise AttributeError("error", pen)
 
     def move(self, coord):
         (x, y) = self._transform.apply(coord)

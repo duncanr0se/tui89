@@ -21,7 +21,6 @@ from sheets.separators import Separator
 from sheets.buttons import Button
 from frames.frame import Frame
 from frames.commands import find_command
-from dcs.ink import Pen
 
 # A layout that arranges its children in a row. Each child is
 # packed as closely as possible to its siblings
@@ -34,12 +33,6 @@ class MenubarLayout(Sheet):
             offset += child.width()
             child.layout()
 
-    # override default pen for this sheet and all its children
-    def default_pen(self):
-        if self._default_pen is None:
-            self._default_pen = self.frame().theme("menu")
-        return self._default_pen
-
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
@@ -50,7 +43,7 @@ class MenubarLayout(Sheet):
         (w, h) = self._region
         self.clear((0, 0), self._region)
         self.move((0, 0))
-        self.draw_to((w, 0), ' ', self.pen())
+        self.draw_to((w, 0), ' ', self.pen(role="menubar", state="default", pen="pen"))
         for child in self._children:
             child.render()
 

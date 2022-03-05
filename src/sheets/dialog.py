@@ -31,6 +31,10 @@ from dcs.ink import Pen
 
 from frames.commands import find_command
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 class Dialog(TopLevelSheet):
     """Dialog popup.
 
@@ -41,9 +45,8 @@ class Dialog(TopLevelSheet):
     The box layout contains the dialog content pane and button pane,
     in that order.
     """
-    def __init__(self, title=None, text=None, style="info",
-                 default_pen=None, pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+    def __init__(self, title=None, text=None, style="info"):
+        super().__init__()
         self._children = []
         self._title = title if title is not None else "unnamed"
         self._style = style
@@ -60,9 +63,6 @@ class Dialog(TopLevelSheet):
         self._wrapper.add_child(HorizontalSeparator())
         self._wrapper.add_child(self._make_button_pane())
         self._text = text
-        self._default_pen = default_pen
-        self._pen = pen
-        self._focus = None
 
     def __repr__(self):
         (width, height) = self._region
@@ -103,11 +103,6 @@ class Dialog(TopLevelSheet):
 
             okButton.on_click_callback = callback
             return okButton
-
-    def default_pen(self):
-        if self._default_pen is None:
-             self._default_pen = self.frame().theme(self._style)
-        return self._default_pen
 
     def compose_space(self):
         # make sufficient space for:
@@ -161,6 +156,12 @@ class Dialog(TopLevelSheet):
         calloc_y = min(calloc_y, border_request.y_max())
         border_layout.allocate_space((calloc_x, calloc_y))
 
+    def pen(self, role="toplevel", state="info", pen="pen"):
+        if role == "toplevel":
+            state = self._style
+        logger.debug(f"finding pen: {role}, {state}, {pen}")
+        return super().pen(role=role, state=state, pen=pen)
+
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
@@ -175,15 +176,20 @@ class Dialog(TopLevelSheet):
         self._draw_dropshadow()
 
     def _draw_dropshadow(self):
-        pen = self.frame().theme("shadow")
+        # fixme: shadow pen in toplevel? Or is shadow a role?
+        # fixme: this pen management is really not pleasant.
+        shadow_pen = self.pen(state="default", role="shadow")
+        default_pen = self.pen()
+        shadow_pen = shadow_pen.merge(default_pen)
+        logger.debug("merged shadow pen is %s", shadow_pen)
         (width, height) = self._region
         dropshadow_right = u'█'
         dropshadow_below = u'█'
         self.move((width-1, 1))
-        self.draw_to((width-1, height-1), dropshadow_right, pen)
+        self.draw_to((width-1, height-1), dropshadow_right, shadow_pen)
         # x is not included when using "draw" but is when using
         # "print_at". Maybe that's as it should be?
-        self.draw_to((1, height-1), dropshadow_below, pen)
+        self.draw_to((1, height-1), dropshadow_below, shadow_pen)
 
     # events - top level sheets don't pass event on to a parent,
     # instead they return False to indicate the event is not handled

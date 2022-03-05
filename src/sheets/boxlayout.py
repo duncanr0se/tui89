@@ -61,8 +61,8 @@ class BoxLayout(Sheet):
     # FIXME: if anything needs unit tests, it's probably the above!
     #_portions = None
 
-    def __init__(self, portions, default_pen=None, pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+    def __init__(self, portions):
+        super().__init__()
         self._portions = portions
 
     def major_size_component(self, sheet):
@@ -183,6 +183,7 @@ class BoxLayout(Sheet):
         # choose to do so if they need to but most will fill their
         # region anyway and they can rely on empty space being the
         # default background colour.
+        # fixme: which pen to use for clearing the region?
         self.clear((0, 0), self._region)
         for child in self._children:
             child.render()

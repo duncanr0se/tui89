@@ -31,16 +31,13 @@ from asciimatics.screen import Screen
 # width necessary to provide its children with the width they request.
 class MenuBox(TopLevelSheet):
 
-    def __init__(self, default_pen=None, pen=None):
-        super().__init__(default_pen=default_pen, pen=pen)
+    def __init__(self):
+        super().__init__()
         self._children = []
         self._border = BorderLayout(style="single")
         self.add_child(self._border)
         self._item_pane = ListLayout()
         self._border.add_child(self._item_pane)
-        self._default_pen=default_pen
-        self._pen=pen
-#        self._focus = None
 
     def __repr__(self):
         return "MenuBox({} entries)".format(len(self._item_pane._children))
@@ -49,12 +46,6 @@ class MenuBox(TopLevelSheet):
         for child in self._children:
             child.move_to((0, 0))
             child.layout()
-
-    # Set default pen for self and children
-    def default_pen(self):
-        if self._default_pen is None:
-            self._default_pen = self.frame().theme("menu")
-        return self._default_pen
 
     def render(self):
         if not self._region:
