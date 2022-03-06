@@ -81,6 +81,26 @@ class TextArea(TextEntry):
         # in the x axis, and _text_line indicates where it is
         # positioned in the y axis.
         #
+        #         +---------------+
+        #  |Here is some text.    |
+        #  |Another line of text but this is longer
+        #         |^             ^|
+        #  |<    >| `disply text' |
+        # text offset             |
+        #         |<  self.width >|
+        #
+        # _insertion_line = index into self._lines of the line
+        # containing the cursor
+        #
+        # _insertion_point = index into line where cursor is
+        # positioned
+        #
+        # _text_offset = start of visible portion of line
+        #
+        # _text_line = index into self._lines of the line that is
+        # displayed first in the text area, i.e., the line at the top
+        # of the text area visual.
+        #
         # Do this calculation for each line
         for line in range(self._text_line, self._text_line + self.height()):
             if line >= len(self._lines):
