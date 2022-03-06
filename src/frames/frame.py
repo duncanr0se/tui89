@@ -132,10 +132,12 @@ class Frame():
         },
         "editable": {
             "default": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLUE, ' ')
+                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLUE, ' '),
+                "area_pen": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_BLUE, ' ')
             },
             "focus": {
                 "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN, ' '),
+                "area_pen": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN, ' '),
                 "cursor": Pen(Screen.COLOUR_YELLOW, Screen.A_REVERSE, Screen.COLOUR_BLUE, ' ')
             }
         },

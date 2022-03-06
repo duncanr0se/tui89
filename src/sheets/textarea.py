@@ -70,7 +70,7 @@ class TextArea(TextEntry):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
 
-        pen = self.pen(role="editable", state="default", pen="pen")
+        pen = self.pen(role="editable", state="default", pen="area_pen")
 
         # draw background
         self.clear((0, 0), (self.width(), self.height()))
