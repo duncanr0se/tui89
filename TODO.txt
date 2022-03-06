@@ -110,9 +110,6 @@ should be FILL rather than an explicit preferred size. Some layouts /
 parents will want the widgets to take all available space, and some
 won't. Also - spacing / padding / null sheets to take excess space.
 
-Separators should fill all their allocated space with their bg colour
-and be drawn in the center of this region.
-
 Decorated button sizes are not calculated properly. should be room for "top border"
 + "button" + "drop shadow", no need for bottom border.
 

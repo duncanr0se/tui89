@@ -33,6 +33,14 @@ class Separator(Sheet):
     def add_child(self):
         raise RuntimeError("children not allowed")
 
+    def pen(self, role="undefined", state="default", pen="pen"):
+        if role == "undefined":
+            role = "border"
+        return super().pen(role=role, state=state, pen=pen)
+
+    def center(self, size):
+        return max(size // 2, 0)
+
 
 class HorizontalSeparator(Separator):
 
@@ -48,18 +56,17 @@ class HorizontalSeparator(Separator):
 
     # drawing / redisplay
     def render(self):
-        # todo: label alignment
-        # todo: label truncation
-        # fixme: split fg/bg and do better inheritance of bg
-        pen = self.pen(role="border", state="default", pen="pen")
+        pen = self.pen()
         (w, h) = self._region
-        self.move((0, 0))
-        self.draw_to((w, 0), HorizontalSeparator._line_chars[self._style], pen)
+        self.clear((0, 0), (w, h))
+        y = self.center(h-1)
+        self.move((0, y))
+        self.draw_to((w, y), HorizontalSeparator._line_chars[self._style], pen)
 
     # layout
     def compose_space(self):
         length = FILL if self._size is None else self._size
-        return SpaceReq(1, length, FILL, 1, 1, 1)
+        return SpaceReq(1, length, FILL, 1, 1, FILL)
 
 
 class VerticalSeparator(Separator):
@@ -76,17 +83,16 @@ class VerticalSeparator(Separator):
 
     # drawing / redisplay
     def render(self):
-        # todo: label alignment
-        # todo: label truncation
-        # fixme: split fg/bg and do better inheritance of bg
-        pen = self.pen(role="border", state="default", pen="pen")
+        pen = self.pen()
         (w, h) = self._region
-        self.move((0, 0))
-        self.draw_to((0, h), VerticalSeparator._line_chars[self._style], pen)
+        self.clear((0, 0), (w, h))
+        x = self.center(w-1)
+        self.move((x, 0))
+        self.draw_to((x, h), VerticalSeparator._line_chars[self._style], pen)
 
     # layout
     def compose_space(self):
         # Prefer enough room for the label. Can take as much room as offered.
         # Can shrink to 0 although that's probably not useful...
         length = FILL if self._size is None else self._size
-        return SpaceReq(1, 1, 1, 1, length, FILL)
+        return SpaceReq(1, 1, FILL, 1, length, FILL)

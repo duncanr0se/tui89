@@ -126,20 +126,19 @@ class Frame():
                 "accelerator": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
             }
         },
+        "editable": {
+            "default": {
+                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLUE, ' ')
+            },
+            "focus": {
+                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN, ' '),
+                "cursor": Pen(Screen.COLOUR_YELLOW, Screen.A_REVERSE, Screen.COLOUR_BLUE, ' ')
+            }
+        },
         "label": {
             "default": {
                 "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' '),
                 "accelerator": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
-            }
-        },
-        "undefined": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_GREEN, Screen.A_BOLD, Screen.COLOUR_YELLOW, 'X')
-            }
-        },
-        "shadow": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, None, ' ')
             }
         },
         "menubar": {
@@ -167,13 +166,14 @@ class Frame():
                 "pen": Pen(Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_MAGENTA, ' ')
             }
         },
-        "editable": {
+        "undefined": {
             "default": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLUE, ' ')
-            },
-            "focus": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN, ' '),
-                "cursor": Pen(Screen.COLOUR_YELLOW, Screen.A_REVERSE, Screen.COLOUR_BLUE, ' ')
+                "pen": Pen(Screen.COLOUR_GREEN, Screen.A_BOLD, Screen.COLOUR_YELLOW, 'X')
+            }
+        },
+        "shadow": {
+            "default": {
+                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, None, ' ')
             }
         },
         "scroll": {
