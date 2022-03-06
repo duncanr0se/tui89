@@ -66,7 +66,7 @@ def demo(screen):
     oneb = BorderLayout(title="buttons", style="single")
     child_sheet.add_child(oneb)
 
-    one = VerticalLayout([(7, "%"), (7, "%"), (56, "%"), 1, 1])
+    one = VerticalLayout([(7, "%"), (7, "%"), (30, "%"), (26, "%"), 1, 1])
     oneb.add_child(one)
 
     button = Button(label="Pancakes!", decorated=True)
@@ -78,6 +78,14 @@ def demo(screen):
     # called when one of the dialog buttons is pushed
     button.on_click_callback = _make_yesno_callback()
     one.add_child(button)
+
+    # "button box"
+    buttonbox = ListLayout(role="buttonbox")
+    boxradio1 = RadioButton(label="Red")
+    boxradio2 = RadioButton(label="Green")
+    boxradio3 = RadioButton(label="Blue")
+    buttonbox.set_children([boxradio1, boxradio2, boxradio3])
+    one.add_child(buttonbox)
 
     one.add_child(RadioButton(label="Radio1", decorated=False))
     one.add_child(RadioButton(label="Radio2", decorated=False))

@@ -58,12 +58,20 @@ widgets that could be useful.
 
 *. menu bar / box from command table
 
+*. identifying usages of ALT modifier
+
 
 USABILITY
 =========
 No part of scroll bars should take focus - I think
 
 Widgets (and dialogs) should have a "value" that can be queried.
+
+Dialogs are only pseudo-modal; can't interact with other components
+whilst popup is up but they are still receiving events and
+running. Work out how to get values out of a dialog box in this case;
+it's easy when they block. So either make them block (how?) or work
+out how to deal with async results.
 
 Text edit components should support select, cut, paste
 
@@ -101,6 +109,9 @@ Widgets need a "fill" initarg to indicate if their preferred size
 should be FILL rather than an explicit preferred size. Some layouts /
 parents will want the widgets to take all available space, and some
 won't. Also - spacing / padding / null sheets to take excess space.
+
+Separators should fill all their allocated space with their bg colour
+and be drawn in the center of this region.
 
 Decorated button sizes are not calculated properly. should be room for "top border"
 + "button" + "drop shadow", no need for bottom border.
