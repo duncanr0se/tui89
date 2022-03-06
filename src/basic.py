@@ -233,6 +233,13 @@ def _make_dialog_callback():
         # render(). Perhaps the dialog layout should happen in
         # lay_out_frame()? Maybe it's independent.
         button.frame().show_dialog(dialog)
+        # get error before dialog is on screen. So not really modal...
+        #
+        # not sure what I was expecting; but need to work out how to
+        # make use of dialogs as they are and get values back out of
+        # them. I always had trouble with the async stuff :/
+        #
+        #raise RuntimeError("back from show_dialog")
 
     return btn_cb
 

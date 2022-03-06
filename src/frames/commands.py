@@ -255,6 +255,15 @@ def populate_textentry():
     keycode = Screen.ctrl("j")
     register_command([keycode], Command("eat nl", _nop), command_table="textentry")
 
+    # NEXT FOCUS
+    def _find_next_focus(entry):
+        focus_updated = entry.frame().cycle_focus_forward()
+        return True
+
+    keycode = Screen.KEY_ESCAPE
+    register_command([keycode], Command("next focus", _find_next_focus),
+                     command_table="textentry")
+
     # PRINTING CHAR - insert char; implemented in widget itself
     pass
 
