@@ -44,7 +44,7 @@ class MenuBox(TopLevelSheet):
 
     def pen(self, role="menubox", state="default", pen="pen"):
         if role == "undefined":
-            role, state, pen = "menubox", "default", "pen"
+            role = "menubox"
         # override border colours
         if role == "border":
             role, state, pen = "menubox", "border", "pen"

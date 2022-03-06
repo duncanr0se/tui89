@@ -241,9 +241,11 @@ class Button(Sheet):
             self.move((left+1, bottom+1))
             self.draw_to((right+1, bottom+1), dropshadow_below, pen)
 
-    def pen(self, role="button", state="default", pen="pen"):
-        # force role of "button" always - this will force labels to be
-        # drawn with the fg/bg specified for the button role.
+    def pen(self, role="undefined", state="default", pen="pen"):
+        if role == "undefined":
+            role = "button"
+        # force role of "button" on labels - this will force labels to
+        # be drawn with the fg/bg specified for the button role.
         if role == "label":
             role = "button"
 
@@ -420,8 +422,21 @@ class MenuButton(Button):
                          decorated=decorated)
         self._menubox = None
 
-    def pen(self, role="menubutton", state="default", pen="pen"):
-        return super().pen(role="menubutton", state=state, pen=pen)
+    def pen(self, role="undefined", state="default", pen="pen"):
+        # FIXME: Ugh, this isn't how pen composition / inheritance is
+        # supposed to work... find a better way.
+        # Problem is that there are 2 roles involved here; one for the
+        # button and another for the label. Perhaps the parent of the
+        # label needs to be able to set a role for its label child?
+        # Note that for menubuttons they only ever have a single child
+        # (the label) and if the button "pen" method didn't force
+        # labels to be buttons it would all work fine. Perhaps that
+        # should be done through states? Or pens? In any case in this
+        # example everything works if role is always hard-coded to
+        # "menubutton".
+        # if role == "undefined" or role == "button" or role == "label":
+        role = "menubutton"
+        return super().pen(role=role, state=state, pen=pen)
 
     def set_menu_box(self, menubox):
         self._menubox = menubox

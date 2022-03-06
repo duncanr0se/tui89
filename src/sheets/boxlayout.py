@@ -168,10 +168,6 @@ class BoxLayout(Sheet):
             offset += self.major_size_component(child)
             child.layout()
 
-    def pen(self, role="undefined", state="undefined", pen="undefined"):
-        drawing_pen = super().pen(role, state, pen)
-        return drawing_pen
-
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")

@@ -156,17 +156,13 @@ class Dialog(TopLevelSheet):
         calloc_y = min(calloc_y, border_request.y_max())
         border_layout.allocate_space((calloc_x, calloc_y))
 
-    def pen(self, role="toplevel", state="info", pen="pen"):
-        # FIXME: Ugh! pens need to find a way to compose better!
+    def pen(self, role="undefined", state="info", pen="pen"):
+        if role == "undefined":
+            role = "toplevel"
 
-        # FIXME: It would be better if "transparent" widgets took
-        # their background from their parent and just set the
-        # foreground. Could indicate this happen using partial pens
-        # maybe?
-        # FIXME: need same fix for separators.
-        # FIXME: maybe role should be "decoration"
         if role == "toplevel" or role == "border":
             state = self._style
+
         logger.debug(f"finding pen: {role}, {state}, {pen}")
         return super().pen(role=role, state=state, pen=pen)
 

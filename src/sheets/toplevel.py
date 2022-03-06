@@ -32,7 +32,9 @@ class TopLevelSheet(Sheet):
         (width, height) = self._region
         return "TopLevelSheet({}x{})".format(width, height)
 
-    def pen(self, role="toplevel", state="default", pen="pen"):
+    def pen(self, role="undefined", state="default", pen="pen"):
+        if role == "undefined":
+            role = "toplevel"
         # default method looks for requested pen but if it can't find
         # it it passes the query to its parent.
         spen = None

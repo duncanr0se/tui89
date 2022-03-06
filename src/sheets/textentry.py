@@ -62,9 +62,11 @@ class TextEntry(Sheet):
         # arbitrary: assume 20x1 edit field by default
         return SpaceReq(10, 20, FILL, 1, 1, FILL)
 
-    def pen(self, role="editable", state="default", pen="pen"):
-        pen_state = "focus" if self.is_focus() else "default"
-        return super().pen(role=role, state=pen_state, pen=pen)
+    def pen(self, role="undefined", state="default", pen="pen"):
+        if role == "undefined":
+            role = "editable"
+        state = "focus" if self.is_focus() else state
+        return super().pen(role=role, state=state, pen=pen)
 
     def render(self):
         if not self._region:

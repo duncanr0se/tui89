@@ -217,17 +217,11 @@ class BorderLayout(Sheet):
         }
     }
 
-    def pen(self, role="border", state="default", pen="pen"):
+    def pen(self, role="undefined", state="default", pen="pen"):
         # use defaults for sheet, if there are any
         if role == "undefined":
-            # child has basically asked the parent to use the parent
-            # colours
-
-            # FIXME: not sure this is a good thing to do. Must be able
-            # to do this better...
-            role, state, pen = "border", "default", "pen"
+            role = "border"
         drawing_pen = super().pen(role=role, state=state, pen=pen)
-        logger.debug("border pen returning %s", drawing_pen)
         return drawing_pen
 
     def _draw_border(self):

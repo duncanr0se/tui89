@@ -68,7 +68,7 @@ class Sheet():
     #
     # Delegate to top-level-sheet for colourscheme if nothing
     # specified
-    def pen(self, role="toplevel", state="default", pen="pen"):
+    def pen(self, role="undefined", state="default", pen="pen"):
         if self._pens is None:
             return self._parent.pen(role=role, state=state, pen=pen)
         # default method looks for requested pen but if it can't find
