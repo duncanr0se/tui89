@@ -267,6 +267,81 @@ def populate_textentry():
     # PRINTING CHAR - insert char; implemented in widget itself
     pass
 
+
+# FIXME: textarea + textentry command tables are almost
+# identical. Implement command table inheritance to reduce
+# duplication.
+
+### Commands on text entry boxes
+def populate_textarea():
+    # CTRL-A, HOME - start of line
+    def _start_of_line(entry):
+        return entry.move_start()
+    keycode = [Screen.KEY_HOME, Screen.ctrl("a")]
+    register_command(keycode, Command("move start", _start_of_line), command_table="textarea")
+
+    # CTRL-E, END - end of line
+    def _end_of_line(entry):
+        return entry.move_end()
+    keycode = [Screen.KEY_END, Screen.ctrl("e")]
+    register_command(keycode, Command("move end", _end_of_line), command_table="textarea")
+
+    # CTRL-F, KEY_RIGHT - forward 1 char
+    def _forward(entry):
+        return entry.move_forward()
+    keycode = [Screen.KEY_RIGHT, Screen.ctrl("f")]
+    register_command(keycode, Command("forward", _forward), command_table="textarea")
+
+    # CTRL-B, KEY_LEFT - backward 1 char
+    def _backward(entry):
+        return entry.move_backward()
+    keycode = [Screen.KEY_LEFT, Screen.ctrl("b")]
+    register_command(keycode, Command("backward", _backward), command_table="textarea")
+
+    # CTRL-N, KEY_DOWN - down 1 line
+    def _down(entry):
+        return entry.move_down()
+    keycode = [Screen.KEY_DOWN, Screen.ctrl("n")]
+    register_command(keycode, Command("down", _down), command_table="textarea")
+
+    # CTRL-P, KEY_UP - up 1 line
+    def _up(entry):
+        return entry.move_up()
+    keycode = [Screen.KEY_UP, Screen.ctrl("p")]
+    register_command(keycode, Command("up", _up), command_table="textarea")
+
+    # FIXME: PG_UP/PG_DOWN?
+
+    # CTRL-D, DELETE - delete forward
+    def _delete(entry):
+        return entry.delete()
+    keycode = [Screen.ctrl("d"), Screen.KEY_DELETE]
+    register_command(keycode, Command("delete", _delete), command_table="textarea")
+
+    # BACKSPACE - delete backward
+    def _backspace(entry):
+        return entry.backspace()
+    keycode = Screen.KEY_BACK
+    register_command([keycode], Command("backspace", _backspace), command_table="textarea")
+
+    # NEWLINE - silently ignore
+    def _open_below(entry):
+        return entry.open_below()
+    keycode = Screen.ctrl("j")
+    register_command([keycode], Command("open below", _open_below), command_table="textarea")
+
+    # NEXT FOCUS
+    def _find_next_focus(entry):
+        focus_updated = entry.frame().cycle_focus_forward()
+        return True
+
+    keycode = Screen.KEY_ESCAPE
+    register_command([keycode], Command("next focus", _find_next_focus),
+                     command_table="textarea")
+
+    # PRINTING CHAR - insert char; implemented in widget itself
+    pass
+
 #
 # actually populate the command tables.
 #
@@ -276,6 +351,7 @@ populate_dialog()
 populate_button()
 populate_menubar()
 populate_textentry()
+populate_textarea()
 
 # when a new TOP LEVEL SHEET type is displayed, it needs to identify
 # the FOCUS WIDGET. Until that TOP LEVEL SHEET is closed (or

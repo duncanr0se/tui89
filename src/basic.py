@@ -34,6 +34,7 @@ from sheets.listlayout import ListLayout
 from sheets.menubar import MenubarLayout
 from sheets.menubox import MenuBox
 from sheets.textentry import TextEntry
+from sheets.textarea import TextArea
 
 from dcs.ink import Pen
 
@@ -140,6 +141,13 @@ def demo(screen):
     label = Label("Text entry:", label_widget=entry)
     row8.add_child(label)
     row8.add_child(entry)
+
+    row9 = HorizontalLayout([])
+    listlayout.add_child(row9)
+    area = TextArea(lines=6)
+    label = Label("Text Area:", label_widget = area, valign="center")
+    row9.add_child(label)
+    row9.add_child(area)
 
     #### "green"
 

@@ -124,6 +124,10 @@ class Frame():
             "default": {
                 "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_CYAN, ' '),
                 "accelerator": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
+            },
+            "focus": {
+                # fixme: button should take full width of container
+                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_GREEN, ' '),
             }
         },
         "editable": {

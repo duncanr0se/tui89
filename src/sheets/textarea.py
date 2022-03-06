@@ -30,76 +30,87 @@ from sheets.separators import HorizontalSeparator
 from dcs.ink import Pen
 
 from frames.commands import find_command
+from sheets.textentry import TextEntry
 
-class TextEntry(Sheet):
-    """Text entry widget."""
+# This is a TextEntry subtype
+class TextArea(TextEntry):
+    """Text area widget."""
 
-    def __init__(self, text=""):
+    def __init__(self, text=[], lines=10):
         super().__init__()
         self._children = []
-        self._text = text
+#        border = BorderLayout(title=title)
+#        self.add_child(border)
+        # lines are a ordered list of lines
+        self._lines = text
+        if len(self._lines) == 0:
+            self._lines.append("")
+        # How many lines to display in the text area
+        self._visible_lines = lines
         # insertion point = where in the text the cursor is
         self._insertion_point = 0
-        # text offset = where in the box the text is (relative to 0)
+        # insertion point = which line in the text contains the cursor
+        self._insertion_line = 0
+        # text offset = where on the x-axis the text is (relative to 0)
         self._text_offset = 0
+        # text_line = which line of text the cursor is on (relative to 0)
+        self._text_line = 0
 
     def __repr__(self):
         (width, height) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "TextEntry({}@{},{}: '{}')".format(width, tx, ty, self._text)
-
-    def accepts_focus(self):
-        return True
-
-    def is_focus(self):
-        return self.frame()._focus == self
+        return "TextArea({}@{},{})".format(width, tx, ty)
 
     def compose_space(self):
-        # arbitrary: assume 20x1 edit field by default
-        return SpaceReq(10, 20, FILL, 1, 1, FILL)
-
-    def pen(self, role="undefined", state="default", pen="pen"):
-        if role == "undefined":
-            role = "editable"
-        state = "focus" if self.is_focus() else state
-        return super().pen(role=role, state=state, pen=pen)
+        # arbitrary: assume 20xlines edit field by default
+        return SpaceReq(10, 20, FILL, 1, self._visible_lines, FILL)
 
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
 
-        display_text = self._text[self._text_offset:self._text_offset+self.width()]
-
         pen = self.pen(role="editable", state="default", pen="pen")
 
         # draw background
-        bgpen = Pen(pen.bg(), pen.attr(), pen.bg())
-        self.display_at((0, 0), ' ' * self.width(), bgpen)
+        self.clear((0, 0), (self.width(), self.height()))
 
         # draw text
-        self.display_at((0, 0), display_text, pen)
+        #
+        # Need 2 values; _text_offset is where the text is positioned
+        # in the x axis, and _text_line indicates where it is
+        # positioned in the y axis.
+        #
+        # Do this calculation for each line
+        for line in range(self._text_line, self._text_line + self.height()):
+            if line >= len(self._lines):
+                break
+            display_text = self._lines[line]
+            display_text = display_text[self._text_offset:self._text_offset+self.width()]
+            self.display_at((0, line-self._text_line), display_text, pen)
 
         # draw cursor if focus
         if self.is_focus():
-            visual_insertion_pt = self._insertion_point-self._text_offset
+            line = self._lines[self._insertion_line]
+            # adjust x cursor point if insertion_point>line length;
+            # cursor is drawn at end of line, but don't adjust
+            # insertion point in case continue navigating up/down.
+            cursor_pos = min(self._insertion_point, len(line))
+            insertion_pt_x = cursor_pos-self._text_offset
+            insertion_pt_y = self._insertion_line-self._text_line
             # draw character under cursor or space for cursor using an
             # inverted pen
-            cursor = self._text[self._insertion_point] \
-                if self._insertion_point < len(self._text) \
+            cursor = line[cursor_pos] \
+                if cursor_pos < len(line) \
                    else ' '
             cursor_pen = self.pen(role="editable", state="focus", pen="cursor")
-            self.display_at((visual_insertion_pt, 0), cursor, cursor_pen)
-
-        # text entry boxes are leaf panes and don't have any children
-        #for child in self._children:
-        #    child.render()
+            self.display_at((insertion_pt_x, insertion_pt_y), cursor, cursor_pen)
 
     # events - top level sheets don't pass event on to a parent,
     # instead they return False to indicate the event is not handled
     # and expect the Frame to take any further necessary action
     def handle_key_event(self, key_event):
-        command = find_command(key_event, command_table="textentry")
+        command = find_command(key_event, command_table="textarea")
         if command is not None:
             result = command.apply(self)
             self.invalidate()
@@ -120,8 +131,12 @@ class TextEntry(Sheet):
         # CTRL+KEY_UP (up paragraph)
         # CTRL+KEY_DOWN (down paragraph)
 
-        pos = self._insertion_point
-        self._text = self._text[:pos] + chr(key_event.key_code) + self._text[pos:]
+        line = self._lines[self._insertion_line]
+        # adjust pos if insertion point > line length. This happens
+        # from up/down motion to lines shorter than the original line
+        pos = min(self._insertion_point, len(line))
+        line = line[:pos] + chr(key_event.key_code) + line[pos:]
+        self._lines[self._insertion_line] = line
         self.move_forward()
         self.invalidate()
         return True
@@ -146,12 +161,14 @@ class TextEntry(Sheet):
         return True
 
     def move_end(self):
-        self._insertion_point = len(self._text)
-        self._text_offset = max(len(self._text)-self.width()+1, 0)
+        line = self._lines[self._insertion_line]
+        self._insertion_point = len(line)
+        self._text_offset = max(len(line)-self.width()+1, 0)
         return True
 
     def move_forward(self):
-        self._insertion_point = min(self._insertion_point+1, len(self._text))
+        line = self._lines[self._insertion_line]
+        self._insertion_point = min(self._insertion_point+1, len(line))
         if self._insertion_point-self._text_offset >= self.width():
             self._text_offset += 1
         return True
@@ -162,13 +179,37 @@ class TextEntry(Sheet):
             self._text_offset -= 1
         return True
 
+    def move_up(self):
+        # vertical movement does not affect the insertion point
+        self._insertion_line = max(self._insertion_line-1, 0)
+        if self._insertion_line < self._text_line:
+            self._text_line -= 1
+        return True
+
+    def move_down(self):
+        # vertical movement does not affect the insertion point
+        self._insertion_line = min(self._insertion_line+1, len(self._lines)-1)
+        if self._insertion_line-self._text_line >= self.height():
+            self._text_line += 1
+        return True
+
+    def open_below(self):
+        self._lines.insert(self._insertion_line+1, "")
+        self.move_down()
+        self.move_start()
+        return True
+
     def delete(self):
-        if self._insertion_point < len(self._text):
-            self._text = self._text[:self._insertion_point] + self._text[self._insertion_point+1:]
+        line = self._lines[self._insertion_line]
+        if self._insertion_point < len(line):
+            line = line[:self._insertion_point] + line[self._insertion_point+1:]
+            self._lines[self._insertion_line] = line
         return True
 
     def backspace(self):
+        line = self._lines[self._insertion_line]
         if self._insertion_point > 0:
-            self._text = self._text[:self._insertion_point-1] + self._text[self._insertion_point:]
+            line = line[:self._insertion_point-1] + line[self._insertion_point:]
+            self._lines[self._insertion_line] = line
             self.move_backward()
         return True
