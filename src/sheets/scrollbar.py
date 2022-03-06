@@ -35,6 +35,14 @@ class Scrollbar(Sheet):
         self._slug_size = None
         self._viewport = None
 
+    def pen(self, role="undefined", state="default", pen="pen"):
+        # By default draw in "scroll" colours - do this way for all
+        # widgets by default. These colours can be intercepted by
+        # parents if necessary.
+        if role == "undefined":
+            role = "scroll"
+        return super().pen(role=role, state=state, pen=pen)
+
     def render(self):
         pen = self.pen()
         # could make all these parts individual sheets, but
@@ -49,10 +57,10 @@ class Scrollbar(Sheet):
         arrow_right = u'▶'
         arrow_up = u'▲'
         arrow_down = u'▼'
-        trough = u'▓'
+        trough = u'░'
         slug = u'█'
 
-        # u'█' | u'░'
+        # u'█' | u'░' | u'▓'
 
         # draw "origin arrow". Bars go from top to bottom, and
         # from left to right
@@ -74,6 +82,8 @@ class Scrollbar(Sheet):
         if self._orientation == "horizontal":
             self.move((1, 0))
             self.draw_to((size-1, 0), trough, pen)
+            # "terminal" = left button (horiz bar) or top button (vert
+            # bar)
             if self._highlight == "terminal":
                 save_pen = pen
                 pen = button_click_pen

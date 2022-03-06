@@ -67,9 +67,6 @@ Widgets (and dialogs) should have a "value" that can be queried.
 
 Text edit components should support select, cut, paste
 
-Expand inks so can paint a background in a fg/bg colour and using a
-specific character for the bg.
-
 Scroll up / down / left / right line / page commands on
 viewport. Might not be too easy to do if arrows already used to
 navigating between widgets... could change navigate to just use TAB
@@ -85,8 +82,15 @@ with by the frame that select menu bar items without associated popup
 menus are not given focus - they likely should do ("activate" on
 button needs to set focus if button is not already focus)
 
+Menubox / button highlighting is not right; button does not fill the
+listbox.
+
 Scrollbars pass float "draw to" coordinates; ensure scrollbar uses
 floor or ceil and converts to appropriate ints.
+
+Scrollbar extents not quite right; max extent not always reached when
+at max scroll offset, max extent sometimes reached when not at max
+scroll offset.
 
 Background colour selection for "transparent" widgets isn't
 implemented well. Probably need fg pens and default bg pens.
@@ -106,8 +110,22 @@ should be FILL rather than an explicit preferred size. Some layouts /
 parents will want the widgets to take all available space, and some
 won't. Also - spacing / padding / null sheets to take excess space.
 
-Decorated buttons are not tall enough; should be room for "top border"
-+ "button" + "drop shadow" + "bottom border". Currently there isn't.
+Decorated button sizes are not calculated properly. should be room for "top border"
++ "button" + "drop shadow", no need for bottom border.
+
+  v                 v
+ |0|1|2|3|4|5|6|7|8|9|0|
+ |<---   width   --->|
+
+L=0 (incl), W=10 (incl), R=10 (excl)
+
+width = (r-l)+1
+height = (b-t)+1
+
+Decide if region is x,y + w,h or l,t,r,b. Either works but need to be
+consistent.
+
+Migrate everything to LTRBs.
 
 
 VISUAL FEEDBACK
@@ -119,16 +137,13 @@ GENERAL / CODING
 ================
 DIFFERENT TYPES OF BORDERS
 
-DOCUMENTATION - write some
+DOCUMENTATION - write some (more)
 
 USE THE SHEET TYPES ALREADY PRESENT TO BUILD CONTROLS OUT OF; E.G.,
 SCROLLBAR BUTTONS SHOULD BE BUTTONS, PADDING SHOULD BE BORDER PANE,
 ETC.
 In order to implement this for scroll bar buttons at least, the button
 labels must be able to shrink to 1x1
-
-BORDERLAYOUT CLEAR METHOD ISN'T SETTING BACKGROUND COLOUR PROPERLY
-(SEE "green" BORDER IN BASIC.PY)
 
 Unit tests, documentation, project setup.
 
@@ -137,8 +152,6 @@ that holds the text instead.
 
 Rename "get_screen_transform()" + apply transform pair into something
 like "convert_to_screen_coordinate"?
-
-Migrate everything to LTRBs.
 
 If label shrinks too much it gives up trying to display in a reduced
 space. Should either prevent resize below the minimum space, or allow

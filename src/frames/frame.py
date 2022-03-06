@@ -169,6 +169,12 @@ class Frame():
                 "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN, ' '),
                 "cursor": Pen(Screen.COLOUR_YELLOW, Screen.A_REVERSE, Screen.COLOUR_BLUE, ' ')
             }
+        },
+        "scroll": {
+            "default": {
+                "pen": Pen(Screen.COLOUR_CYAN, Screen.A_REVERSE, Screen.COLOUR_BLUE, ' ')
+                # "pen": Pen(Screen.COLOUR_CYAN, Screen.A_BOLD, Screen.COLOUR_BLUE, ' ')
+            }
         }
     }
 
