@@ -35,6 +35,7 @@ class Label(Sheet):
     def __init__(self,
                  label_text="",
                  align=None,
+                 valign=None,
                  label_widget=None):
         super().__init__()
         self._accelerator_char = None
@@ -50,6 +51,7 @@ class Label(Sheet):
         # as a button click, for text entry widgets it sets the focus
         # in the widget.
         self._label_widget = label_widget
+        self._valign = valign
 
     def __repr__(self):
         (width, height) = self._region
@@ -67,9 +69,10 @@ class Label(Sheet):
             if self._label_widget.is_focus():
                 state="focus"
         pen = self.pen(role="label", state=state, pen="pen")
-        # fixme: paint background, decide where label should be if height>1
+        # fixme: decide where label should be if height>1
+        self._draw_background(pen)
         display_text = self.truncate_text_to_width(self._label_text, self.width())
-        coord = (self.line_offset(self._align, display_text, self.width()), 0)
+        coord = (self._x_align_offset(display_text), self._y_align_offset())
         self.display_at(coord, display_text, pen)
         # overwrite accelerator (if present ofc) in accelerator colour scheme
         if self._label_widget is not None:
@@ -80,9 +83,25 @@ class Label(Sheet):
                                                                     accel_char)
                 if accelerator_index >= 0:
                     accelerator_pen = self.pen(role="label", state="default", pen="accelerator")
-                    (x, _) = coord
-                    self.display_at((x+accelerator_index, 0),
+                    (x, y) = coord
+                    self.display_at((x+accelerator_index, y),
                                     accel_char, accelerator_pen)
+
+    def _x_align_offset(self, text):
+        return self.line_offset(self._align, text, self.width())
+
+    def _y_align_offset(self):
+        # assumes labels are all single line
+        if self._valign == "top" or self._valign is None:
+            return 0
+        if self._valign in {"center", "centre"}:
+            return max((self.height()-1) // 2, 0)
+        else:
+            return max(self.height()-1, 0)
+
+    def _draw_background(self, pen):
+        (w, h) = self._region
+        self.clear((0, 0), self._region, pen)
 
     def _find_index_of_accelerator(self, display_text, accel_char):
         return display_text.find(accel_char)

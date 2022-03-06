@@ -72,11 +72,6 @@ viewport. Might not be too easy to do if arrows already used to
 navigating between widgets... could change navigate to just use TAB
 and SHIFT+TAB then could use arrow keys for scrolling.
 
-"ESC" in text entry widgets should move the focus off the entry so
-that keyboard nav can be used without the entry capturing the input
-(i.e., ESC should act as TAB does in entry widgets). This wouldn't be
-necessary if could use ALT to indicate acccelerator usage :/
-
 Menubar event handling not right - in particular accelerators dealt
 with by the frame that select menu bar items without associated popup
 menus are not given focus - they likely should do ("activate" on
@@ -92,10 +87,7 @@ Scrollbar extents not quite right; max extent not always reached when
 at max scroll offset, max extent sometimes reached when not at max
 scroll offset.
 
-Background colour selection for "transparent" widgets isn't
-implemented well. Probably need fg pens and default bg pens.
-At least document how the "pen" stuff fits together (or doesn't). Even
-just for personal rememberance since I'm already forgetting it.
+Document how pens work.
 
 
 LAYOUT IMPROVEMENTS

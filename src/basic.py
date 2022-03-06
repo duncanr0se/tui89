@@ -102,7 +102,7 @@ def demo(screen):
 
     row3 = HorizontalLayout([])
     listlayout.add_child(row3)
-    row3.add_child(Label("VSeparator:"))
+    row3.add_child(Label("VSeparator:", valign="center"))
     row3.add_child(VerticalSeparator(style="double", size=8))
 
     row4 = HorizontalLayout([])

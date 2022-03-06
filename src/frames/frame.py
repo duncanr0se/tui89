@@ -173,7 +173,6 @@ class Frame():
         "scroll": {
             "default": {
                 "pen": Pen(Screen.COLOUR_CYAN, Screen.A_REVERSE, Screen.COLOUR_BLUE, ' ')
-                # "pen": Pen(Screen.COLOUR_CYAN, Screen.A_BOLD, Screen.COLOUR_BLUE, ' ')
             }
         }
     }
