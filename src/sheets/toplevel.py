@@ -145,6 +145,8 @@ class TopLevelSheet(Sheet):
         for child in self._children:
             child.detach()
         self._frame = None
+        if self.on_detached_callback is not None:
+            self.on_detached_callback(self)
 
     def is_detached(self):
         return self._frame is None

@@ -342,6 +342,16 @@ def populate_textarea():
     # PRINTING CHAR - insert char; implemented in widget itself
     pass
 
+### Commands on option boxes
+def populate_optionbox():
+
+    def _activate(optionbox):
+        optionbox.activate()
+        return True
+
+    keycode = [ord(" "),  Screen.ctrl("j"), Screen.KEY_DOWN]
+    register_command(keycode, Command("activate", _activate), command_table="optionbox")
+
 #
 # actually populate the command tables.
 #
@@ -352,6 +362,7 @@ populate_button()
 populate_menubar()
 populate_textentry()
 populate_textarea()
+populate_optionbox()
 
 # when a new TOP LEVEL SHEET type is displayed, it needs to identify
 # the FOCUS WIDGET. Until that TOP LEVEL SHEET is closed (or

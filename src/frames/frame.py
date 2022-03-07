@@ -604,8 +604,14 @@ class Frame():
         return tls._accelerator_to_widget
 
     def register_accelerator(self, label, widget):
-        accelerator = self.accelerator_from_label(label, widget.top_level_sheet())
-        self.accelerator_table(widget)[accelerator] = widget
+        # don't try to create an accelerator for labels with no alph
+        # chars in it. Developer should create a related label that
+        # can provide an accelerator instead and display it somewhere
+        # in the ui.
+        base_set = [x for x in label if x.isalpha()]
+        if len(base_set)>0:
+            accelerator = self.accelerator_from_label(label, widget.top_level_sheet())
+            self.accelerator_table(widget)[accelerator] = widget
 
     def discard_accelerator(self, widget):
         accelerator = self.accelerator_for_widget(widget)

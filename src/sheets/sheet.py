@@ -57,6 +57,8 @@ class Sheet():
         self._region = None
         self._transform = IDENTITY_TRANSFORM
 
+        self.on_detached_callback = None
+
     def __repr__(self):
         if self._region is None:
             return "Sheet(=unallocated= {})".format(type(self))
@@ -85,10 +87,10 @@ class Sheet():
     def set_pen(self, pen, role="button", state="default", which="pen"):
         if self._pens is None:
             self._pens = dict()
-            if not role in self._pens:
-                self._pens[role] = dict()
-                if not state in self._pens[role]:
-                    self._pens[role][state] = dict()
+        if not role in self._pens:
+            self._pens[role] = dict()
+        if not state in self._pens[role]:
+            self._pens[role][state] = dict()
         self._pens[role][state][which] = pen
 
     # drawing
@@ -380,6 +382,8 @@ class Sheet():
         for child in reversed(self._children):
             child.detach()
         self._attached = False
+        if self.on_detached_callback is not None:
+            return self.on_detached_callback(self)
 
     def attach(self):
         # attach from bottom up

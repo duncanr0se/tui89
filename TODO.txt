@@ -26,7 +26,7 @@ add more widgets:
    - multi-line text box (✔)
    - horizontal separator (✔)
    - vertical separator (✔)
-   - option box
+   - option box (✔)
    - combo box
    - padding/null pane
    - progress bar
@@ -97,7 +97,21 @@ Scrollbar extents not quite right; max extent not always reached when
 at max scroll offset, max extent sometimes reached when not at max
 scroll offset.
 
-Document how pens work.
+Document how pens work. Rethink how pens work :) - the nature of pens
+just sucks at the moment. Or perhaps it's just the way popups have
+been set up that sucks, I'm not sure [most pen issues are related to
+trying to force specific colours on widgets that are not in a common
+hierarchy with other widgets that they need to share a colour scheme
+with. Usually this happens between "some widget" and "some popup menu
+created from that widget"]
+
+Accelerators - if transient window is open and accelerator is used
+that is not mapped in that transient window, then the main frame
+should be queried to see if the accelerator exists. If it does the
+transient should be closed and the accelerator widget activated
+instead.  - OR - Alternatively - disable other accelerators if popup
+is on screen. This might not be efficient. *MAYBE* this "rule" should
+only be applied to popup transients, not dialogs? Hrm.
 
 
 LAYOUT IMPROVEMENTS

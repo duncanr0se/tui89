@@ -27,6 +27,9 @@ class Separator(Sheet):
 
     def __init__(self, style="single", size=None):
         super().__init__()
+        validstyles = ["double", "single", "spacing"]
+        if style not in validstyles:
+            raise RuntimeError(f"style {style} not in {validstyles}")
         self._style = style
         self._size = size
 

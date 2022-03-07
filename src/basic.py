@@ -35,6 +35,7 @@ from sheets.menubar import MenubarLayout
 from sheets.menubox import MenuBox
 from sheets.textentry import TextEntry
 from sheets.textarea import TextArea
+from sheets.optionbox import OptionBox
 
 from dcs.ink import Pen
 
@@ -104,36 +105,52 @@ def demo(screen):
     row1.add_child(Label("Label:"))
     row1.add_child(Label("This is a label"))
 
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
+
     row2 = HorizontalLayout([])
     listlayout.add_child(row2)
     row2.add_child(Label("HSeparator:"))
     row2.add_child(HorizontalSeparator(style="single", size=8))
+
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
 
     row3 = HorizontalLayout([])
     listlayout.add_child(row3)
     row3.add_child(Label("VSeparator:", valign="center"))
     row3.add_child(VerticalSeparator(style="double", size=8))
 
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
+
     row4 = HorizontalLayout([])
     listlayout.add_child(row4)
     row4.add_child(Label("Long label:"))
     row4.add_child(Label("This label should be truncated to fit the available space"))
+
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
 
     # right align
     row5 = HorizontalLayout([])
     listlayout.add_child(row5)
     row5.add_child(Label("Right align:"))
     row5.add_child(Label("align", align="right"))
+
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
+
     # center align
     row6 = HorizontalLayout([])
     listlayout.add_child(row6)
     row6.add_child(Label("Center align:"))
     row6.add_child(Label("align", align="center"))
+
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
+
     # left align
     row7 = HorizontalLayout([])
     listlayout.add_child(row7)
     row7.add_child(Label("Left align:"))
     row7.add_child(Label("align", align="left"))
+
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
 
     row8 = HorizontalLayout([])
     listlayout.add_child(row8)
@@ -142,12 +159,23 @@ def demo(screen):
     row8.add_child(label)
     row8.add_child(entry)
 
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
+
     row9 = HorizontalLayout([])
     listlayout.add_child(row9)
     area = TextArea(lines=6)
-    label = Label("Text Area:", label_widget = area, valign="center")
+    label = Label("Text Area:", label_widget=area, valign="center")
     row9.add_child(label)
     row9.add_child(area)
+
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
+
+    row10 = HorizontalLayout([])
+    listlayout.add_child(row10)
+    box = OptionBox(options=["Red", "Green", "Blue", "Yellow"])
+    label = Label("Option box:", label_widget=box)
+    row10.add_child(label)
+    row10.add_child(box)
 
     #### "green"
 

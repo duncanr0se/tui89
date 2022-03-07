@@ -31,13 +31,15 @@ from asciimatics.screen import Screen
 # width necessary to provide its children with the width they request.
 class MenuBox(TopLevelSheet):
 
-    def __init__(self):
+    def __init__(self, width=None):
         super().__init__()
         self._children = []
         self._border = BorderLayout(style="single")
         self.add_child(self._border)
         self._item_pane = ListLayout()
         self._border.add_child(self._item_pane)
+        # fixme: this should probably be a standard sheet initarg
+        self._width_override = width
 
     def __repr__(self):
         return "MenuBox({} entries)".format(len(self._item_pane._children))
@@ -72,7 +74,8 @@ class MenuBox(TopLevelSheet):
         for child in self._children:
             sr = child.compose_space()
             ch = sr.y_preferred()
-            cw = sr.x_preferred()
+            if self._width_override is None:
+                cw = sr.x_preferred()
             child.allocate_space((cw, ch))
             self._region = (min(cw, awidth), min(ch, aheight))
 
@@ -92,6 +95,8 @@ class MenuBox(TopLevelSheet):
             sr = child.compose_space()
             reqwidth = max(reqwidth, sr.x_preferred())
             reqheight += sr.y_preferred()
+        if self._width_override is not None:
+            reqwidth = self._width_override
         return SpaceReq(reqwidth, reqwidth, reqwidth, reqheight, reqheight, reqheight)
 
     def set_items(self, items):

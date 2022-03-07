@@ -283,6 +283,7 @@ class Button(Sheet):
         if event.buttons == MouseEvent.LEFT_CLICK:
             self._pressed = True
             self.invalidate()
+            return True
         if event.buttons == 0:
             if self._pressed:
                 return self.activate()
@@ -416,11 +417,14 @@ class MenuButton(Button):
 
     def __init__(self, label="--",
                  label_align="left",
-                 decorated=False):
+                 decorated=False,
+                 on_click=None):
         super().__init__(label=label,
                          label_align=label_align,
                          decorated=decorated)
         self._menubox = None
+        if on_click is not None:
+            self.on_click_callback = on_click
 
     def pen(self, role="undefined", state="default", pen="pen"):
         # FIXME: Ugh, this isn't how pen composition / inheritance is
