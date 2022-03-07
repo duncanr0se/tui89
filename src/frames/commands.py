@@ -304,13 +304,23 @@ def populate_textarea():
     keycode = [Screen.KEY_DOWN, Screen.ctrl("n")]
     register_command(keycode, Command("down", _down), command_table="textarea")
 
+    # PG_DN - down 1 page
+    def _page_down(entry):
+        return entry.page_down()
+    keycode = [Screen.KEY_PAGE_DOWN]
+    register_command(keycode, Command("page down", _page_down), command_table="textarea")
+
     # CTRL-P, KEY_UP - up 1 line
     def _up(entry):
         return entry.move_up()
     keycode = [Screen.KEY_UP, Screen.ctrl("p")]
     register_command(keycode, Command("up", _up), command_table="textarea")
 
-    # FIXME: PG_UP/PG_DOWN?
+    # PG_UP - up 1 page
+    def _page_up(entry):
+        return entry.page_up()
+    keycode = [Screen.KEY_PAGE_UP]
+    register_command(keycode, Command("page up", _page_up), command_table="textarea")
 
     # CTRL-D, DELETE - delete forward
     def _delete(entry):

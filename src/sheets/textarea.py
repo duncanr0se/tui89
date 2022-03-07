@@ -206,11 +206,29 @@ class TextArea(TextEntry):
             self._text_line -= 1
         return True
 
+    def page_up(self):
+        # vertical movement does not affect the insertion point;
+        # Cursor ends up at top of screen
+        page_size = self.height()-1
+        self._insertion_line = max(self._insertion_line-page_size, 0)
+        if self._insertion_line < self._text_line:
+            self._text_line = self._insertion_line
+        return True
+
     def move_down(self):
         # vertical movement does not affect the insertion point
         self._insertion_line = min(self._insertion_line+1, len(self._lines)-1)
         if self._insertion_line-self._text_line >= self.height():
             self._text_line += 1
+        return True
+
+    def page_down(self):
+        # vertical movement does not affect the insertion point;
+        # Cursor ends up at bottom of screen
+        page_size = self.height()-1
+        self._insertion_line = min(self._insertion_line+page_size, len(self._lines)-1)
+        if self._insertion_line-self._text_line >= self.height():
+            self._text_line = self._insertion_line-page_size
         return True
 
     def open_below(self):

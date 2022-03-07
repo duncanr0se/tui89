@@ -65,7 +65,9 @@ USABILITY
 =========
 No part of scroll bars should take focus - I think
 
-Widgets (and dialogs) should have a "value" that can be queried.
+Widgets (and dialogs) should have a "value" that can be queried -
+introduce a bunch of mixin types, "ValueMixin", "FocusMixin",
+"LayoutMixin", ...
 
 Dialogs are only pseudo-modal; can't interact with other components
 whilst popup is up but they are still receiving events and
@@ -74,8 +76,6 @@ it's easy when they block. So either make them block (how?) or work
 out how to deal with async results.
 
 Text edit components should support select, cut, paste
-
-Text area component needs pageup/pagedown support
 
 Scroll up / down / left / right line / page commands on
 viewport. Might not be too easy to do if arrows already used to
