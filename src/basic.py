@@ -30,7 +30,7 @@ from sheets.scrollbar import Scrollbar
 from sheets.viewport import Viewport
 from sheets.label import Label
 from sheets.separators import HorizontalSeparator, VerticalSeparator
-from sheets.listlayout import ListLayout
+from sheets.listlayout import ListLayout, ButtonBox
 from sheets.menubar import MenubarLayout
 from sheets.menubox import MenuBox
 from sheets.textentry import TextEntry
@@ -82,7 +82,7 @@ def demo(screen):
     one.add_child(button)
 
     # "button box"
-    buttonbox = ListLayout(role="buttonbox")
+    buttonbox = ButtonBox()
     boxradio1 = RadioButton(label="Red")
     boxradio2 = RadioButton(label="Green")
     boxradio3 = RadioButton(label="Blue")

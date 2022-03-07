@@ -36,11 +36,6 @@ from frames.commands import find_command
 # | Option 3      |
 #     ...
 #
-# fixme: probably don't need an actual button here; make it so that if
-# the optionbox is clicked it acts as a button would. Then the arrow
-# can just be a 1x1 label maybe.
-#
-# fixme: keyboard navigation, select value to update label value.
 class OptionBox(Sheet):
     """Drop-down option box.
 
@@ -71,7 +66,7 @@ class OptionBox(Sheet):
         ty = self._transform._dy
         return "OptionBox({}x{}@{},{}: '{}')".format(width, height,
                                                      tx, ty,
-                                                     self._label)
+                                                     self._label._label_text)
 
     def value(self):
         value = self._label._label_text
@@ -118,9 +113,6 @@ class OptionBox(Sheet):
     def menu_click_callback(self, button):
         self._label._label_text = button._label._label_text
         button.frame().menu_quit()
-        # fixme: should remember the focus for transient windows
-        # (dialog + popups) so can put focus back once transient is
-        # closed instead of having each widget do it itself.
         self.frame().set_focus(self)
 
     def activate(self):
@@ -143,7 +135,7 @@ class OptionBox(Sheet):
         menubox.set_pen(force_pen, role="menubutton", state="default", which="pen")
         menubox.set_pen(force_pen, role="menubox", state="default", which="pen")
         # fixme: setting these colours needs such intimate knowledge
-        # of the different widgets it just isn't true...
+        # of the different widgets, it is horribly clunky...
         menubox.set_pen(force_pen, role="menubox", state="border", which="pen")
 
         coord = (0, 1)
@@ -153,11 +145,8 @@ class OptionBox(Sheet):
         menubox.on_detached_callback = self._on_menubox_detached_callback
         self.frame().show_popup(menubox, tcoord)
 
-    # fixme: ugh! This is horrible!
     def pen(self, role="undefined", state="default", pen="pen"):
         if role == "undefined" or role == "label":
-            role = "editable"
-        if  role == "button" and state != "transient":
             role = "editable"
         if self.is_focus():
             state = "focus"

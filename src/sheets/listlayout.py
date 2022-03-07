@@ -26,11 +26,8 @@ logger = getLogger(__name__)
 # packed as closely as possible to its siblings
 class ListLayout(Sheet):
 
-    def __init__(self, role="None"):
+    def __init__(self):
         super().__init__()
-        # if role is "buttonbox" then buttons are displayed with a
-        # different background colour.
-        self._role = role
 
     def layout(self):
         offset = 0
@@ -38,12 +35,6 @@ class ListLayout(Sheet):
             child.move_to((0, offset))
             offset += child.height()
             child.layout()
-
-    def pen(self, role="undefined", state="default", pen="pen"):
-        if self._role == "buttonbox":
-            if role == "button":
-                role = "buttonbox"
-        return super().pen(role=role, state=state, pen=pen)
 
     def render(self):
         if not self._region:
@@ -90,3 +81,14 @@ class ListLayout(Sheet):
             minheight += sr.y_min()
             reqheight += sr.y_preferred()
         return SpaceReq(minwidth, reqwidth, FILL, minheight, reqheight, FILL)
+
+
+class ButtonBox(ListLayout):
+
+    def pen(self, role="undefined", state="default", pen="pen"):
+        # If "buttonbox" is used in place of all other roles, the
+        # background is filled in the buttonbox colours instead of in
+        # the colour of the parent.
+        if role == "button":
+            role = "buttonbox"
+        return super().pen(role=role, state=state, pen=pen)

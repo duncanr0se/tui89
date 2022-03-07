@@ -113,6 +113,9 @@ instead.  - OR - Alternatively - disable other accelerators if popup
 is on screen. This might not be efficient. *MAYBE* this "rule" should
 only be applied to popup transients, not dialogs? Hrm.
 
+When placing a transient window on screen (dialog / popup) the current
+focus should be cached and focus returned to it when the transient
+window is closed.
 
 LAYOUT IMPROVEMENTS
 ===================
