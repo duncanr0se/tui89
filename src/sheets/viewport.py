@@ -19,6 +19,10 @@ from sheets.spacereq import FILL
 from geometry.transforms import Transform
 from sheets.dialog import alert
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 class Viewport(Sheet):
 
     # Viewport's region give the extents of the VISIBLE region.
@@ -35,7 +39,8 @@ class Viewport(Sheet):
     # fixme: scrolled_sheet, or just use _children?
     _scrolled_sheet = None
 
-    _scroll_extents = ((0, 0), (1, 1))
+    # LTRB for scrolled sheet
+    _scroll_extents = (0, 0, 1, 1)
 
     def __init__(self, contentpane, vertical_bar=None, horizontal_bar=None):
         super().__init__()
@@ -201,66 +206,54 @@ class Viewport(Sheet):
         self.update_scroll_extents(coord)
 
     def update_scroll_extents(self, coord):
-        # scroll extents are in the coord system of the scrolled sheet.
-        # should these be kept as LTRBs?
-        (el, et) = self._scroll_extents[0]
-        (ew, eh) = self._scroll_extents[1]
-        (er, eb) = (el + ew, et + eh)
+        # A new "point" has been created; need to ensure the scrolled
+        # sheet is big enough to contain it and update the scrollbar
+        # visuals accordingly. Note that the scrolled sheet never gets
+        # expanded in a negative direction, expansion is always along
+        # the positive x/y axis.
+        #
+        # scroll extents AND coord are in the coord system of the
+        # scrolled sheet.  Keep scrolled extents and LTRB.
+        #
+        # Note that the "scrolled extents" here are exactly the
+        # extents of the scrolled sheet.
 
+        if self.ltrb_contains_position(self._scroll_extents, coord):
+            # nothing to do
+            return
+
+        (l, t, r, b) = self._scroll_extents
         (cx, cy) = coord
 
-        extents_updated = False
-        if cx < el:
-            el = cx
-            extents_updated = True
-        if cx > er:
-            er = cx
-            extents_updated = True
-        if cy < et:
-            et = cy
-            extents_updated = True
-        if cy > eb:
-            eb = cy
-            extents_updated = True
+        # Need the LTRB to contain the point; since points on the
+        # right or bottom of the LTRB are not included in the LTRB,
+        # increment the R + B values to include the new points.
 
-        # update scrollbars if extents changed
-        if extents_updated:
-            # viewport region + scrollbar extents are both in the
-            # viewport sheet's coordinate space
-            # Origin for viewport is always (0, 0)
-            (rw, rh) = self._region
+        # extend along x axis?
+        if r <= cx:
+            r = cx+1
 
-            ew = er - el
-            eh = eb - et
+        # extend along y axis?
+        if b <= cy:
+            b = cy+1
 
-            self._scroll_extents = ((el, et), (ew, eh))
+        self._scroll_extents = (l,t,r,b)
 
-            # vertical range is "eh" with slug size "rh"
-            if self._vertical_sb is not None:
-                self._vertical_sb.update_extents(eh, rh)
-            # horizontal range is "ew" with slug size "rw"
-            if self._horizontal_sb is not None:
-                self._horizontal_sb.update_extents(ew, rw)
+        logger.debug("viewport region=%s, scroll_extents=%s, transform=%s",
+                     self._region,
+                     self._scroll_extents,
+                     self._scrolled_sheet._transform)
 
-    # 0,0
-    #  +----------+----------------+
-    #  |          |                |
-    #  |          |                |
-    #  ...
+        if self._vertical_sb is not None:
+            self._vertical_sb.update_extents(self._scroll_extents, self.height())
 
-    #       sheet_max-viewport_width,0
-    #  +----------------+----------+
-    #  |                |          |
-    #  |                |          |
-    #  ...
+        if self._horizontal_sb is not None:
+            self._horizontal_sb.update_extents(self._scroll_extents, self.width())
 
-    # slug offset
-    #      v
-    #  +---+----------+------------+
-    #  |<t>|          |            |
-    #  |   |<  slug  >|            |
-    #  ...     size
-    #   <    bar size / width     >
+    def ltrb_contains_position(self, ltrb, position):
+        (l, t, r, b) = ltrb
+        (x, y) = position
+        return l <= x < r and t <= y < b
 
     def scroll_left_line(self):
         # scrolling LEFT moves scrolled sheet to the RIGHT.
@@ -272,19 +265,18 @@ class Viewport(Sheet):
         x = min(0, trans._dx+delta)
         # fixme: don't update transform if it doesn't change
         self._scrolled_sheet._transform = Transform(x, trans._dy)
-        # invalidate self, or invalidate scrolled sheet?
         self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
+        # invalidating the viewport will redraw the scrolled sheet
+        # beneath it
         self.invalidate()
 
     def scroll_right_line(self):
         delta = 1
         trans = self._scrolled_sheet._transform
-        # 0,0
-        (sw, sh) = self._scroll_extents[1]
+        (l,t,r,b) = self._scroll_extents
+        (sw, sh) = (r-l),(b-t)
         tmax = self.width() - sw
-        # -89
         x = max(tmax, trans._dx-delta)
-        # -1
         # fixme: don't update transform if it doesn't change
         self._scrolled_sheet._transform = Transform(x, trans._dy)
         self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
@@ -301,9 +293,9 @@ class Viewport(Sheet):
     def scroll_down_line(self):
         delta = 1
         trans = self._scrolled_sheet._transform
-        (sw, sh) = self._scroll_extents[1]
-        # -1 is a hack, work out why the drawing position is wrong...
-        tmax = self.height()-1 - sh
+        (l,t,r,b) = self._scroll_extents
+        (sw, sh) = (r-l),(b-t)
+        tmax = self.height() - sh
         y = max(tmax, trans._dy-delta)
         self._scrolled_sheet._transform = Transform(trans._dx, y)
         self._vertical_sb.update_scroll_offset(self._scrolled_sheet)
@@ -315,14 +307,14 @@ class Viewport(Sheet):
         x = min(0, trans._dx+delta)
         # fixme: don't update transform if it doesn't change
         self._scrolled_sheet._transform = Transform(x, trans._dy)
-        # invalidate self, or invalidate scrolled sheet?
         self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
         self.invalidate()
 
     def scroll_right_page(self):
         delta = self.width()-1
         trans = self._scrolled_sheet._transform
-        (sw, sh) = self._scroll_extents[1]
+        (l,t,r,b) = self._scroll_extents
+        (sw, sh) = (r-l),(b-t)
         tmax = self.width() - sw
         x = max(tmax, trans._dx-delta)
         # fixme: don't update transform if it doesn't change
@@ -341,8 +333,9 @@ class Viewport(Sheet):
     def scroll_down_page(self):
         delta = self.height()-1
         trans = self._scrolled_sheet._transform
-        (sw, sh) = self._scroll_extents[1]
-        tmax = self.height()-1 - sh
+        (l,t,r,b) = self._scroll_extents
+        (sw, sh) = (r-l),(b-t)
+        tmax = self.height() - sh
         y = max(tmax, trans._dy-delta)
         self._scrolled_sheet._transform = Transform(trans._dx, y)
         self._vertical_sb.update_scroll_offset(self._scrolled_sheet)

@@ -68,18 +68,12 @@ class TopLevelSheet(Sheet):
         if len(char) > 1:
             raise RuntimeError("draw_to accepts single drawing char", char)
         (x, y) = self._transform.apply(coord)
-        # FIXME: scrollbars return a float x, y (depending on
-        # orientation).  Fix in scrollbar.py but hack here for now.
-        x = int(x)
-        y = int(y)
-        #
         # Asciimatic's screen x/y are double the "character
         # positions". Make allowances.
         (from_x, from_y) = (self._frame._screen._x, self._frame._screen._y)
-        from_x = int(from_x // 2)
-        from_y = int(from_y // 2)
+        from_x = from_x // 2
+        from_y = from_y // 2
 
-        #self._frame._screen.draw(x, y, char, colour=pen.fg(), bg=pen.bg())
         # only draw straight lines
         if x == from_x:
             # vertical

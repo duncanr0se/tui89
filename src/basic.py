@@ -235,7 +235,7 @@ def demo(screen):
         pen = frame.pen("undefined", "default", "pen")
         contentpane.display_at((0, 0), "Hello, world!", pen)
         contentpane.display_at((10, 30), "What's the world coming to?", pen)
-        contentpane.display_at((100, 60), "Goodbye, cruel world!", pen)
+        contentpane.display_at((60, 60), "Goodbye, cruel world!", pen)
     contentpane.render = draw
 
     ####

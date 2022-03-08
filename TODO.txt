@@ -1,5 +1,6 @@
 
-add more widgets:
+Widgets:
+
    - layouts
        - border (✔)
        - row (✔)
@@ -35,6 +36,7 @@ add more widgets:
    - split pane
 
 add controls:
+
    - list control (scrolling list view)
    - tree control
    - multivalue dialog box (dialog box containing other widgets)
@@ -63,8 +65,6 @@ widgets that could be useful.
 
 USABILITY
 =========
-No part of scroll bars should take focus - I think
-
 Widgets (and dialogs) should have a "value" that can be queried -
 introduce a bunch of mixin types, "ValueMixin", "FocusMixin",
 "LayoutMixin", "MultipleChildMixin", "SingleChildMixin"...
@@ -82,12 +82,8 @@ viewport. Might not be too easy to do if arrows already used to
 navigating between widgets... could change navigate to just use TAB
 and SHIFT+TAB then could use arrow keys for scrolling.
 
-Scrollbars pass float "draw to" coordinates; ensure scrollbar uses
-floor or ceil and converts to appropriate ints.
-
-Scrollbar extents not quite right; max extent not always reached when
-at max scroll offset, max extent sometimes reached when not at max
-scroll offset.
+Scrolled sheet is slightly wider than expected. Could fall out
+naturally once migration to LTRBs is complete.
 
 Document how pens work. Rethink how pens work :) - the nature of pens
 just sucks at the moment. Or perhaps it's just the way popups have
@@ -114,7 +110,7 @@ LAYOUT IMPROVEMENTS
 TEXT ALIGNMENT and truncation ON BORDER TITLES
 
 Measuring text needs to be better; len(str) might not be effective for
-multibyte characters.
+multibyte characters. Need to try a few and see what breaks.
 
 Widgets need a "fill" initarg to indicate if their preferred size
 should be FILL rather than an explicit preferred size. Some layouts /
@@ -143,7 +139,11 @@ VISUAL FEEDBACK
 ===============
 test / fix screen resize! See docs from asciimatics
 
-Focus button in button box is not apparent.
+When moving up / down lines in text area if move from longer line to
+shorter line to empty line, cursor is drawn at negative offset when
+reach empty line - add "max(insertion_point|text_offset, 0)"
+somewhere.
+
 
 GENERAL / CODING
 ================
