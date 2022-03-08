@@ -67,7 +67,7 @@ No part of scroll bars should take focus - I think
 
 Widgets (and dialogs) should have a "value" that can be queried -
 introduce a bunch of mixin types, "ValueMixin", "FocusMixin",
-"LayoutMixin", ...
+"LayoutMixin", "MultipleChildMixin", "SingleChildMixin"...
 
 Dialogs are only pseudo-modal; can't interact with other components
 whilst popup is up but they are still receiving events and
@@ -81,9 +81,6 @@ Scroll up / down / left / right line / page commands on
 viewport. Might not be too easy to do if arrows already used to
 navigating between widgets... could change navigate to just use TAB
 and SHIFT+TAB then could use arrow keys for scrolling.
-
-Menubox / button highlighting is not right; button does not fill the
-listbox.
 
 Scrollbars pass float "draw to" coordinates; ensure scrollbar uses
 floor or ceil and converts to appropriate ints.

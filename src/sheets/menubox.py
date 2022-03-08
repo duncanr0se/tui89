@@ -71,6 +71,7 @@ class MenuBox(TopLevelSheet):
         (awidth, aheight) = allocation
         cw = awidth
         ch = aheight
+        # single child - the border layout.
         for child in self._children:
             sr = child.compose_space()
             ch = sr.y_preferred()

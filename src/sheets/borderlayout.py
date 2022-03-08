@@ -130,6 +130,7 @@ class BorderLayout(Sheet):
     # that as the space request
     def compose_space(self):
         sr = SpaceReq(1, 10, FILL, 1, 10, FILL)
+        # Border layout has single child
         for child in self._children:
             sr = child.compose_space()
         xmin = min(sr.x_min()+2, FILL)

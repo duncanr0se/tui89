@@ -166,10 +166,16 @@ class Frame():
                 "accelerator": Pen(Screen.COLOUR_RED, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
             },
             "focus": {
-                "pen": Pen(Screen.COLOUR_CYAN, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
+                "pen": Pen(Screen.COLOUR_CYAN, Screen.A_BOLD, Screen.COLOUR_GREEN, ' '),
+                "accelerator": Pen(Screen.COLOUR_RED, Screen.A_BOLD, Screen.COLOUR_GREEN, ' ')
             },
             "transient": {
                 "pen": Pen(Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_MAGENTA, ' ')
+            }
+        },
+        "optionbox": {
+            "default": {
+                "accelerator": Pen(Screen.COLOUR_RED, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
             }
         },
         "undefined": {

@@ -127,16 +127,11 @@ class OptionBox(Sheet):
         menubox.set_items([MenuButton(label=button, on_click=self.menu_click_callback) \
                            for button in self._options])
 
-        # fixme: how to force the desired colour on the menubox?
-        # fixme: the menubox is not a child of the optionbox so
-        # doesn't inherit pens the way most things do. What to do
-        # about this (other than the nasty hack that's here already)?
-        force_pen = self.pen(role="editable", state="focus", pen="pen")
-        menubox.set_pen(force_pen, role="menubutton", state="default", which="pen")
-        menubox.set_pen(force_pen, role="menubox", state="default", which="pen")
-        # fixme: setting these colours needs such intimate knowledge
-        # of the different widgets, it is horribly clunky...
-        menubox.set_pen(force_pen, role="menubox", state="border", which="pen")
+        # The menubox is not a child of the optionbox so doesn't
+        # inherit pens in the usual way.
+        # Instead we have this horrible hack that works, but requires
+        # way more knowledge of the internals than is preferable.
+        self._force_popup_colours(menubox)
 
         coord = (0, 1)
         transform = self.get_screen_transform()
@@ -145,7 +140,27 @@ class OptionBox(Sheet):
         menubox.on_detached_callback = self._on_menubox_detached_callback
         self.frame().show_popup(menubox, tcoord)
 
+    # The menubox is not a child of the optionbox so doesn't
+    # inherit pens in the usual way.
+    # Instead we have this horrible hack that works, but requires
+    # way more knowledge of the internals than is preferable.
+    def _force_popup_colours(self, menubox):
+        # Force menubutton colours
+        force_pen = self.pen(role="optionbox", state="default", pen="accelerator")
+        menubox.set_pen(force_pen, role="menubutton", state="default", which="accelerator")
+
+        force_pen = self.pen(role="menubutton", state="focus", pen="accelerator")
+        menubox.set_pen(force_pen, role="menubutton", state="focus", which="accelerator")
+
+        force_pen = self.pen(role="editable", state="focus", pen="pen")
+        menubox.set_pen(force_pen, role="menubutton", state="default", which="pen")
+        # Force menubox colours
+        menubox.set_pen(force_pen, role="menubox", state="default", which="pen")
+        menubox.set_pen(force_pen, role="menubox", state="border", which="pen")
+
     def pen(self, role="undefined", state="default", pen="pen"):
+        # "label" consists of labels making up "non-popup" parts of
+        # optionbox
         if role == "undefined" or role == "label":
             role = "editable"
         if self.is_focus():

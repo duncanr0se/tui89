@@ -60,7 +60,6 @@ class ListLayout(Sheet):
         # simple sauce; loop over kids and allocate them the space
         # they want, hope they don't want too much! Use the list
         # control (built-in scrolling) if more space is needed...
-
         for child in self._children:
             sr = child.compose_space()
             ch = sr.y_preferred() if sr.y_preferred() < FILL else sr.y_min()

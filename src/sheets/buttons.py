@@ -249,6 +249,9 @@ class Button(Sheet):
         if role == "label":
             role = "button"
 
+        if self.is_focus():
+            state="focus"
+
         # deal with transitory colour scheme
         # check transitory state first
         if self._pressed:
