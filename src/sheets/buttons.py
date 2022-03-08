@@ -299,6 +299,7 @@ class Button(Sheet):
         return True
 
     def activate(self):
+        self.frame().set_focus(self)
         self._pressed = False
         self.invalidate()
         return self.on_click_callback and self.on_click_callback(self)

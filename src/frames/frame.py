@@ -373,7 +373,13 @@ class Frame():
                 event_top_level = self._top_level_sheet
             sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
         if sheet:
+            # mouse events come in to the event handler with screen
+            # coordinates; convert to the coordinates used by the
+            # highest (in z-order) sheet containing that screen
+            # position.
+            # transform = sheet → screen
             transform = sheet.get_screen_transform()
+            # inverse = screen → sheet
             (sx, sy) = transform.inverse().apply((event.x, event.y))
             # if the child declines to deal with the event, pass it
             # back up the widget hierarchy in case a parent wants to
@@ -514,6 +520,8 @@ class Frame():
 
     # updates sheet that will deal with key events
     def set_focus(self, focus):
+        if self._focus == focus:
+            return
         logger.debug("setting focus to %s", focus)
         if self._focus is not None and not self._focus.is_detached():
             self._focus.invalidate()

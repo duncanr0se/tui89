@@ -82,11 +82,6 @@ viewport. Might not be too easy to do if arrows already used to
 navigating between widgets... could change navigate to just use TAB
 and SHIFT+TAB then could use arrow keys for scrolling.
 
-Menubar event handling not right - in particular accelerators dealt
-with by the frame that select menu bar items without associated popup
-menus are not given focus - they likely should do ("activate" on
-button needs to set focus if button is not already focus)
-
 Menubox / button highlighting is not right; button does not fill the
 listbox.
 
@@ -169,9 +164,6 @@ Unit tests, documentation, project setup.
 
 Migrate everything that displays text into having a contained Label
 that holds the text instead.
-
-Rename "get_screen_transform()" + apply transform pair into something
-like "convert_to_screen_coordinate"?
 
 If label shrinks too much it gives up trying to display in a reduced
 space. Should either prevent resize below the minimum space, or allow
