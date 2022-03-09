@@ -40,8 +40,8 @@ add controls:
    - list control (scrolling list view)
    - tree control
    - multivalue dialog box (dialog box containing other widgets)
-   - file save
    - file open
+   - file save
 
 Look at other toolkits, work out if there are any other controls or
 widgets that could be useful.
@@ -83,7 +83,9 @@ navigating between widgets... could change navigate to just use TAB
 and SHIFT+TAB then could use arrow keys for scrolling.
 
 Scrolled sheet is slightly wider than expected. Could fall out
-naturally once migration to LTRBs is complete.
+naturally once migration to LTRBs is complete. See basic.py and scroll
+scroller to the SE corner; text displayed has a trailing space that
+should not be there.
 
 Document how pens work. Rethink how pens work :) - the nature of pens
 just sucks at the moment. Or perhaps it's just the way popups have
@@ -100,6 +102,10 @@ transient should be closed and the accelerator widget activated
 instead.  - OR - Alternatively - disable other accelerators if popup
 is on screen. This might not be efficient. *MAYBE* this "rule" should
 only be applied to popup transients, not dialogs? Hrm.
+
+Adding accelerators for 0-9 would add another 10 but would need a
+different way to display them. If taking this approach could also use
+$%^&* etc. as accelerators...
 
 When placing a transient window on screen (dialog / popup) the current
 focus should be cached and focus returned to it when the transient

@@ -594,9 +594,6 @@ class Frame():
 
     #### accelerators ##################################################
 
-    # FIXME: for now only work on buttons. Extend to also work on
-    # widgets associated with a specific label.
-
     # Accelerators are unique to specific top levels; since top levels
     # are modal only one can be active at a time, so it's fine to
     # duplicate accelerators across top-levels.
