@@ -31,7 +31,8 @@ logger = getLogger(__name__)
 class MenubarLayout(Sheet):
 
     def __repr__(self):
-        (w, h) = self._region
+        (l, t, r, b) = self._region
+        (w, h) = (r-l, b-t)
         tx = self._transform._dx
         ty = self._transform._dy
         return f"Menubar({w}x{h}@{tx},{ty})"
@@ -50,11 +51,12 @@ class MenubarLayout(Sheet):
         # choose to do so if they need to but most will fill their
         # region anyway and they can rely on empty space being the
         # default background colour.
-        (w, h) = self._region
-        self.clear((0, 0), self._region)
+        (left, top, right, bottom) = self._region
+        (w, h) = (right-left, bottom-top)
+        self.clear((left, top), (w, h))
         logger.info("render on menubar %s", self)
-        self.move((0, 0))
-        self.draw_to((w, 0), ' ', self.pen(role="menubar", state="default", pen="pen"))
+        self.move((left, top))
+        self.draw_to((w, top), ' ', self.pen(role="menubar", state="default", pen="pen"))
         for child in self._children:
             child.render()
 
@@ -62,10 +64,10 @@ class MenubarLayout(Sheet):
     def allocate_space(self, allocation):
         # height = 1
         # width = sum of all widths
-
+        (left, top, right, bottom) = allocation
         # make scrollbar as wide as its parent allows
         self._region = allocation
-        (width, height) = allocation
+        (width, height) = (right-left, bottom-top)
 
         # simple sauce; loop over kids and allocate them the space
         # they want, hope they don't want too much! Use the list
@@ -74,8 +76,8 @@ class MenubarLayout(Sheet):
         for child in self._children:
             sr = child.compose_space()
             cw = sr.x_preferred()
-            # fixme: take the minimum of the button
-            child.allocate_space((cw, 1))
+            # fixme: take the minimum of the button?
+            child.allocate_space((left, top, cw, 1))
 
     def compose_space(self):
         return SpaceReq(1, FILL, FILL, 1, 1, 1)

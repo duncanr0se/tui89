@@ -65,7 +65,8 @@ class Dialog(TopLevelSheet):
         self._text = text
 
     def __repr__(self):
-        (width, height) = self._region
+        (left, top, right, bottom) = self._region
+        (width, height) = (right-left, bottom-top)
         tx = self._transform._dx
         ty = self._transform._dy
         return "Dialog({}x{}@{},{}: '{}')".format(width, height, tx, ty, self._title)
@@ -146,15 +147,16 @@ class Dialog(TopLevelSheet):
     # makes space for a drop shadow.  Could just use the one from the
     # parent if "border width" could be specified...
     def allocate_space(self, allocation):
+        (left, top, right, bottom) = allocation
         self._region = allocation
-        (width, height) = allocation
+        (width, height) = (right-left, bottom-top)
         (calloc_x, calloc_y) = (width - 1, height - 1)
         border_layout = self._children[0]
         border_request = border_layout.compose_space()
         # give all the space to the child without allocating more than the child's maximum.
         calloc_x = min(calloc_x, border_request.x_max())
         calloc_y = min(calloc_y, border_request.y_max())
-        border_layout.allocate_space((calloc_x, calloc_y))
+        border_layout.allocate_space((left, top, calloc_x, calloc_y))
 
     def pen(self, role="undefined", state="info", pen="pen"):
         if role == "undefined":
@@ -186,7 +188,8 @@ class Dialog(TopLevelSheet):
         default_pen = self.pen()
         shadow_pen = shadow_pen.merge(default_pen)
         logger.debug("merged shadow pen is %s", shadow_pen)
-        (width, height) = self._region
+        (left, top, right, bottom) = self._region
+        (width, height) = (right-left, bottom-top)
         dropshadow_right = u'█'
         dropshadow_below = u'█'
         self.move((width-1, 1))

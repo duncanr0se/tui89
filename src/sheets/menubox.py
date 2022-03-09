@@ -61,14 +61,16 @@ class MenuBox(TopLevelSheet):
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
-        self.clear((0, 0), self._region, self.pen())
+        (left, top, right, bottom) = self._region
+        self.clear((left, top), (right-left, bottom-top), self.pen())
         for child in self._children:
             child.render()
 
     # allocate smallest space possible to fit children - probably need
     # some extra parameter to say we're trying to minimise
     def allocate_space(self, allocation):
-        (awidth, aheight) = allocation
+        (l, t, r, b) = allocation
+        (awidth, aheight) = (r-l, b-t)
         cw = awidth
         ch = aheight
         # single child - the border layout.
@@ -77,8 +79,8 @@ class MenuBox(TopLevelSheet):
             ch = sr.y_preferred()
             if self._width_override is None:
                 cw = sr.x_preferred()
-            child.allocate_space((cw, ch))
-            self._region = (min(cw, awidth), min(ch, aheight))
+            child.allocate_space((l, t, l+cw, t+ch))
+            self._region = (l, t, l+min(cw, awidth), t+min(ch, aheight))
 
     def compose_space(self):
         # Sheet hierarchy is:

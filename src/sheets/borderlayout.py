@@ -68,10 +68,10 @@ class BorderLayout(Sheet):
         # todo: title align
 
     def __repr__(self):
-        (width, height) = self._region
+        (l, t, r, b) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "BorderLayout({}x{}@{},{}: '{}')".format(width, height, tx, ty, self._title)
+        return "BorderLayout({}x{}@{},{}: '{}')".format(r-l, b-t, tx, ty, self._title)
 
     def add_child(self, child):
         if self._children:
@@ -149,9 +149,9 @@ class BorderLayout(Sheet):
     # their origin being (0, 0). For more flexibility add a different
     # layout type as the child of the border box.
     def allocate_space(self, allocation):
+        (left, top, right, bottom) = allocation
         self._region = allocation
-        (width, height) = allocation
-        (calloc_x, calloc_y) = (width - 2, height - 2)
+        (calloc_x, calloc_y) = (right-left-2, bottom-top-2)
         for child in self._children:
             # borderlayout has a single child - give it all the space
             # the border doesn't need for itself without allocating
@@ -161,37 +161,38 @@ class BorderLayout(Sheet):
             child_request = child.compose_space()
             calloc_x = min(calloc_x, child_request.x_max())
             calloc_y = min(calloc_y, child_request.y_max())
-            child.allocate_space((calloc_x, calloc_y))
+            child.allocate_space((0, 0, calloc_x, calloc_y))
         # deal with scrollbars specially because they aren't treated
         # as children of the border pane.
         if self._vertical_sb is not None:
             child_request = self._vertical_sb.compose_space()
             # use the minimum width and the border pane's height
-            self._vertical_sb.allocate_space((child_request.x_min(), height-2))
+            self._vertical_sb.allocate_space((0, 0, child_request.x_min(), bottom-top-2))
         if self._horizontal_sb is not None:
             child_request = self._horizontal_sb.compose_space()
             # use minimum height and border pane's width
-            self._horizontal_sb.allocate_space((width-3, child_request.y_min()))
+            self._horizontal_sb.allocate_space((0, 0, right-left-3, child_request.y_min()))
 
     def layout(self):
         # single child
         for child in self._children:
             child.move_to((1, 1))
             child.layout()
-        (rw, rh) = self._region
+        (left, top, right, bottom) = self._region
         if self._vertical_sb is not None:
-            self._vertical_sb.move_to((rw-1, 1))
+            self._vertical_sb.move_to((right-1, 1))
             self._vertical_sb.layout()
         if self._horizontal_sb is not None:
             # fixme: how wide should horizontal bars be? turbo vision
             # looks to give about 50% of the pane width...
-            self._horizontal_sb.move_to((1, rh-1))
+            self._horizontal_sb.move_to((1, bottom-1))
             self._horizontal_sb.layout()
 
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
-        self.clear((0, 0), self._region)
+        (left, top, right, bottom) = self._region
+        self.clear((left, top), (right-left, bottom-top))
         self._draw_border()
         for child in self._children:
             child.render()
@@ -228,10 +229,7 @@ class BorderLayout(Sheet):
     def _draw_border(self):
         pen = self.pen(role="border", state="default", pen="pen")
         self._cached_pen = pen
-        (left, top) = (0, 0)
-        (width, height) = self._region
-        right = self.width()-1
-        bottom = self.height()-1
+        (left, top, right, bottom) = self._region
 
         # todo: deal with long titles
         charset = self.border_chars[self._border]
@@ -240,7 +238,7 @@ class BorderLayout(Sheet):
         self.move((1, top))
         if self._title:
             # LHS of bar + title
-            bar_width = right - 1
+            bar_width = right-left-1
             title = ' ' + self._title + ' '
             title_width = len(title)
             side_bar_width = (bar_width - title_width) // 2
@@ -250,27 +248,27 @@ class BorderLayout(Sheet):
             self.draw_to((right, top), charset["top"], pen)
         else:
             self.draw_to((right, top), charset["top"], pen)
-        self.display_at((right, top), charset["ne"], pen)
+        self.display_at((right-1, top), charset["ne"], pen)
 
         # left border
-        self.move((left, top + 1))
+        self.move((left, top+1))
         self.draw_to((left, bottom), charset["left"], pen)
 
         # right border - might be scroll bar
         if self._vertical_sb is None:
-            self.move((right, top + 1))
-            self.draw_to((right, bottom), charset["right"], pen)
+            self.move((right-1, top + 1))
+            self.draw_to((right-1, bottom), charset["right"], pen)
         else:
             # scrollbar will draw itself
             pass
 
         # bottom border - might be scroll bar
-        self.display_at((left, bottom), charset["sw"], pen)
+        self.display_at((left, bottom-1), charset["sw"], pen)
         if self._horizontal_sb is None:
-            self.move((1, bottom))
-            self.draw_to((right, bottom), charset["bottom"], pen)
-            self.display_at((right, bottom), charset["se"], pen)
+            self.move((left+1, bottom-1))
+            self.draw_to((right, bottom-1), charset["bottom"], pen)
+            self.display_at((right-1, bottom-1), charset["se"], pen)
         else:
-            self.display_at((right-1, bottom), u'─', pen)
-            self.display_at((right, bottom), u'┘', pen)
+            self.display_at((right-2, bottom-1), u'─', pen)
+            self.display_at((right-1, bottom-1), u'┘', pen)
             # scrollbar will draw itself

@@ -62,10 +62,10 @@ class Button(Sheet):
         if not self._attached or self._region is None:
             return "Button(detached: '{}')".format(self._label._label_text)
         else:
-            (width, height) = self._region
+            (left, top, right, bottom) = self._region
             tx = self._transform._dx
             ty = self._transform._dy
-            return "Button({}x{}@{},{}: '{}')".format(width, height, tx, ty,
+            return "Button({}x{}@{},{}: '{}')".format(right-left, bottom-top, tx, ty,
                                                       self._label._label_text)
 
     ####
@@ -79,8 +79,9 @@ class Button(Sheet):
             (x, y) = coord
             # Is the mouse over the button background?
             (l, t, r, b) = self._button_background_region()
-            # "r" seems to include the shadow on the rhs. Investigate
-            if l <= x and t <= y and x <= r-1 and y <= b:
+            # fixme: "r" seems to include the shadow on the
+            # rhs. Investigate
+            if l <= x < r and t <= y < b:
                 return self
         return None
 
@@ -124,11 +125,18 @@ class Button(Sheet):
                             FILL)
 
     def allocate_space(self, allocation):
+        (left, top, right, bottom) = allocation
         self._region = allocation
         (l, t, r, b) = self._button_background_region()
+        (width, height) = (r-l, b-t)
         # single child (the label)
         for child in self._children:
-            child.allocate_space((r-l, b-t))
+            if self._label._align == "left":
+                # left aligned labels leave a gap of 1 before the
+                # label - if possible
+                if width > len(self._label._label_text)+1:
+                    width -= 1
+            child.allocate_space((0, 0, width, height))
 
     def layout(self):
         (l, t, r, b) = self._button_background_region()
@@ -138,8 +146,6 @@ class Button(Sheet):
             # if label is left aligned and there is space to leave 1
             # char padding between the button's left side and the
             # label, then leave the space.
-            # FIXME: should reduce child's allocation by 1 in this
-            # case...
             if self._label._align == "left":
                 if r-l > len(self._label._label_text)+1:
                     coord = (l+1, t)
@@ -158,7 +164,9 @@ class Button(Sheet):
 
         pen = self._parent.pen()
         pen = Pen(pen.bg(), pen.attr(), pen.bg())
-        (width, height) = self._region
+        (left, top, right, bottom) = self._region
+        (width, height) = (right-left, bottom-top)
+        # fixme: bottom of region isn't included in the widget
         for y in range(0, height):
             self.move((0, y))
             self.draw_to((width, y), ' ', pen)
@@ -171,38 +179,42 @@ class Button(Sheet):
         (left, top, right, bottom) = self._button_background_region()
 
         self.move((left, top))
-        self.draw_to((right, bottom), ' ', pen)
+        # fixme: might still need to be 'bottom'?
+        self.draw_to((right, top), ' ', pen)
 
+    # gives the region of just the button background (coloured part of
+    # button visual not including padding or dropshadow)
     def _button_background_region(self):
-        (width, height) = self._region
+        (left, top, right, bottom) = self._region
+        (width, height) = (right-left, bottom-top)
 
         if self._width is not None:
             width = self._width
 
-        # fixme: this needs more thought. Don't want a bottom
-        # background border if there is a dropshadow because the
-        # dropshadow leaves 1/2 the line holding the shadow in the
-        # background colour already.
-
-        # fixme: if width is large enough to hold the label but not
+        # If width is large enough to hold the label but not
         # the decoration, draw the button background over the whole
         # region width.
         # If insufficient space for dropshadow, draw padding.
         # If insufficient space for padding, just draw background.
+
+        # room for shadow if width > label length+3 (left-pad,
+        # right-pad + shadow)
         x_shadow = width >= len(self._label._label_text)+3 and self._decorated
+        # room for padding if width > label length+2 (left-pad,
+        # right-pad)
         x_padding = width >= len(self._label._label_text)+2 and self._decorated
-        # y-padding uses the same space for the border and the padding
-        # - the padding is part of the dropshadow visual
-        y_shadow = height >= 2 and self._decorated
-        y_padding = height >= 2 and self._decorated
 
-        left = 1 if x_padding else 0
-        top = 1 if y_padding else 0
+        # bottom shadow uses same line as bottom padding
+        y_padding = height >= 3 and self._decorated
 
-        right = width-1 if x_padding else width
-        right = right-1 if x_shadow else right
+        left = 1 if x_padding>0 else 0
+        top = 1 if y_padding>0 else 0
 
-        bottom = top
+        right = right-1 if x_shadow>0 else right
+        right = right-1 if x_padding>0 else right
+
+        # button backgrounds are currently always 1 high
+        bottom = top+1
 
         # center button background in available height
         top_padding = max((height-4) // 2, 0)
@@ -224,7 +236,8 @@ class Button(Sheet):
         #pen = shadow_pen.merge(bg_pen)
         pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg(), bg_pen.fill())
 
-        (width, height) = self._region
+        (l, t, r, b) = self._region
+        (width, height) = (r-l, b-t)
         (left, top, right, bottom) = self._button_background_region()
 
         # is region wide enough to include side dropshadow?
@@ -238,8 +251,8 @@ class Button(Sheet):
         if draw_dropshadow_side:
             self.display_at((right, top), dropshadow_right, pen)
         if draw_dropshadow_below:
-            self.move((left+1, bottom+1))
-            self.draw_to((right+1, bottom+1), dropshadow_below, pen)
+            self.move((left+1, bottom))
+            self.draw_to((right+2, bottom), dropshadow_below, pen)
 
     def pen(self, role="undefined", state="default", pen="pen"):
         if role == "undefined":

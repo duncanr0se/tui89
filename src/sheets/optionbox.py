@@ -61,10 +61,10 @@ class OptionBox(Sheet):
         self._pressed = False
 
     def __repr__(self):
-        (width, height) = self._region
+        (left, top, right, bottom) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "OptionBox({}x{}@{},{}: '{}')".format(width, height,
+        return "OptionBox({}x{}@{},{}: '{}')".format(right-left, bottom-top,
                                                      tx, ty,
                                                      self._label._label_text)
 
@@ -78,7 +78,8 @@ class OptionBox(Sheet):
 
     def layout(self):
         self._label.move_to((0, 0))
-        (w, _) = self._region
+        (left, _, right, _) = self._region
+        w = right-left
         self._drop_label.move_to((w-2, 0))
 
     def handle_key_event(self, kevent):
@@ -175,7 +176,8 @@ class OptionBox(Sheet):
         self._draw_button()
 
     def _draw_background(self, pen):
-        self.clear((0, 0), self._region, pen)
+        (left, top, right, bottom) = self._region
+        self.clear((left, top), (right-left, bottom-top), pen)
 
     def _draw_label(self):
         self._label.render()
@@ -184,12 +186,12 @@ class OptionBox(Sheet):
         self._drop_label.render()
 
     def allocate_space(self, region):
+        (l, t, r, b) = region
         self._region = region
-        (w, h) = region
         # give last 2 chars of width to the "|v| button" and the rest
         # to the label
-        self._label.allocate_space((w-2, h))
-        self._drop_label.allocate_space((2, 1))
+        self._label.allocate_space((l, t, r-2, b))
+        self._drop_label.allocate_space((l, t, l+2, t+1))
 
     def compose_space(self):
         label_sr = self._label.compose_space()

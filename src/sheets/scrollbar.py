@@ -84,14 +84,15 @@ class Scrollbar(Sheet):
     def _draw_trough(self):
         trough = u'░'
         pen = self.pen()
-        (rw, rh) = self._region
+        (l, t, r, b) = self._region
+        (rw, rh) = (r-l, b-t)
         size = rw if self._orientation == "horizontal" else rh
         if self._orientation == "horizontal":
             self.move((1, 0))
-            self.draw_to((size-1, 0), trough, pen)
+            self.draw_to((size, 0), trough, pen)
         else:
             self.move((0, 1))
-            self.draw_to((0, size-1), trough, pen)
+            self.draw_to((0, size), trough, pen)
 
     def _draw_terminal_button(self):
         arrow_right = u'▶'
@@ -99,7 +100,8 @@ class Scrollbar(Sheet):
         terminal_arrow = arrow_right if self._orientation == "horizontal" else arrow_down
         pen = self.pen()
         button_click_pen = self.pen("button", "transient", "pen")
-        (rw, rh) = self._region
+        (l, t, r, b) = self._region
+        (rw, rh) = (r-l, b-t)
         size = rw if self._orientation == "horizontal" else rh
         if self._orientation == "horizontal":
             # "terminal" = right button (horiz bar) or bottom button
@@ -130,12 +132,12 @@ class Scrollbar(Sheet):
                 # move past button
                 self.move((1 + self._slug_offset, 0))
                 # draw up to other button
-                self.draw_to((self._slug_offset + self._slug_size, 0), slug, pen)
+                self.draw_to((self._slug_offset+self._slug_size+1, 0), slug, pen)
             else:
                 # move past buttons
                 self.move((0, 1 + self._slug_offset))
                 # draw up to other button
-                self.draw_to((0, self._slug_offset + self._slug_size), slug, pen)
+                self.draw_to((0, self._slug_offset+self._slug_size+1), slug, pen)
 
     def compose_space(self):
         absolute_min = 2
@@ -205,14 +207,14 @@ class Scrollbar(Sheet):
                 return
             return False
 
-    def update_extents(self, scrolled_sheet_extent, viewport_size):
+    def update_extents(self, scrolled_sheet_ltrb, viewport_size):
         logger.debug("update_extents sheet %s viewport %s",
-                     scrolled_sheet_extent, viewport_size)
+                     scrolled_sheet_ltrb, viewport_size)
         # normalise extents; this method is responsible for setting
         # the slug size
-        (l, t, r, b) = scrolled_sheet_extent
+        (l, t, r, b) = scrolled_sheet_ltrb
         # left+top are always 0 so width+height are right+bottom
-        self._scrolled_sheet_extent = r-1 if self._orientation == "horizontal" else b-1
+        self._scrolled_sheet_extent = r if self._orientation == "horizontal" else b
         self._viewport_extent = viewport_size
         if viewport_size > self._scrolled_sheet_extent:
             slug_ratio = 1.0
@@ -223,7 +225,8 @@ class Scrollbar(Sheet):
         logger.debug("slug_ratio = %s, slug_size = %s", slug_ratio, self._slug_size)
 
     def _bar_size(self):
-        (w, h) = self._region
+        (l, t, r, b) = self._region
+        (w, h) = (r-l, b-t)
         return w-2 if self._orientation == "horizontal" else h-2
 
     def update_scroll_offset(self, scrolled_sheet):

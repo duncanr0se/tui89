@@ -54,10 +54,10 @@ class Label(Sheet):
         self._valign = valign
 
     def __repr__(self):
-        (width, height) = self._region
+        (left, top, right, bottom) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "Label({}x{}@{},{}: '{}')".format(width, height, tx, ty,
+        return "Label({}x{}@{},{}: '{}')".format(right-left, bottom-top, tx, ty,
                                                  self._label_text)
 
     def add_child(self):
@@ -100,8 +100,8 @@ class Label(Sheet):
             return max(self.height()-1, 0)
 
     def _draw_background(self, pen):
-        (w, h) = self._region
-        self.clear((0, 0), self._region, pen)
+        (l, t, r, b) = self._region
+        self.clear((l, t), (r-l, b-t), pen)
 
     def _find_index_of_accelerator(self, display_text, accel_char):
         return display_text.find(accel_char)

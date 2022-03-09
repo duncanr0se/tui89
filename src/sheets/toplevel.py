@@ -29,8 +29,8 @@ class TopLevelSheet(Sheet):
         self._frame = None
 
     def __repr__(self):
-        (width, height) = self._region
-        return "TopLevelSheet({}x{})".format(width, height)
+        (left, top, right, bottom) = self._region
+        return "TopLevelSheet({}x{})".format(right-left, bottom-top)
 
     def pen(self, role="undefined", state="default", pen="pen"):
         if role == "undefined":
@@ -46,7 +46,6 @@ class TopLevelSheet(Sheet):
         # If not found get from frame
         if spen is None:
             spen = self.frame().pen(role, state, pen)
-        logger.debug("returning pen for use: %s", spen)
         return spen
 
     def clear(self, origin, region, pen):
@@ -78,14 +77,14 @@ class TopLevelSheet(Sheet):
         if x == from_x:
             # vertical
             min_y = min(from_y, y)
-            max_y = max(from_y, y)
+            max_y = max(from_y, y)-1
             for y in range(min_y, max_y):
                 self._frame._screen.print_at(char, x, y, colour=pen.fg(),
                                              attr=pen.attr(), bg=pen.bg())
         else:
             # horizontal
             min_x = min(x, from_x)
-            max_x = max(x, from_x)
+            max_x = max(x, from_x)-1
             for x in range(min_x, max_x):
                 self._frame._screen.print_at(char, x, y, colour=pen.fg(),
                                              attr=pen.attr(), bg=pen.bg())
@@ -106,6 +105,7 @@ class TopLevelSheet(Sheet):
     # Pretty sure the below is wrong! How to constrain children to fit
     # in available space (or to overflow)?
     def allocate_space(self, allocation):
+        (left, top, right, bottom) = allocation
         self._region = allocation
         for child in self._children:
             # child of top level sheet MAY NOT have a transform

@@ -397,7 +397,7 @@ class Frame():
             sheet.handle_event(MouseEvent(sx, sy, event.buttons))
 
     def lay_out_frame(self):
-        self._top_level_sheet.allocate_space((self._screen.width, self._screen.height))
+        self._top_level_sheet.allocate_space((0, 0, self._screen.width, self._screen.height))
         self._top_level_sheet.layout()
 
     def show_dialog(self, dialog):
@@ -429,7 +429,7 @@ class Frame():
         dwidth = min(dialog_spacereq.x_preferred(), dwidth)
         dheight = min(dialog_spacereq.y_preferred(), dheight)
 
-        dialog.allocate_space((dwidth, dheight))
+        dialog.allocate_space((0, 0, dwidth, dheight))
         dx = (self._screen.width - dwidth) // 2
         dy = (self._screen.height - dheight) // 2
 
@@ -476,7 +476,7 @@ class Frame():
         dwidth = min(menu_spacereq.x_preferred(), dwidth)
         dheight = min(menu_spacereq.y_preferred(), dheight)
 
-        menu.allocate_space((dwidth, dheight))
+        menu.allocate_space((0, 0, dwidth, dheight))
 
         menu.move_to(coord)
         menu.layout()
@@ -509,7 +509,8 @@ class Frame():
         self._screen.refresh()
 
     def invalidate(self, sheet):
-        self._invalidated_sheets.append(sheet)
+        if sheet not in self._invalidated_sheets:
+            self._invalidated_sheets.append(sheet)
 
     def render_invalidated_sheets(self):
         while len(self._invalidated_sheets) > 0:

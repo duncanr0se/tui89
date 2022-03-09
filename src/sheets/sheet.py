@@ -43,16 +43,12 @@ class Sheet():
       + children - children at the end of the child list are higher in
       the z-order (get rendered last);
 
-      + a default pen indicating the foreground and background to use
-    to draw by default;
-
       + may be attached to a display device;
     """
     def __init__(self):
         self._attached = False
         self._children = []
         self._parent = None
-        # sheets that manage pens need to set this to a dict()
         self._pens = None
         self._region = None
         self._transform = IDENTITY_TRANSFORM
@@ -60,11 +56,13 @@ class Sheet():
         self.on_detached_callback = None
 
     def __repr__(self):
+        # FIXME: what to do if sheet has no region? Should it be
+        # possible?
         if self._region is None:
             return "Sheet(=unallocated= {})".format(type(self))
         else:
-            (width, height) = self._region
-            return "Sheet({}x{})".format(width, height)
+            (left, top, right, bottom) = self._region
+            return "Sheet({}x{})".format(right-left, bottom-top)
 
     # drawing
     #
@@ -112,7 +110,6 @@ class Sheet():
         # Maybe use special values that tell the parent "overwrite
         # me". So could fill in defaults for the border layout if any
         # of its children pass "undefined" for the role?
-        logger.info("clear entered for sheet %s", self)
         if pen is None:
             pen = self.pen()
         porigin = self._transform.apply(origin)
@@ -210,11 +207,11 @@ class Sheet():
 
     def region_contains_position(self, coord):
         # coord is in the sheet's coordinate system
-        (rx, ry) = self._region
+        (left, top, right, bottom) = self._region
         (cx, cy) = coord
         # yes if its on the left or top boundary, no if it's on the
         # right or bottom boundary.
-        return cx < rx and cy < ry and cx >= 0 and cy >= 0
+        return left <= cx < right and top <= cy < bottom
 
     def get_screen_transform(self):
         # navigate parents until get to top level sheet composing
@@ -224,10 +221,12 @@ class Sheet():
     # layout layout types must override this to actually do layout
     def allocate_space(self, allocation):
         """
-        Forces width and height onto sheet.
+        Forces LTRB region onto sheet.
 
-        Width and Height are in the coordinate system of the sheet.
+        Coordinates are in the coordinate system of the sheet.
         """
+        # Force error if allocation is not an LTRB
+        (left, top, right, bottom) = allocation
         self._region = allocation
 
     # layout
@@ -257,15 +256,15 @@ class Sheet():
     def width(self):
         if not self._region:
             raise RuntimeError("Width queried before region set")
-        (width, height) = self._region
-        return width
+        (left, _, right, _) = self._region
+        return right-left
 
     # layout
     def height(self):
         if not self._region:
             raise RuntimeError("Height queried before region set")
-        (width, height) = self._region
-        return height
+        (_, top, _, bottom) = self._region
+        return bottom-top
 
     # events
     def find_focus_candidate(self):
@@ -354,6 +353,7 @@ class Sheet():
         # returning False to their caller (= the Frame)
         return self._parent.handle_key_event(event)
 
+    # FIXME: rename to "handle-mouse-event"?
     # events
     def handle_event(self, event):
         # coordinates in event are in the coordinate system of self

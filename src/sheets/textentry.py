@@ -44,10 +44,10 @@ class TextEntry(Sheet):
         self._text_offset = 0
 
     def __repr__(self):
-        (width, height) = self._region
+        (left, _, right, _) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "TextEntry({}@{},{}: '{}')".format(width, tx, ty, self._text)
+        return "TextEntry({}@{},{}: '{}')".format(right-left, tx, ty, self._text)
 
     def accepts_focus(self):
         return True

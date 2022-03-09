@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-class Transform():
+class Transform:
     """Transform coordinates by a translation."""
     _dx = 0
     _dy = 0

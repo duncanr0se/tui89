@@ -54,17 +54,18 @@ class HorizontalSeparator(Separator):
     }
 
     def __repr__(self):
-        (width, height) = self._region
-        return "HorizontalSeparator({})".format(width)
+        (left, _, right, _) = self._region
+        return "HorizontalSeparator({})".format(right-left)
 
     # drawing / redisplay
     def render(self):
         pen = self.pen()
-        (w, h) = self._region
-        self.clear((0, 0), (w, h))
+        (l, t, r, b) = self._region
+        (w, h) = (r-l, b-t)
+        self.clear((l, t), (w, h))
         y = self.center(h-1)
-        self.move((0, y))
-        self.draw_to((w, y), HorizontalSeparator._line_chars[self._style], pen)
+        self.move((l, y))
+        self.draw_to((r, y), HorizontalSeparator._line_chars[self._style], pen)
 
     # layout
     def compose_space(self):
@@ -81,16 +82,17 @@ class VerticalSeparator(Separator):
     }
 
     def __repr__(self):
-        (width, height) = self._region
-        return "VerticalSeparator({})".format(height)
+        (_, top, _, bottom) = self._region
+        return "VerticalSeparator({})".format(bottom-top)
 
     # drawing / redisplay
     def render(self):
         pen = self.pen()
-        (w, h) = self._region
-        self.clear((0, 0), (w, h))
+        (l, t, r, b) = self._region
+        (w, h) = (r-l, b-t)
+        self.clear((l, t), (w, h))
         x = self.center(w-1)
-        self.move((x, 0))
+        self.move((x, t))
         self.draw_to((x, h), VerticalSeparator._line_chars[self._style], pen)
 
     # layout

@@ -43,7 +43,8 @@ class ListLayout(Sheet):
         # choose to do so if they need to but most will fill their
         # region anyway and they can rely on empty space being the
         # default background colour.
-        self.clear((0, 0), self._region)
+        (left, top, right, bottom) = self._region
+        self.clear((left, top), (right-left, bottom-top))
         for child in self._children:
             child.render()
 
@@ -53,9 +54,10 @@ class ListLayout(Sheet):
         # width = max of all widths
         # min = max of all mins
         # max = FILL
+        (l, t, r, b) = allocation
 
         self._region = allocation
-        (width, height) = allocation
+        (width, height) = (r-l, b-t)
 
         # simple sauce; loop over kids and allocate them the space
         # they want, hope they don't want too much! Use the list
@@ -63,7 +65,7 @@ class ListLayout(Sheet):
         for child in self._children:
             sr = child.compose_space()
             ch = sr.y_preferred() if sr.y_preferred() < FILL else sr.y_min()
-            child.allocate_space((width, ch))
+            child.allocate_space((l, t, width, ch))
 
     def compose_space(self):
         reqheight = 0

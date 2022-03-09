@@ -110,6 +110,8 @@ $%^&* etc. as accelerators...
 When placing a transient window on screen (dialog / popup) the current
 focus should be cached and focus returned to it when the transient
 window is closed.
+As part of the focus handling changes, need to properly implement
+graft / attach / detach along with events or NOTE-* methods.
 
 LAYOUT IMPROVEMENTS
 ===================
@@ -123,22 +125,13 @@ should be FILL rather than an explicit preferred size. Some layouts /
 parents will want the widgets to take all available space, and some
 won't. Also - spacing / padding / null sheets to take excess space.
 
-Decorated button sizes are not calculated properly. should be room for "top border"
-+ "button" + "drop shadow", no need for bottom border.
+Move drawing ops to use LTRB regions where appropriate instead of
+separate coord + width, height.
 
-  v                 v
- |0|1|2|3|4|5|6|7|8|9|0|
- |<---   width   --->|
+Add methods to Transform:
 
-L=0 (incl), W=10 (incl), R=10 (excl)
-
-width = (r-l)+1
-height = (b-t)+1
-
-Decide if region is x,y + w,h or l,t,r,b. Either works but need to be
-consistent.
-
-Migrate everything to LTRBs.
+  - transform_coordinates
+  - transform_region
 
 
 VISUAL FEEDBACK
@@ -154,6 +147,12 @@ somewhere.
 GENERAL / CODING
 ================
 DIFFERENT TYPES OF BORDERS
+
+Add some error types:
+
+  - NotAttachedError
+
+Add region.py file to geometry to put common region methods in?
 
 DOCUMENTATION - write some (more)
 

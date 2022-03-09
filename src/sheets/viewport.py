@@ -33,14 +33,14 @@ class Viewport(Sheet):
     # scrolled sheet transform gets changed when the scrollbars are
     # altered.
 
-    _vertical_sb = None
-    _horizontal_sb = None
+#    _vertical_sb = None
+#    _horizontal_sb = None
 
     # fixme: scrolled_sheet, or just use _children?
-    _scrolled_sheet = None
+    # _scrolled_sheet = None
 
     # LTRB for scrolled sheet
-    _scroll_extents = (0, 0, 1, 1)
+    # _scroll_extents = (0, 0, 1, 1)
 
     def __init__(self, contentpane, vertical_bar=None, horizontal_bar=None):
         super().__init__()
@@ -52,15 +52,16 @@ class Viewport(Sheet):
             self._vertical_sb._viewport = self
         if self._horizontal_sb is not None:
             self._horizontal_sb._viewport = self
+        self._scrolled_ltrb = (0, 0, 1, 1)
 
     def __repr__(self):
         if self._region is None:
             return "Viewport(=unallocated=)"
         else:
-            (width, height) = self._region
+            (left, top, right, bottom) = self._region
             tx = self._transform._dx
             ty = self._transform._dy
-            return "Viewport({}x{}@{},{})".format(width, height, tx, ty)
+            return "Viewport({}x{}@{},{})".format(right-left, bottom-top, tx, ty)
 
     def add_child(self, child):
         if self._children:
@@ -100,10 +101,11 @@ class Viewport(Sheet):
 
     # Give the child as much space as is available, 'cause why not?
     def allocate_space(self, allocation):
+        (l, t, r, b) = allocation
         self._region = allocation
         # the scrolled sheet has no "allocation" per se, it just accepts
         # pretty much everything.
-        self._scrolled_sheet.allocate_space((FILL, FILL))
+        self._scrolled_sheet.allocate_space((0, 0, FILL, FILL))
 
     def layout(self):
         # single child
@@ -114,7 +116,8 @@ class Viewport(Sheet):
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
-        self.clear((0, 0), self._region)
+        (left, top, right, bottom) = self._region
+        self.clear((left, top), (right-left, bottom-top))
         for child in self._children:
             child.render()
         # fixme: how to deal with events?
@@ -124,7 +127,8 @@ class Viewport(Sheet):
         # + cut off any that would be rendered after 'width'
         # coord is fixed elsewhere
         (x, y) = coord
-        (w, h) = self._region
+        (l, t, r, b) = self._region
+        (w, h) = (r-l, b-t)
 
         if y < 0 or y >= h:
             return ""
@@ -138,7 +142,8 @@ class Viewport(Sheet):
 
     def _clip(self, coord):
         (x, y) = coord
-        (w, h) = self._region
+        (l, t, r, b) = self._region
+        (w, h) = (r-l, b-t)
 
         if x >= w or y >= h:
             # coord does not intersect viewport region at all
@@ -215,14 +220,14 @@ class Viewport(Sheet):
         # scroll extents AND coord are in the coord system of the
         # scrolled sheet.  Keep scrolled extents and LTRB.
         #
-        # Note that the "scrolled extents" here are exactly the
-        # extents of the scrolled sheet.
+        # Note that the "scrolled extents" is the ltrb of the scrolled
+        # sheet.
 
-        if self.ltrb_contains_position(self._scroll_extents, coord):
+        if self.ltrb_contains_position(self._scrolled_ltrb, coord):
             # nothing to do
             return
 
-        (l, t, r, b) = self._scroll_extents
+        (l, t, r, b) = self._scrolled_ltrb
         (cx, cy) = coord
 
         # Need the LTRB to contain the point; since points on the
@@ -237,18 +242,18 @@ class Viewport(Sheet):
         if b <= cy:
             b = cy+1
 
-        self._scroll_extents = (l,t,r,b)
+        self._scrolled_ltrb = (l, t, r, b)
 
         logger.debug("viewport region=%s, scroll_extents=%s, transform=%s",
                      self._region,
-                     self._scroll_extents,
+                     self._scrolled_ltrb,
                      self._scrolled_sheet._transform)
 
         if self._vertical_sb is not None:
-            self._vertical_sb.update_extents(self._scroll_extents, self.height())
+            self._vertical_sb.update_extents(self._scrolled_ltrb, self.height())
 
         if self._horizontal_sb is not None:
-            self._horizontal_sb.update_extents(self._scroll_extents, self.width())
+            self._horizontal_sb.update_extents(self._scrolled_ltrb, self.width())
 
     def ltrb_contains_position(self, ltrb, position):
         (l, t, r, b) = ltrb
@@ -256,6 +261,7 @@ class Viewport(Sheet):
         return l <= x < r and t <= y < b
 
     def scroll_left_line(self):
+        logger.info(">>> SCROLL LEFT LINE <<<")
         # scrolling LEFT moves scrolled sheet to the RIGHT.
         # if LHS of scrolled sheet is already showing, don't allow
         # scrolling in this direction.
@@ -271,9 +277,10 @@ class Viewport(Sheet):
         self.invalidate()
 
     def scroll_right_line(self):
+        logger.info(">>> SCROLL RIGHT LINE <<<")
         delta = 1
         trans = self._scrolled_sheet._transform
-        (l,t,r,b) = self._scroll_extents
+        (l,t,r,b) = self._scrolled_ltrb
         (sw, sh) = (r-l),(b-t)
         tmax = self.width() - sw
         x = max(tmax, trans._dx-delta)
@@ -283,6 +290,7 @@ class Viewport(Sheet):
         self.invalidate()
 
     def scroll_up_line(self):
+        logger.info(">>> SCROLL UP LINE <<<")
         delta = 1
         trans = self._scrolled_sheet._transform
         y = min(0, trans._dy+delta)
@@ -291,9 +299,10 @@ class Viewport(Sheet):
         self.invalidate()
 
     def scroll_down_line(self):
+        logger.info(">>> SCROLL DOWN LINE <<<")
         delta = 1
         trans = self._scrolled_sheet._transform
-        (l,t,r,b) = self._scroll_extents
+        (l,t,r,b) = self._scrolled_ltrb
         (sw, sh) = (r-l),(b-t)
         tmax = self.height() - sh
         y = max(tmax, trans._dy-delta)
@@ -302,6 +311,7 @@ class Viewport(Sheet):
         self.invalidate()
 
     def scroll_left_page(self):
+        logger.info(">>> SCROLL LEFT PAGE <<<")
         delta = self.width()-1
         trans = self._scrolled_sheet._transform
         x = min(0, trans._dx+delta)
@@ -311,9 +321,10 @@ class Viewport(Sheet):
         self.invalidate()
 
     def scroll_right_page(self):
+        logger.info(">>> SCROLL RIGHT PAGE <<<")
         delta = self.width()-1
         trans = self._scrolled_sheet._transform
-        (l,t,r,b) = self._scroll_extents
+        (l,t,r,b) = self._scrolled_ltrb
         (sw, sh) = (r-l),(b-t)
         tmax = self.width() - sw
         x = max(tmax, trans._dx-delta)
@@ -323,6 +334,7 @@ class Viewport(Sheet):
         self.invalidate()
 
     def scroll_up_page(self):
+        logger.info(">>> SCROLL UP PAGE <<<")
         delta = self.height()-1
         trans = self._scrolled_sheet._transform
         y = min(0, trans._dy+delta)
@@ -331,9 +343,10 @@ class Viewport(Sheet):
         self.invalidate()
 
     def scroll_down_page(self):
+        logger.info(">>> SCROLL DOWN PAGE <<<")
         delta = self.height()-1
         trans = self._scrolled_sheet._transform
-        (l,t,r,b) = self._scroll_extents
+        (l,t,r,b) = self._scrolled_ltrb
         (sw, sh) = (r-l),(b-t)
         tmax = self.height() - sh
         y = max(tmax, trans._dy-delta)
