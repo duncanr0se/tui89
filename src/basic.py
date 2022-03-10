@@ -36,6 +36,7 @@ from sheets.menubox import MenuBox
 from sheets.textentry import TextEntry
 from sheets.textarea import TextArea
 from sheets.optionbox import OptionBox
+from controls.listcontrol import ListControl
 
 from dcs.ink import Pen
 
@@ -176,6 +177,22 @@ def demo(screen):
     label = Label("Option box:", label_widget=box)
     row10.add_child(label)
     row10.add_child(box)
+
+    listlayout.add_child(HorizontalSeparator(style="spacing"))
+
+    # List Control
+
+    row11 = HorizontalLayout([])
+    listlayout.add_child(row11)
+    # fixme: layout issues with this! For some reason stuff isn't
+    # getting clipped to the viewport...
+    list_control = ListControl(options=["One", "Two", "Three", "Four", "Five",
+                                        "Six", "Seven", "Eight", "Nine", "Ten",
+                                        "Eleven", "Twelve", "Thirteen", "Fourteen",
+                                        "Not a number! Instead something longer"])
+    label = Label("List control:", label_widget=list_control, valign="center")
+    row11.add_child(label)
+    row11.add_child(list_control)
 
     #### "green"
 

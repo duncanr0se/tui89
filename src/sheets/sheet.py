@@ -250,19 +250,20 @@ class Sheet():
         X and Y are in the coordinate system of the child sheet
         being updated.
         """
+        # fixme: pass? really?
         pass
 
     # layout
     def width(self):
         if not self._region:
-            raise RuntimeError("Width queried before region set")
+            raise RuntimeError(f"Width of sheet {self} queried before region set")
         (left, _, right, _) = self._region
         return right-left
 
     # layout
     def height(self):
         if not self._region:
-            raise RuntimeError("Height queried before region set")
+            raise RuntimeError(f"Height of sheet {self} queried before region set")
         (_, top, _, bottom) = self._region
         return bottom-top
 

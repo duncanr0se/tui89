@@ -55,7 +55,6 @@ class TopLevelSheet(Sheet):
         # Python range() does not include the upper bound
         for line in range(t, b):
             self._frame._screen.move(l, line)
-            # fixme: could be the case that "draw" does not include coord...
             self._frame._screen.draw(r, line, pen.fill(), colour=pen.fg(), bg=pen.bg())
 
     def display_at(self, coord, text, pen):

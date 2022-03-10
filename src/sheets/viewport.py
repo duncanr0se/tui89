@@ -101,7 +101,15 @@ class Viewport(Sheet):
         self._region = allocation
         # the scrolled sheet has no "allocation" per se, it just accepts
         # pretty much everything.
-        self._scrolled_sheet.allocate_space((0, 0, FILL, FILL))
+        # Only use FILL in directions that the sheet can scroll;
+        # otherwise fix the size.
+        horiz_scrolling = False if self._horizontal_sb is None else True
+        vert_scrolling = False if self._vertical_sb is None else True
+
+        scroller_sr = self._scrolled_sheet.compose_space()
+        width = FILL if horiz_scrolling else min(scroller_sr.x_preferred(), r-l)
+        height = FILL if vert_scrolling else min(scroller_sr.y_preferred(), b-t)
+        self._scrolled_sheet.allocate_space((0, 0, width, height))
 
     def layout(self):
         # single child
@@ -148,10 +156,22 @@ class Viewport(Sheet):
         cy = max(min(y, h), 0)
         return (cx, cy)
 
+    def _clip_region(self, region):
+        (vl, vt, vr, vb) = self._region
+        (rl, rt, rr, rb) = region
+        left = vl if rl < vl else rl
+        top = vt if rt < vt else rt
+        right = vr if rr > vr else rr
+        bottom = vb if rb > vb else rb
+        return (left, top, right, bottom)
+
     # drawing
-    def clear(self, region):
-        transformed_region = self._transform.transform_region(region)
-        self._parent.clear(transformed_region)
+    def clear(self, region, pen=None):
+        # Clip the region being cleared so it remains inside the
+        # viewport
+        clipped_region = self._clip_region(region)
+        transformed_region = self._transform.transform_region(clipped_region)
+        self._parent.clear(transformed_region, pen)
 
     # drawing
     def display_at(self, coord, text, pen):

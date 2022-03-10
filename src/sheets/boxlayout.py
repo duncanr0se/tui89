@@ -177,8 +177,7 @@ class BoxLayout(Sheet):
         # region anyway and they can rely on empty space being the
         # default background colour.
         # fixme: which pen to use for clearing the region?
-        (left, top, right, bottom) = self._region
-        self.clear((left, top, right, bottom))
+        self.clear(self._region)
         for child in self._children:
             child.render()
 
