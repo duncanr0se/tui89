@@ -61,8 +61,7 @@ class MenuBox(TopLevelSheet):
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
-        (left, top, right, bottom) = self._region
-        self.clear((left, top), (right-left, bottom-top), self.pen())
+        self.clear(self._region, self.pen())
         for child in self._children:
             child.render()
 

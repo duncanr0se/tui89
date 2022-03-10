@@ -52,11 +52,10 @@ class MenubarLayout(Sheet):
         # region anyway and they can rely on empty space being the
         # default background colour.
         (left, top, right, bottom) = self._region
-        (w, h) = (right-left, bottom-top)
-        self.clear((left, top), (w, h))
+        self.clear(self._region)
         logger.info("render on menubar %s", self)
         self.move((left, top))
-        self.draw_to((w, top), ' ', self.pen(role="menubar", state="default", pen="pen"))
+        self.draw_to((right, top), ' ', self.pen(role="menubar", state="default", pen="pen"))
         for child in self._children:
             child.render()
 
@@ -67,7 +66,6 @@ class MenubarLayout(Sheet):
         (left, top, right, bottom) = allocation
         # make scrollbar as wide as its parent allows
         self._region = allocation
-        (width, height) = (right-left, bottom-top)
 
         # simple sauce; loop over kids and allocate them the space
         # they want, hope they don't want too much! Use the list
@@ -77,7 +75,7 @@ class MenubarLayout(Sheet):
             sr = child.compose_space()
             cw = sr.x_preferred()
             # fixme: take the minimum of the button?
-            child.allocate_space((left, top, cw, 1))
+            child.allocate_space((left, top, left+cw, bottom))
 
     def compose_space(self):
         return SpaceReq(1, FILL, FILL, 1, 1, 1)

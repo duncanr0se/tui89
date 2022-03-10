@@ -17,6 +17,7 @@
 import time
 
 from asciimatics.event import MouseEvent
+from asciimatics.screen import Screen
 
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
@@ -115,7 +116,7 @@ class Button(Sheet):
             return SpaceReq(fw, fw, fw,
                             label_sr.y_min(),
                             label_sr.y_preferred()+y_padding,
-                            label_sr.y_preferred()+y_padding)
+                            FILL)
         else:
             return SpaceReq(label_sr.x_min(),
                             label_sr.x_preferred()+x_padding,
@@ -133,10 +134,11 @@ class Button(Sheet):
         for child in self._children:
             if self._label._align == "left":
                 # left aligned labels leave a gap of 1 before the
-                # label - if possible
+                # label - if possible. This reduces the amount of
+                # space available to the label.
                 if width > len(self._label._label_text)+1:
                     width -= 1
-            child.allocate_space((0, 0, width, height))
+            child.allocate_space((0, 0, 0+width, 0+height))
 
     def layout(self):
         (l, t, r, b) = self._button_background_region()
@@ -156,30 +158,24 @@ class Button(Sheet):
     # padding.
     # button background > padding decoration > drop shadow decoration
     def _draw_padding(self):
-        # fixme: method on Pen to return a "draw in bg colour" pen
-        # fixme: sheets should define a bg + fg, and Pen instances
-        # should be constructed as needed.
-        # fixme: fg must have an attr specified, bg always has attr
-        # NORMAL.
-
         pen = self._parent.pen()
         pen = Pen(pen.bg(), pen.attr(), pen.bg())
-        (left, top, right, bottom) = self._region
-        (width, height) = (right-left, bottom-top)
-        # fixme: bottom of region isn't included in the widget
-        for y in range(0, height):
-            self.move((0, y))
-            self.draw_to((width, y), ' ', pen)
+        self.clear(self._region, pen)
 
     def _draw_button_background(self):
         # fixme: method on Pen to return a "draw in bg colour" pen
         pen = self.pen()
         pen = Pen(pen.bg(), pen.attr(), pen.bg())
+        # temporarily overide pen so we can see extents; todo: define
+        # a "debug" pen
+        # pen = Pen(Screen.COLOUR_YELLOW, pen.attr(), Screen.COLOUR_YELLOW)
 
         (left, top, right, bottom) = self._button_background_region()
 
+        # problem is that pens are not being given the correct width +
+        # it looks like there's a bug when drawing the drop shadow
+        # that causes it to be drawn in the wrong place.
         self.move((left, top))
-        # fixme: might still need to be 'bottom'?
         self.draw_to((right, top), ' ', pen)
 
     # gives the region of just the button background (coloured part of
@@ -187,9 +183,6 @@ class Button(Sheet):
     def _button_background_region(self):
         (left, top, right, bottom) = self._region
         (width, height) = (right-left, bottom-top)
-
-        if self._width is not None:
-            width = self._width
 
         # If width is large enough to hold the label but not
         # the decoration, draw the button background over the whole
@@ -207,20 +200,19 @@ class Button(Sheet):
         # bottom shadow uses same line as bottom padding
         y_padding = height >= 3 and self._decorated
 
-        left = 1 if x_padding>0 else 0
-        top = 1 if y_padding>0 else 0
+        left = 1 if x_padding else 0
+        top = 1 if y_padding else 0
 
-        right = right-1 if x_shadow>0 else right
-        right = right-1 if x_padding>0 else right
-
-        # button backgrounds are currently always 1 high
-        bottom = top+1
+        if x_shadow:
+            right -= 1
+        if x_padding:
+            right -= 1
 
         # center button background in available height
         top_padding = max((height-4) // 2, 0)
-
         top += top_padding
-        bottom += top_padding
+        # button backgrounds are currently always 1 high
+        bottom = top+1
 
         # left, bottom not included in region
         return left, top, right, bottom
@@ -236,23 +228,24 @@ class Button(Sheet):
         #pen = shadow_pen.merge(bg_pen)
         pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg(), bg_pen.fill())
 
-        (l, t, r, b) = self._region
-        (width, height) = (r-l, b-t)
+        (wl, wt, wr, wb) = self._region
         (left, top, right, bottom) = self._button_background_region()
 
-        # is region wide enough to include side dropshadow?
-        draw_dropshadow_side = width > self._label.width()+2
+        # is region wide enough to include side dropshadow? - Yes if
+        # widget rhs and button background rhs leaves space for the
+        # dropshadow and padding (= 2)
+        draw_dropshadow_side = (wr-right)>=2
         # is region high enough to include bottom dropshadow?
-        draw_dropshadow_below = height >= 2
+        draw_dropshadow_below = (wb-bottom) >= 1
 
         dropshadow_right = u'▄'
         dropshadow_below = u'▀'
 
         if draw_dropshadow_side:
-            self.display_at((right, top), dropshadow_right, pen)
+            self.display_at((right-1, top), dropshadow_right, pen)
         if draw_dropshadow_below:
             self.move((left+1, bottom))
-            self.draw_to((right+2, bottom), dropshadow_below, pen)
+            self.draw_to((right+1, bottom), dropshadow_below, pen)
 
     def pen(self, role="undefined", state="default", pen="pen"):
         if role == "undefined":

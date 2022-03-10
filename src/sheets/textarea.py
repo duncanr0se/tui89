@@ -73,7 +73,7 @@ class TextArea(TextEntry):
         pen = self.pen(role="editable", state="default", pen="area_pen")
 
         # draw background
-        self.clear((0, 0), (self.width(), self.height()))
+        self.clear(self._region)
 
         # draw text
         #

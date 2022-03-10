@@ -92,7 +92,7 @@ class Sheet():
         self._pens[role][state][which] = pen
 
     # drawing
-    def clear(self, origin, region, pen=None):
+    def clear(self, region_ltrb, pen=None):
         # in order for pens to work properly this method needs to pass
         # the pen up to the top-level.
 
@@ -112,8 +112,8 @@ class Sheet():
         # of its children pass "undefined" for the role?
         if pen is None:
             pen = self.pen()
-        porigin = self._transform.apply(origin)
-        self._parent.clear(porigin, region, pen)
+        transformed_ltrb = self._transform.transform_region(region_ltrb)
+        self._parent.clear(transformed_ltrb, pen)
 
     # drawing
     def display_at(self, coord, text, pen):

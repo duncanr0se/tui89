@@ -62,7 +62,7 @@ class HorizontalSeparator(Separator):
         pen = self.pen()
         (l, t, r, b) = self._region
         (w, h) = (r-l, b-t)
-        self.clear((l, t), (w, h))
+        self.clear(self._region)
         y = self.center(h-1)
         self.move((l, y))
         self.draw_to((r, y), HorizontalSeparator._line_chars[self._style], pen)
@@ -90,7 +90,7 @@ class VerticalSeparator(Separator):
         pen = self.pen()
         (l, t, r, b) = self._region
         (w, h) = (r-l, b-t)
-        self.clear((l, t), (w, h))
+        self.clear(self._region)
         x = self.center(w-1)
         self.move((x, t))
         self.draw_to((x, h), VerticalSeparator._line_chars[self._style], pen)

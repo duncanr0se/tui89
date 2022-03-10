@@ -48,12 +48,15 @@ class TopLevelSheet(Sheet):
             spen = self.frame().pen(role, state, pen)
         return spen
 
-    def clear(self, origin, region, pen):
-        (x, y) = self._transform.apply(origin)
-        (w, h) = region
-        for line in range(0, h):
-            self._frame._screen.move(x, y + line)
-            self._frame._screen.draw(x + w, y + line, pen.fill(), colour=pen.fg(), bg=pen.bg())
+    def clear(self, region_ltrb, pen):
+        # top level transform = top level -> "screen"
+        transformed_region = self._transform.transform_region(region_ltrb)
+        (l, t, r, b) = transformed_region
+        # Python range() does not include the upper bound
+        for line in range(t, b):
+            self._frame._screen.move(l, line)
+            # fixme: could be the case that "draw" does not include coord...
+            self._frame._screen.draw(r, line, pen.fill(), colour=pen.fg(), bg=pen.bg())
 
     def display_at(self, coord, text, pen):
         (x, y) = self._transform.apply(coord)

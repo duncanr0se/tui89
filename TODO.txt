@@ -42,12 +42,16 @@ add controls:
    - multivalue dialog box (dialog box containing other widgets)
    - file open
    - file save
+   - widget explorer - add "sheet select" mode then draw widget tree
+     for selected widget
 
 Look at other toolkits, work out if there are any other controls or
 widgets that could be useful.
 
 
  PRIORITIES:
+
+*. widget explorer
 
 *. event handling (delayed), input
 

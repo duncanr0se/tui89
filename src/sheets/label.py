@@ -100,8 +100,7 @@ class Label(Sheet):
             return max(self.height()-1, 0)
 
     def _draw_background(self, pen):
-        (l, t, r, b) = self._region
-        self.clear((l, t), (r-l, b-t), pen)
+        self.clear(self._region, pen)
 
     def _find_index_of_accelerator(self, display_text, accel_char):
         return display_text.find(accel_char)

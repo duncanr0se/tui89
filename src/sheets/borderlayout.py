@@ -161,16 +161,18 @@ class BorderLayout(Sheet):
             child_request = child.compose_space()
             calloc_x = min(calloc_x, child_request.x_max())
             calloc_y = min(calloc_y, child_request.y_max())
-            child.allocate_space((0, 0, calloc_x, calloc_y))
+            child.allocate_space((0, 0, 0+calloc_x, 0+calloc_y))
         # deal with scrollbars specially because they aren't treated
         # as children of the border pane.
         if self._vertical_sb is not None:
             child_request = self._vertical_sb.compose_space()
-            # use the minimum width and the border pane's height
+            # use the minimum width and the border pane's inner height
             self._vertical_sb.allocate_space((0, 0, child_request.x_min(), bottom-top-2))
         if self._horizontal_sb is not None:
             child_request = self._horizontal_sb.compose_space()
-            # use minimum height and border pane's width
+            # use minimum height and border pane's width and border
+            # pane's inner width; + an extra reduction because the
+            # horizontal bar rhs is offset by an extra unit for L+F
             self._horizontal_sb.allocate_space((0, 0, right-left-3, child_request.y_min()))
 
     def layout(self):
@@ -191,8 +193,7 @@ class BorderLayout(Sheet):
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
-        (left, top, right, bottom) = self._region
-        self.clear((left, top), (right-left, bottom-top))
+        self.clear(self._region)
         self._draw_border()
         for child in self._children:
             child.render()
@@ -238,11 +239,11 @@ class BorderLayout(Sheet):
         self.move((1, top))
         if self._title:
             # LHS of bar + title
-            bar_width = right-left-1
+            bar_width = right-left
             title = ' ' + self._title + ' '
             title_width = len(title)
             side_bar_width = (bar_width - title_width) // 2
-            self.draw_to((side_bar_width, top), charset["top"], pen)
+            self.draw_to((side_bar_width+1, top), charset["top"], pen)
             self.display_at((side_bar_width, top), title, pen)
             self.move((side_bar_width + title_width, top))
             self.draw_to((right, top), charset["top"], pen)

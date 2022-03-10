@@ -176,8 +176,7 @@ class OptionBox(Sheet):
         self._draw_button()
 
     def _draw_background(self, pen):
-        (left, top, right, bottom) = self._region
-        self.clear((left, top), (right-left, bottom-top), pen)
+        self.clear(self._region, pen)
 
     def _draw_label(self):
         self._label.render()

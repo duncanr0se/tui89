@@ -36,5 +36,14 @@ class Transform:
     def add_transform(self, other):
         return Transform(self._dx + other._dx, self._dy + other._dy)
 
+    def transform_point(self, point):
+        return self.apply(point)
+
+    def transform_region(self, region):
+        (l, t, r, b) = region
+        (l, t) = self.apply((l, t))
+        (r, b) = self.apply((r, b))
+        return (l, t, r, b)
+
 # no-op transform
 IDENTITY_TRANSFORM = Transform(0, 0)
