@@ -23,6 +23,10 @@ from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 from dcs.ink import Pen
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 class Label(Sheet):
     """Line of text.
 
@@ -157,3 +161,30 @@ class Label(Sheet):
         super().attach()
         if self._label_widget is not None:
             self.frame().register_accelerator(self._label_text, self._label_widget)
+
+
+class ValueLabel(Label):
+    # label that accepts focus and has a value (= the label's text)
+    def __repr__(self):
+        (left, top, right, bottom) = self._region
+        tx = self._transform._dx
+        ty = self._transform._dy
+        return "ValueLabel({}x{}@{},{}: '{}')".format(right-left, bottom-top,
+                                                      tx, ty,
+                                                      self._label_text)
+
+    def value(self):
+        return self._label_text
+
+    def accepts_focus(self):
+        return True
+
+    def pen(self, role="undefined", state="default", pen="pen"):
+        role="label" if role=="undefined" else role
+        state = "focus" if self.is_focus() else state
+        return super().pen(role=role, state=state, pen=pen)
+
+    # fixme: make this the default method in sheet.py to prevent
+    # forgetting to implement it otherwise...
+    def is_focus(self):
+        return self.frame()._focus == self

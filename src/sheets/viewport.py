@@ -159,6 +159,12 @@ class Viewport(Sheet):
     def _clip_region(self, region):
         (vl, vt, vr, vb) = self._region
         (rl, rt, rr, rb) = region
+
+        # if region does not intersect with the viewport region, the
+        # resulting clipped region is empty.
+        if rl >= vr or rr < vl or rt >= vb or rb < vt:
+            return None
+
         left = vl if rl < vl else rl
         top = vt if rt < vt else rt
         right = vr if rr > vr else rr
@@ -170,8 +176,9 @@ class Viewport(Sheet):
         # Clip the region being cleared so it remains inside the
         # viewport
         clipped_region = self._clip_region(region)
-        transformed_region = self._transform.transform_region(clipped_region)
-        self._parent.clear(transformed_region, pen)
+        if clipped_region is not None:
+            transformed_region = self._transform.transform_region(clipped_region)
+            self._parent.clear(transformed_region, pen)
 
     # drawing
     def display_at(self, coord, text, pen):
@@ -190,8 +197,9 @@ class Viewport(Sheet):
     def move(self, coord):
         self._capture_move(coord)
         coord = self._clip(coord)
-        parent_coord = self._transform.apply(coord)
-        self._parent.move(parent_coord)
+        if coord is not None:
+            parent_coord = self._transform.apply(coord)
+            self._parent.move(parent_coord)
 
     # drawing
     # rework contract for this to make it clear single
@@ -201,8 +209,9 @@ class Viewport(Sheet):
     def draw_to(self, coord, char, pen):
         self._capture_draw(coord, char)
         coord = self._clip(coord)
-        parent_coord = self._transform.apply(coord)
-        self._parent.draw_to(parent_coord, char, pen)
+        if coord is not None:
+            parent_coord = self._transform.apply(coord)
+            self._parent.draw_to(parent_coord, char, pen)
 
     def _capture_print_at(self, text, coord):
         # capture scroller extents in the coord system of the scrolled

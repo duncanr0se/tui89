@@ -37,7 +37,7 @@ Widgets:
 
 add controls:
 
-   - list control (scrolling list view)
+   - list control
    - tree control
    - multivalue dialog box (dialog box containing other widgets)
    - file open
@@ -51,7 +51,7 @@ widgets that could be useful.
 
  PRIORITIES:
 
-*. list control
+*. list control event handling and widget selection inside viewport
 
 *. tree control
 
@@ -119,6 +119,7 @@ window is closed.
 As part of the focus handling changes, need to properly implement
 graft / attach / detach along with events or NOTE-* methods.
 
+
 LAYOUT IMPROVEMENTS
 ===================
 TEXT ALIGNMENT and truncation ON BORDER TITLES
@@ -134,10 +135,9 @@ won't. Also - spacing / padding / null sheets to take excess space.
 Move drawing ops to use LTRB regions where appropriate instead of
 separate coord + width, height.
 
-Add methods to Transform:
-
-  - transform_coordinates
-  - transform_region
+Could use a tool that displays selected widgets in a layout that can
+have its size set, and see how different sized containers allocate and
+render different widget types.
 
 
 VISUAL FEEDBACK
@@ -149,7 +149,43 @@ shorter line to empty line, cursor is drawn at negative offset when
 reach empty line - add "max(insertion_point|text_offset, 0)"
 somewhere.
 
+If list control contains decorated buttons the button just being
+scrolled out of view at the top is not rendering properly.
+
+If slug size is too small (large scrolled sheet size relative to
+viewport) it disappears altogether. Fix minimum slug size to 1.
+
+Buttons not drawing dropshadow properly (rhs missing)
+
 Scroller is too wide - scroll bar extents / slug size not correct.
+
+If a button is "pressed" and then receives the focus (due to shoddy
+mouse event handling), need to clear the "pressed" state of the button
+(without activating the button).
+
+
+List Control
+============
+
+Decide what it means to "activate" a list control [focus first or most
+recent focus in list control; do nothing if nothing can be focused in
+the control]
+
+up / down arrow should move focus to different list items.
+
+currently focused item should scroll into view if outside current
+visible range.
+
+if focus is moved off list box and then returned to it, focus should
+return to previously focused list item.
+
+ESC should move focus to next focus widget at same level as list
+control (see text entry widgets)
+
+scroll extents not quite right and might be easier to debug in list
+control than in general viewport.
+
+pg_up / pg_down should move focus (and scroll offset) accordingly.
 
 
 GENERAL / CODING

@@ -126,7 +126,6 @@ class Frame():
                 "accelerator": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
             },
             "focus": {
-                # fixme: button should take full width of container
                 "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_GREEN, ' '),
             }
         },
@@ -623,7 +622,8 @@ class Frame():
         base_set = [x for x in label if x.isalpha()]
         if len(base_set)>0:
             accelerator = self.accelerator_from_label(label, widget.top_level_sheet())
-            self.accelerator_table(widget)[accelerator] = widget
+            if accelerator is not None:
+                self.accelerator_table(widget)[accelerator] = widget
 
     def discard_accelerator(self, widget):
         accelerator = self.accelerator_for_widget(widget)
@@ -657,4 +657,5 @@ class Frame():
                 return c
         # Is there anything to be done here? Maybe just fail to make
         # an accelerator instead of just failing?
-        raise RuntimeError("Ran out of accelerators for label", label)
+        # raise RuntimeError("Ran out of accelerators for label", label)
+        return None

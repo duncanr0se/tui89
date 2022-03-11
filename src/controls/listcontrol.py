@@ -21,7 +21,8 @@ from sheets.boxlayout import HorizontalLayout
 from sheets.listlayout import ListLayout
 from sheets.scrollbar import Scrollbar
 from sheets.viewport import Viewport
-from sheets.label import Label
+from sheets.label import Label, ValueLabel
+from sheets.buttons import Button
 
 from logging import getLogger
 
@@ -42,7 +43,9 @@ class ListControl(Sheet):
                 # fixme: there's no reason these items should be
                 # restricted to just being strings wrapped in new
                 # labels... make also work with arbitrary widgets
-                self._listbox.add_child(Label(label_text=opt))
+                self._listbox.add_child(ValueLabel(label_text=opt))
+                # self._listbox.add_child(Button(label=opt, decorated=False))
+                # self._listbox.add_child(Button(label=opt))
         self._vbar = Scrollbar(orientation="vertical")
 
         self._viewport = Viewport(self._listbox, vertical_bar=self._vbar)
@@ -51,7 +54,7 @@ class ListControl(Sheet):
         self._layout.add_child(self._vbar)
 
     def pen(self, role="undefined", state="default", pen="pen"):
-        overridden_roles = ["undefined", "label"]
+        overridden_roles = ["undefined", "label", "button"]
         if role in overridden_roles:
             role = "buttonbox"
         return super().pen(role, state, pen)
@@ -75,8 +78,17 @@ class ListControl(Sheet):
             child.move_to((0, 0))
             child.layout()
 
+    def activate(self):
+        # self.frame().set_focus(self)
+        # self.invalidate()
+        # callback?
+        pass
+
     # fixme: should be able to select member of the list and have that
     # been the value of the widget / control.
 
-    # deal with mouse events, key events. Pass them on to the list?
-    # Need to pass events through the viewport - see how that goes.
+    # def find_next_focus(self, current_focus, found_current):
+        # logger.debug("LISTCONTROL - FIND NEXT FOCUS. CALLING ON SUPER")
+        # result = super().find_next_focus(current_focus, found_current)
+        # logger.debug("RESULT IS {}", result)
+        # return result
