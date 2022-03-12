@@ -362,6 +362,58 @@ def populate_optionbox():
     keycode = [ord(" "),  Screen.ctrl("j"), Screen.KEY_DOWN]
     register_command(keycode, Command("activate", _activate), command_table="optionbox")
 
+
+### List controls
+def populate_listcontrol():
+    # ESC - exit menu
+    def _next_focus_sibling(listcontrol):
+        listcontrol.find_next_focus_same_level()
+        return True
+    keycode = [Screen.KEY_ESCAPE]
+    register_command(keycode, Command("next focus sibling", _next_focus_sibling),
+                     command_table="listcontrol")
+
+    # PG_UP - up 1 page
+    def _page_up(listcontrol):
+        return listcontrol.page_up()
+    keycode = [Screen.KEY_PAGE_UP]
+    register_command(keycode, Command("page up", _page_up),
+                     command_table="listcontrol")
+
+    # PG_DN - down 1 page
+    def _page_down(listcontrol):
+        return listcontrol.page_down()
+    keycode = [Screen.KEY_PAGE_DOWN]
+    register_command(keycode, Command("page down", _page_down),
+                     command_table="listcontrol")
+
+    # CTRL-P, UP-ARROW - up item
+    def _prev(listcontrol):
+        selected = listcontrol.find_focused_child()
+        if selected is not None:
+            if listcontrol.cycle_focus_backward(selected):
+                return True
+#        if menubox.has_menubar_button():
+#            # FIXME: close self, select menubar button
+#            return True
+        return False
+
+    keycode = [Screen.ctrl("p"), Screen.KEY_UP]
+    register_command(keycode, Command("previous", _prev),
+                     command_table="listcontrol")
+
+    # CTRL-N, DOWN-ARROW - down item
+    def _next(listcontrol):
+        selected = listcontrol.find_focused_child()
+        if selected is None:
+            return listcontrol.focus_first_child()
+        else:
+            return listcontrol.cycle_focus_forward(selected)
+
+    keycode = [Screen.ctrl("n"), Screen.KEY_DOWN]
+    register_command(keycode, Command("next", _next),
+                     command_table="listcontrol")
+
 #
 # actually populate the command tables.
 #
@@ -373,6 +425,7 @@ populate_menubar()
 populate_textentry()
 populate_textarea()
 populate_optionbox()
+populate_listcontrol()
 
 # when a new TOP LEVEL SHEET type is displayed, it needs to identify
 # the FOCUS WIDGET. Until that TOP LEVEL SHEET is closed (or

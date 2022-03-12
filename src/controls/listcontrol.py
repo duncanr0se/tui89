@@ -23,6 +23,7 @@ from sheets.scrollbar import Scrollbar
 from sheets.viewport import Viewport
 from sheets.label import Label, ValueLabel
 from sheets.buttons import Button
+from frames.commands import find_command
 
 from logging import getLogger
 
@@ -53,6 +54,9 @@ class ListControl(Sheet):
         self._layout.add_child(self._viewport)
         self._layout.add_child(self._vbar)
 
+    def __repr__(self):
+        return "ListControl({} entries)".format(len(self._listbox._children))
+
     def pen(self, role="undefined", state="default", pen="pen"):
         overridden_roles = ["undefined", "label", "button"]
         if role in overridden_roles:
@@ -79,10 +83,122 @@ class ListControl(Sheet):
             child.layout()
 
     def activate(self):
-        # self.frame().set_focus(self)
-        # self.invalidate()
-        # callback?
-        pass
+        result = self.focus_first_child()
+        if result:
+            # callback?
+            True
+        return False
+
+    # perhaps something like this should be the default? Perhaps a
+    # "CommandServer" mixin is needed that has this as its default
+    # method?
+    def handle_key_event(self, event):
+        command = find_command(event, command_table="listcontrol")
+        if command is not None:
+            return command.apply(self)
+        return self._parent.handle_key_event(event)
+
+    def accepts_focus(self):
+        # True if there are children and any of the children accept
+        # focus.
+
+        # When the frame actually sets the focus on a "tab stop"
+        # control a focus delegate is found using the
+        # "find_tab_stop_focus" method that actually takes the
+        # focus. It is known that such a delegate (child) exists
+        # because the control only returns True to "accepts_focus"
+        # queries if there is such a child.
+
+        # fixme: how to actually set the focus on the child it should
+        # be set on when the widget receives the focus?
+        for child in self._listbox._children:
+            if child.accepts_focus():
+                return True
+        return False
+
+    def find_next_focus_same_level(self):
+        # this is just be "find next focus" invoked on the parent
+        # sheet passing "self" as current focus, and refusing to
+        # descend into the children.
+
+        # for this to work, this needs to accept the focus? Or maybe
+        # have a flag to say "tab navigation stops here!" or
+        # something? Basic logic is want to make one of the control's
+        # children the focus, but don't want to navigate down to the
+        # control's children (or at least, don't want to appear to
+        # navigate down the children).
+
+        # So - list control contains list of ValueLabels. When tab
+        # navigation lands on list control, want to select the first
+        # label as focus, but a subsequent tab does NOT select the
+        # next label, it instead moves focus off the list control
+        # altogether.
+
+        # also - list control needs to return True for accepts_focus
+        # call for this to work I think
+        (found, widget) = self._parent.find_next_focus(self)
+        if found:
+            self.frame().set_focus(widget)
+            return True
+        return False
+
+    def is_tab_stop(self):
+        return True
+
+    def find_tab_stop_focus(self):
+        # fixme: what if the listbox contains widgets that have
+        # children themselves? Need a "do-sheet-tree" method...
+        for child in self._listbox._children:
+            if child.accepts_focus():
+                return child
+        return None
+
+    def page_up(self):
+        # fixme: update focus?
+        # fixme: update scrollbar
+        self._viewport.scroll_up_page()
+        return True
+
+    def page_down(self):
+        # fixme: update focus?
+        # fixme: update scrollbar
+        self._viewport.scroll_down_page()
+        return True
+
+    def find_focused_child(self):
+        for child in self._listbox._children:
+            if child.is_focus():
+                return child
+        return None
+
+    def cycle_focus_backward(self, selected):
+        found = False
+        for child in reversed(self._listbox._children):
+            if found:
+                if child.accepts_focus():
+                    self.frame().set_focus(child)
+                    return True
+            if child == selected:
+                found = True
+        return False
+
+    def focus_first_child(self):
+        child = self.find_tab_stop_focus()
+        if child is not None:
+            self.frame().set_focus(child)
+            return True
+        return False
+
+    def cycle_focus_forward(self, selected):
+        found = False
+        for child in self._listbox._children:
+            if found:
+                if child.accepts_focus():
+                    self.frame().set_focus(child)
+                    return True
+            if child == selected:
+                found = True
+        return False
 
     # fixme: should be able to select member of the list and have that
     # been the value of the widget / control.

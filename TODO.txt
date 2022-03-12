@@ -73,7 +73,8 @@ USABILITY
 =========
 Widgets (and dialogs) should have a "value" that can be queried -
 introduce a bunch of mixin types, "ValueMixin", "FocusMixin",
-"LayoutMixin", "MultipleChildMixin", "SingleChildMixin"...
+"LayoutMixin", "MultipleChildMixin", "SingleChildMixin",
+"CommandServerMixin"...
 
 Dialogs are only pseudo-modal; can't interact with other components
 whilst popup is up but they are still receiving events and
@@ -179,7 +180,7 @@ visible range.
 if focus is moved off list box and then returned to it, focus should
 return to previously focused list item.
 
-ESC should move focus to next focus widget at same level as list
+ESC should move focus to next focus widget AT SAME LEVEL as list
 control (see text entry widgets)
 
 scroll extents not quite right and might be easier to debug in list
@@ -187,10 +188,25 @@ control than in general viewport.
 
 pg_up / pg_down should move focus (and scroll offset) accordingly.
 
+TAB should maybe move focus at the level higher; should not tab
+throught the list, can use arrow keys / ctrl-n, ctrl-p for that.
+Maybe that's what "tab_stop" should be for? Ditto shift-TAB.
+
+Most of the keyboard navigation in the listcontrol should be moved to
+the listlayout. Then they would also work in button boxes etc. Might
+also want to move a bunch off the menu box, if the listlayout
+implements them. Look at hierarchy and work out where the command
+tables need to be. ACTUALLY - should NOT be on listlayout because if
+used at the top level just to lay things out in a column the nav
+should not work the way it works when its used as an embedded widget.
+
 
 GENERAL / CODING
 ================
 DIFFERENT TYPES OF BORDERS
+
+Should button box have similar motion commands to list controls / menu
+boxes?
 
 Add some error types:
 

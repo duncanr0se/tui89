@@ -530,9 +530,16 @@ class Frame():
             return
         logger.debug("setting focus to %s", focus)
         if self._focus is not None and not self._focus.is_detached():
+            self._focus.note_focus_out()
             self._focus.invalidate()
+
+        if focus is not None and focus.is_tab_stop():
+            logger.debug(f"focus {focus} is tab stop, looking for child delegate")
+            focus = focus.find_tab_stop_focus()
+
         self._focus = focus
         if self._focus is not None:
+            self._focus.note_focus_in()
             self._focus.invalidate()
         self._process_event()
 
@@ -549,7 +556,7 @@ class Frame():
         focus_top_level = self._get_focus_top_level()
 
         if self._focus is None:
-            raise RuntimError("no focus! It's possible after all!")
+            raise RuntimeError("no focus! It's possible after all!")
 
         if self._focus is None:
             # find first focus

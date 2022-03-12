@@ -292,6 +292,16 @@ class Sheet():
         # continue walking sheet hierarchy until find next potential
         # focus candidate, or run out of sheets to check.
         #
+        # if the current focus is a tab stop sheet (fixme: tab stop ->
+        # "focus delegating") or the next focus candidate is a child
+        # of a tab stop sheet, do not use the tab stop sheet's
+        # child. Instead continue the walk to find a focus candidate
+        # that is outside the tab stop control. "TAB navigation
+        # navigates between WIDGETS where a WIDGET may be a control
+        # containing child widgets; the child widgets are not found
+        # during tab navigation". This should apply to menus + button
+        # boxes also I think.
+        #
         # if run out of candidates, return None indicating there is no
         # suitable "next focus"
         #
@@ -306,11 +316,38 @@ class Sheet():
         if found_current and self != current_focus and self.accepts_focus():
             return (True, self)
 
+        # fixme: this breaks navigation because the widget with the
+        # focus isn't actually the widget that wants to be found
+        # during this walk. Need to properly design this "focus
+        # delegation" functionality. Think the problem is that the
+        # widget with the focus inside the list control isn't actually
+        # discoverable using this walk.
+
+        # Don't walk children of sheet's reporting True for
+        # "is_tab_stop".
+        # fixme: This is wrong! Still need to walk the kids in case
+        # the tab stop contains the current focus.
+
+        # If the focus is found within the tab stop widget, return
+        # that the current focus was found but as yet no focus is
+        # found.
+
+        # So no return in the loop below, but need to break early if
+        # self is a tab stop.
         for child in self._children:
             (found_current, next) = child.find_next_focus(current_focus,
                                                           found_current=found_current)
+            # if self is a tab stop and one of the tab stop sheet's
+            # children either has the focus or is found as the next
+            # focus, want to continue walking back at the top stop
+            # level.
             if next is not None:
-                return (True, next)
+                if self.is_tab_stop():
+                    # continue the walk pretending we didn't find a
+                    # next focus candidate
+                    break
+                else:
+                    return (True, next)
 
         # failed to find anything suitable
         return (found_current, None)
@@ -345,6 +382,31 @@ class Sheet():
 
     # events
     def is_focus(self):
+        return False
+
+    def note_focus_out(self):
+        # frame invokes this when the sheet is replaced as the frame's
+        # focus by another sheet
+        pass
+
+    def note_focus_in(self):
+        # frame invokes this when the sheet is made the frame's focus
+        pass
+
+    def is_tab_stop(self):
+        # If the sheet is a container that can't take focus itself but
+        # contains children that can and those children are not
+        # considered on their own merit during tab navigation (e.g.,
+        # list controls, tree controls...) this method can be used to
+        # delegate finding the focus to that control.
+
+        # This allows a singular control to be considered a single
+        # widget during tab navigation rather than it being a
+        # container of widgets.
+
+        # If this method returns True, the companion method
+        # "find_tab_stop_focus" must also be implemented. See the
+        # listcontrol implementation.
         return False
 
     # events
