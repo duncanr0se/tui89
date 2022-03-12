@@ -284,6 +284,11 @@ class Sheet():
         return None
 
     def find_next_focus(self, current_focus, found_current=False):
+        """Find next widget in tab order.
+
+        Treats widgets that are "tab stop" widgets as a single atomic
+        widget for the purposes of tab order and navigation.
+        """
         logger.debug("self=%s, current_focus=%s, found=%s", self, current_focus, found_current)
 
         # in words:
@@ -344,7 +349,9 @@ class Sheet():
             if next is not None:
                 if self.is_tab_stop():
                     # continue the walk pretending we didn't find a
-                    # next focus candidate
+                    # next focus candidate - found a next focus but
+                    # it's within the tab stop sheet so don't want to
+                    # use it.
                     break
                 else:
                     return (True, next)
@@ -353,6 +360,11 @@ class Sheet():
         return (found_current, None)
 
     def find_prev_focus(self, current_focus, previous_candidate=None):
+        """Find previous widget in tab order.
+
+        Treats widgets that are "tab stop" widgets as a single atomic
+        widget for the purposes of tab order and navigation.
+        """
         #
         # fixme: note that for tab stop sheets, need to work out if
         # the focus is within the tab stop BEFORE moving the "previous

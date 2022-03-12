@@ -180,17 +180,10 @@ visible range.
 if focus is moved off list box and then returned to it, focus should
 return to previously focused list item.
 
-ESC should move focus to next focus widget AT SAME LEVEL as list
-control (see text entry widgets)
-
 scroll extents not quite right and might be easier to debug in list
 control than in general viewport.
 
 pg_up / pg_down should move focus (and scroll offset) accordingly.
-
-TAB should maybe move focus at the level higher; should not tab
-throught the list, can use arrow keys / ctrl-n, ctrl-p for that.
-Maybe that's what "tab_stop" should be for? Ditto shift-TAB.
 
 Most of the keyboard navigation in the listcontrol should be moved to
 the listlayout. Then they would also work in button boxes etc. Might
