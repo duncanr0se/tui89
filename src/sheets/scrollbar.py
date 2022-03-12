@@ -132,12 +132,17 @@ class Scrollbar(Sheet):
                 # move past button
                 self.move((1 + self._slug_offset, 0))
                 # draw up to other button
-                self.draw_to((self._slug_offset+self._slug_size+1, 0), slug, pen)
+                # :1+ to move past origin button;
+                # :offset for offset;
+                # :slug size for slug size;
+                # :+1 because slug size is a SIZE, not an extent and
+                # high coordinate is not included in draw_to
+                self.draw_to((1+self._slug_offset+self._slug_size+1, 0), slug, pen)
             else:
                 # move past buttons
                 self.move((0, 1 + self._slug_offset))
                 # draw up to other button
-                self.draw_to((0, self._slug_offset+self._slug_size+1), slug, pen)
+                self.draw_to((0, 1+self._slug_offset+self._slug_size+1), slug, pen)
 
     def compose_space(self):
         absolute_min = 2

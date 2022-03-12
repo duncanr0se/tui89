@@ -172,8 +172,11 @@ Decide what it means to "activate" a list control [focus first or most
 recent focus in list control; do nothing if nothing can be focused in
 the control]
 
-currently focused item should scroll into view if outside current
-visible range.
+Currently focused item scrolls into view if outside current visible
+range, but only works currently when list control is responsible for
+managing focus change, in its cycle previous / cycle next
+methods. Global focus changes (via TAB navigation) do not yet move new
+focus into view.
 
 if focus is moved off list box and then returned to it, focus should
 return to previously focused list item.
