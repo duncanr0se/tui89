@@ -184,12 +184,12 @@ def demo(screen):
 
     row11 = HorizontalLayout([])
     listlayout.add_child(row11)
-    # fixme: layout issues with this! For some reason stuff isn't
-    # getting clipped to the viewport...
     list_control = ListControl(options=["One", "Two", "Three", "Four", "Five",
                                         "Six", "Seven", "Eight", "Nine", "Ten",
                                         "Eleven", "Twelve", "Thirteen", "Fourteen",
                                         "Not a number! Instead something longer"])
+    # list control with many items to check scrollbar behaviour
+    # list_control = ListControl(options=[str(x) for x in range(0, 100)])
     label = Label("List control:", label_widget=list_control, valign="center")
     row11.add_child(label)
     row11.add_child(list_control)

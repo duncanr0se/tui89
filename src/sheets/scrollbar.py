@@ -225,11 +225,15 @@ class Scrollbar(Sheet):
             slug_ratio = 1.0
         else:
             slug_ratio = viewport_size / self._scrolled_sheet_extent
-        bar_size = self._bar_size()
+        bar_size = self._trough_size()
         self._slug_size = math.floor(bar_size * slug_ratio)
+
+        # don't allow slug size to go below 1
+        self._slug_size = max(self._slug_size, 1)
+
         logger.debug("slug_ratio = %s, slug_size = %s", slug_ratio, self._slug_size)
 
-    def _bar_size(self):
+    def _trough_size(self):
         (l, t, r, b) = self._region
         (w, h) = (r-l, b-t)
         return w-2 if self._orientation == "horizontal" else h-2
@@ -239,10 +243,15 @@ class Scrollbar(Sheet):
         transform = scrolled_sheet._transform
         viewport_offset = transform._dy if self._orientation == "vertical" else transform._dx
         offset_ratio = abs(viewport_offset) / self._scrolled_sheet_extent
-        bar_size = self._bar_size()
+        bar_size = self._trough_size()
         self._slug_offset = math.ceil(bar_size * offset_ratio)
-        logger.debug("viewport_offset=%s, sheet_extent=%s, offset_ratio=%s, bar_size=%s, slug_size=%s, slug_offset=%s",
+
+        # ensure offset < bar size
+        self._slug_offset = min(self._slug_offset, bar_size-1)
+
+        logger.debug("viewport_offset=%s, viewport_extent=%s, sheet_extent=%s, offset_ratio=%s, bar_size=%s, slug_size=%s, slug_offset=%s",
                      viewport_offset,
+                     self._viewport_extent,
                      self._scrolled_sheet_extent,
                      offset_ratio,
                      bar_size,

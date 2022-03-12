@@ -156,9 +156,14 @@ scrolled out of view at the top is not rendering properly.
 If slug size is too small (large scrolled sheet size relative to
 viewport) it disappears altogether. Fix minimum slug size to 1.
 
+Slug + offset calculations mean that the slug is drawn up against
+scrollbar buttons when there is still movement range. Clicking
+scrollbar buttons successfully scrolls remaining range, but visual
+does not reflect it.
+
 Buttons not drawing dropshadow properly (rhs missing)
 
-Scroller is too wide - scroll bar extents / slug size not correct.
+Scroller is too wide - scroll bar extents not correct.
 
 If a button is "pressed" and then receives the focus (due to shoddy
 mouse event handling), need to clear the "pressed" state of the button
