@@ -24,6 +24,7 @@ from sheets.viewport import Viewport
 from sheets.label import Label, ValueLabel
 from sheets.buttons import Button
 from frames.commands import find_command
+from geometry.transforms import Transform
 
 from logging import getLogger
 
@@ -154,15 +155,19 @@ class ListControl(Sheet):
         return None
 
     def page_up(self):
-        # fixme: update focus?
-        # fixme: update scrollbar
+        # fixme: update focus? - yes, focus last visible item
+        # fixme: update scrollbar based off some event or notification
+        # methods instead of manually.
         self._viewport.scroll_up_page()
+        self._vbar.invalidate()
         return True
 
     def page_down(self):
-        # fixme: update focus?
-        # fixme: update scrollbar
+        # fixme: update focus? - yes, focus first visible item
+        # fixme: update scrollbar based off some event or notification
+        # methods instead of manually.
         self._viewport.scroll_down_page()
+        self._vbar.invalidate()
         return True
 
     def find_focused_child(self):
@@ -171,12 +176,56 @@ class ListControl(Sheet):
                 return child
         return None
 
+    def child_out_of_view(self, child):
+        # returns True if child (left, top) is outside the viewport.
+        # need to get child coords in viewport coord system.
+        # hierarhcy:
+        #
+        # + list control [self]
+        #     + horizontal layout
+        #         + viewport
+        #             + listbox
+        #                 + items
+        child_to_viewport_transform = child.delta_transform(self._viewport)
+        (child_left, child_top, _, _) = child._region
+        position = child_to_viewport_transform.apply((child_left, child_top))
+        in_view = self._viewport.region_contains_position(position)
+        logger.debug(f"***** IN_VIEW={in_view}")
+        return not in_view
+
+    def scroll_into_view(self, child):
+        # 1. everything is line based
+        # 2. listcontrol only scrolls vertically
+        #
+        # "scrolled sheet" is the listlayout.
+        # "child" is one of the listlayout elements.
+        #
+        child_to_viewport_transform = child.delta_transform(self._viewport)
+        delta = child_to_viewport_transform._dy
+        # fixme: works for now because listcontrol entries all have
+        # height=1. Not good enough for general use! Implement "scroll
+        # by delta" in viewport?
+        # fixme: doesn't quite work! if use shit-tab and end up on the
+        # list, line nav scrolls by a single line but selected entry
+        # is multiple lines away from appearing visually.
+        if delta == 0:
+            # nothing to do
+            return
+        elif delta > 0:
+            self._viewport.scroll_down_line()
+        else:
+            self._viewport.scroll_up_line()
+
     def cycle_focus_backward(self, selected):
         found = False
         for child in reversed(self._listbox._children):
             if found:
                 if child.accepts_focus():
                     self.frame().set_focus(child)
+                    # fixme: maybe do this in a "note" method?
+                    if self.child_out_of_view(child):
+                        self.scroll_into_view(child)
+                        self._vbar.invalidate()
                     return True
             if child == selected:
                 found = True
@@ -195,6 +244,10 @@ class ListControl(Sheet):
             if found:
                 if child.accepts_focus():
                     self.frame().set_focus(child)
+                    # fixme: maybe do this in a "note" method?
+                    if self.child_out_of_view(child):
+                        self.scroll_into_view(child)
+                        self._vbar.invalidate()
                     return True
             if child == selected:
                 found = True

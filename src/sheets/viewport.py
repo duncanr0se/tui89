@@ -314,6 +314,8 @@ class Viewport(Sheet):
         self.invalidate()
 
     def scroll_up_line(self):
+        # fixme: split into "calculate line" and "scroll to
+        # line". Reuse for all methods.
         logger.info(">>> SCROLL UP LINE <<< for viewport {}".format(self))
         delta = 1
         trans = self._scrolled_sheet._transform

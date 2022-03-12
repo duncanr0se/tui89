@@ -172,8 +172,6 @@ Decide what it means to "activate" a list control [focus first or most
 recent focus in list control; do nothing if nothing can be focused in
 the control]
 
-up / down arrow should move focus to different list items.
-
 currently focused item should scroll into view if outside current
 visible range.
 

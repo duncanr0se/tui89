@@ -218,6 +218,13 @@ class Sheet():
         # transforms all the way up
         return self._transform.add_transform(self._parent.get_screen_transform())
 
+    def delta_transform(self, target):
+        # navigate parents until get to the target sheet, composing
+        # transforms along the way
+        if self == target:
+            return IDENTITY_TRANSFORM
+        return self._transform.add_transform(self._parent.delta_transform(target))
+
     # layout layout types must override this to actually do layout
     def allocate_space(self, allocation):
         """
