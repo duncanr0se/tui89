@@ -200,10 +200,18 @@ tables need to be. ACTUALLY - should NOT be on listlayout because if
 used at the top level just to lay things out in a column the nav
 should not work the way it works when its used as an embedded widget.
 
+Identify which other sheet types should be "tab stops" (rename to
+"focus delegators"?) - tab navigation won't work within them, but
+arrows / ctrl-n / ctrl-p should still work. Potential candidates:
+menuboxes, buttonboxes?
+
 
 GENERAL / CODING
 ================
 DIFFERENT TYPES OF BORDERS
+
+Use Python's "hasattr()" instead of testing if val is None where
+pertinent.
 
 Should button box have similar motion commands to list controls / menu
 boxes?

@@ -67,6 +67,8 @@ def find_command(key_event, command_table="global"):
 def populate_global():
     #### global commands
 
+    # client is the frame
+
     # QUIT / EXIT
     def _quit_command(client):
         raise StopApplication("quit")

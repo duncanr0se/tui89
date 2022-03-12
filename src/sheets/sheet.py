@@ -353,8 +353,14 @@ class Sheet():
         return (found_current, None)
 
     def find_prev_focus(self, current_focus, previous_candidate=None):
-        logger.debug("find_prev_focus entered; current_focus %s, prev candidate %s, self %s",
-                     current_focus, previous_candidate, self)
+        #
+        # fixme: note that for tab stop sheets, need to work out if
+        # the focus is within the tab stop BEFORE moving the "previous
+        # candidate" on since if the tab stop contains the focus, the
+        # "previous focus" should be the previous focus of the TAB
+        # STOP, not the previous focus of the focus WITHIN the tab
+        # stop.
+        #
         # returns (True, candidate) if the current focus is found, and
         # (False, candidate) otherwise.
         if self == current_focus:
@@ -364,6 +370,16 @@ class Sheet():
 
         candidate = previous_candidate
 
+        # fixme: rethink this method, it is unclear. Must be a simpler
+        # algorithm...
+
+        # fixme: this method returns the LAST embedded widget in the
+        # tab stop if previous is contained in a tab stop. Want to
+        # return whichever widget the tab stop wants to focus in this
+        # case - in general the first widget in the tab stop, but
+        # implement memoization of current focus within a tab stop and
+        # put the focus there.
+
         if self.accepts_focus():
             candidate = self
 
@@ -371,8 +387,20 @@ class Sheet():
             (found, candidate) = child.find_prev_focus(current_focus,
                                                        previous_candidate=candidate)
             if found:
-                logger.debug("found current focus, returning prev focus %s", candidate)
-                return (True, candidate)
+                if self.is_tab_stop():
+                    # found the current focus in a child of the tab
+                    # stop. Previous focus wanted is widget previous
+                    # to the tab stop (tab stop = self), NOT widget
+                    # previous to the current focus inside the tab
+                    # stop.
+                    #
+                    # FIXME: if previous is a tab stop and move to
+                    # that tab stop, the selected widget is the last
+                    # widget in that tab stop. Probably it should be
+                    # the first.
+                    return (True, previous_candidate)
+                else:
+                    return (True, candidate)
 
         return (False, candidate)
 
