@@ -284,13 +284,20 @@ class Viewport(Sheet):
         (x, y) = position
         return l <= x < r and t <= y < b
 
+
     def scroll_left_line(self):
-        logger.info(">>> SCROLL LEFT LINE <<< for viewport {}".format(self))
         # scrolling LEFT moves scrolled sheet to the RIGHT.
         # if LHS of scrolled sheet is already showing, don't allow
         # scrolling in this direction.
         # LHS will be showing if transform is >= 0.
         delta = 1
+        self.scroll_left_lines(delta)
+
+    def scroll_left_page(self):
+        delta = self.width()-1
+        self.scroll_left_lines(delta)
+
+    def scroll_left_lines(self, delta):
         trans = self._scrolled_sheet._transform
         x = min(0, trans._dx+delta)
         # fixme: don't update transform if it doesn't change
@@ -300,9 +307,16 @@ class Viewport(Sheet):
         # beneath it
         self.invalidate()
 
+
     def scroll_right_line(self):
-        logger.info(">>> SCROLL RIGHT LINE <<< for viewport {}".format(self))
         delta = 1
+        self.scroll_right_lines(delta)
+
+    def scroll_right_page(self):
+        delta = self.width()-1
+        self.scroll_right_lines(delta)
+
+    def scroll_right_lines(self, delta):
         trans = self._scrolled_sheet._transform
         (l,t,r,b) = self._scrolled_ltrb
         (sw, sh) = (r-l),(b-t)
@@ -312,65 +326,37 @@ class Viewport(Sheet):
         self._scrolled_sheet._transform = Transform(x, trans._dy)
         self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
         self.invalidate()
+
 
     def scroll_up_line(self):
         # fixme: split into "calculate line" and "scroll to
         # line". Reuse for all methods.
-        logger.info(">>> SCROLL UP LINE <<< for viewport {}".format(self))
-        delta = 1
-        trans = self._scrolled_sheet._transform
-        y = min(0, trans._dy+delta)
-        self._scrolled_sheet._transform = Transform(trans._dx, y)
-        self._vertical_sb.update_scroll_offset(self._scrolled_sheet)
-        self.invalidate()
-
-    def scroll_down_line(self):
-        logger.info(">>> SCROLL DOWN LINE <<< for viewport {}".format(self))
-        delta = 1
-        trans = self._scrolled_sheet._transform
-        (l,t,r,b) = self._scrolled_ltrb
-        (sw, sh) = (r-l),(b-t)
-        tmax = self.height() - sh
-        y = max(tmax, trans._dy-delta)
-        self._scrolled_sheet._transform = Transform(trans._dx, y)
-        self._vertical_sb.update_scroll_offset(self._scrolled_sheet)
-        self.invalidate()
-
-    def scroll_left_page(self):
-        logger.info(">>> SCROLL LEFT PAGE <<< for viewport {}".format(self))
-        delta = self.width()-1
-        trans = self._scrolled_sheet._transform
-        x = min(0, trans._dx+delta)
-        # fixme: don't update transform if it doesn't change
-        self._scrolled_sheet._transform = Transform(x, trans._dy)
-        self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
-        self.invalidate()
-
-    def scroll_right_page(self):
-        logger.info(">>> SCROLL RIGHT PAGE <<< for viewport {}".format(self))
-        delta = self.width()-1
-        trans = self._scrolled_sheet._transform
-        (l,t,r,b) = self._scrolled_ltrb
-        (sw, sh) = (r-l),(b-t)
-        tmax = self.width() - sw
-        x = max(tmax, trans._dx-delta)
-        # fixme: don't update transform if it doesn't change
-        self._scrolled_sheet._transform = Transform(x, trans._dy)
-        self._horizontal_sb.update_scroll_offset(self._scrolled_sheet)
-        self.invalidate()
+        self.scroll_up_lines(1)
 
     def scroll_up_page(self):
-        logger.info(">>> SCROLL UP PAGE <<< for viewport {}".format(self))
         delta = self.height()-1
+        self.scroll_up_lines(delta)
+
+    # fixme: implement "scroll to position": scroll to (x, y) = move
+    # (0, 0) to (x, y) = "scroll up y lines" + "scroll right x lines"
+    # and then invalidate bars. Might not need to invalidate bars.
+
+    def scroll_up_lines(self, delta):
         trans = self._scrolled_sheet._transform
         y = min(0, trans._dy+delta)
         self._scrolled_sheet._transform = Transform(trans._dx, y)
         self._vertical_sb.update_scroll_offset(self._scrolled_sheet)
         self.invalidate()
 
+
+    def scroll_down_line(self):
+        self.scroll_down_lines(1)
+
     def scroll_down_page(self):
-        logger.info(">>> SCROLL DOWN PAGE <<< for viewport {}".format(self))
         delta = self.height()-1
+        self.scroll_down_lines(delta)
+
+    def scroll_down_lines(self, delta):
         trans = self._scrolled_sheet._transform
         (l,t,r,b) = self._scrolled_ltrb
         (sw, sh) = (r-l),(b-t)

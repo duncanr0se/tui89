@@ -212,9 +212,12 @@ class ListControl(Sheet):
             # nothing to do
             return
         elif delta > 0:
-            self._viewport.scroll_down_line()
+            lines = max(delta+1-self._viewport.height(), 1)
+            self._viewport.scroll_down_lines(lines)
         else:
-            self._viewport.scroll_up_line()
+            # if negative delta, always want to scroll to (0, 0)
+            lines = abs(delta)
+            self._viewport.scroll_up_lines(lines)
 
     def cycle_focus_backward(self, selected):
         found = False
