@@ -6,6 +6,7 @@ Widgets:
        - row (✔)
        - column (✔)
        - list (✔)
+       - split pane
    - buttons
        - push button (✔)
        - radio buttons (✔)
@@ -33,11 +34,10 @@ Widgets:
    - progress bar
    - status bar
    - context menu
-   - split pane
 
 add controls:
 
-   - list control
+   - list control (✔)
    - tree control
    - multivalue dialog box (dialog box containing other widgets)
    - file open
@@ -50,8 +50,6 @@ widgets that could be useful.
 
 
  PRIORITIES:
-
-*. list control event handling and widget selection inside viewport
 
 *. tree control
 
@@ -128,11 +126,6 @@ TEXT ALIGNMENT and truncation ON BORDER TITLES
 Measuring text needs to be better; len(str) might not be effective for
 multibyte characters. Need to try a few and see what breaks.
 
-Widgets need a "fill" initarg to indicate if their preferred size
-should be FILL rather than an explicit preferred size. Some layouts /
-parents will want the widgets to take all available space, and some
-won't. Also - spacing / padding / null sheets to take excess space.
-
 Move drawing ops to use LTRB regions where appropriate instead of
 separate coord + width, height.
 
@@ -153,9 +146,6 @@ somewhere.
 If list control contains decorated buttons the button just being
 scrolled out of view at the top is not rendering properly.
 
-If slug size is too small (large scrolled sheet size relative to
-viewport) it disappears altogether. Fix minimum slug size to 1.
-
 Slug + offset calculations mean that the slug is drawn up against
 scrollbar buttons when there is still movement range. Clicking
 scrollbar buttons successfully scrolls remaining range, but visual
@@ -173,10 +163,6 @@ mouse event handling), need to clear the "pressed" state of the button
 List Control
 ============
 
-Decide what it means to "activate" a list control [focus first or most
-recent focus in list control; do nothing if nothing can be focused in
-the control]
-
 Currently focused item scrolls into view if outside current visible
 range, but only works currently when list control is responsible for
 managing focus change, in its cycle previous / cycle next
@@ -188,8 +174,6 @@ return to previously focused list item.
 
 scroll extents not quite right and might be easier to debug in list
 control than in general viewport.
-
-pg_up / pg_down should move focus (and scroll offset) accordingly.
 
 Most of the keyboard navigation in the listcontrol should be moved to
 the listlayout. Then they would also work in button boxes etc. Might
