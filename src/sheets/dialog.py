@@ -150,13 +150,15 @@ class Dialog(TopLevelSheet):
         (left, top, right, bottom) = allocation
         self._region = allocation
         (width, height) = (right-left, bottom-top)
-        (calloc_x, calloc_y) = (width - 1, height - 1)
+        # border layout fills whole dialog apart from space needed by
+        # drop shadow
+        (border_width, border_height) = (width - 1, height - 1)
         border_layout = self._children[0]
         border_request = border_layout.compose_space()
         # give all the space to the child without allocating more than the child's maximum.
-        calloc_x = min(calloc_x, border_request.x_max())
-        calloc_y = min(calloc_y, border_request.y_max())
-        border_layout.allocate_space((left, top, calloc_x, calloc_y))
+        border_width = min(border_width, border_request.x_max())
+        border_height = min(border_height, border_request.y_max())
+        border_layout.allocate_space((left, top, left+border_width, top+border_height))
 
     def pen(self, role="undefined", state="info", pen="pen"):
         if role == "undefined":
@@ -184,17 +186,21 @@ class Dialog(TopLevelSheet):
     def _draw_dropshadow(self):
         # fixme: shadow pen in toplevel? Or is shadow a role?
         # fixme: this pen management is really not pleasant.
-        shadow_pen = self.pen(state="default", role="shadow")
+        shadow_pen = self.pen(role="shadow", state="default")
         default_pen = self.pen()
         shadow_pen = shadow_pen.merge(default_pen)
         logger.debug("merged shadow pen is %s", shadow_pen)
         (left, top, right, bottom) = self._region
-        (width, height) = (right-left, bottom-top)
         dropshadow_right = u'█'
         dropshadow_below = u'█'
-        self.move((width-1, 1))
-        self.draw_to((width-1, height), dropshadow_right, shadow_pen)
-        self.draw_to((1, height-1), dropshadow_below, shadow_pen)
+        self.move((right-1, 1))
+        # drawing vertical line so max y is not included in the
+        # render, so "bottom" is the correct max extent.
+        self.draw_to((right-1, bottom), dropshadow_right, shadow_pen)
+        self.move((left+1, bottom-1))
+        # drawing left->right, high x value is excluded but high y
+        # value is included.
+        self.draw_to((right, bottom-1), dropshadow_below, shadow_pen)
 
     # events - top level sheets don't pass event on to a parent,
     # instead they return False to indicate the event is not handled

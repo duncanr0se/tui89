@@ -87,11 +87,6 @@ viewport. Might not be too easy to do if arrows already used to
 navigating between widgets... could change navigate to just use TAB
 and SHIFT+TAB then could use arrow keys for scrolling.
 
-Scrolled sheet is slightly wider than expected. Could fall out
-naturally once migration to LTRBs is complete. See basic.py and scroll
-scroller to the SE corner; text displayed has a trailing space that
-should not be there.
-
 Document how pens work. Rethink how pens work :) - the nature of pens
 just sucks at the moment. Or perhaps it's just the way popups have
 been set up that sucks, I'm not sure [most pen issues are related to
@@ -151,9 +146,8 @@ scrollbar buttons when there is still movement range. Clicking
 scrollbar buttons successfully scrolls remaining range, but visual
 does not reflect it.
 
-Buttons not drawing dropshadow properly (rhs missing)
-
-Scroller is too wide - scroll bar extents not correct.
+Possibly calculate slug size using a smaller bar and save offset=0 and
+offset=max for extreme ends of scroll range?
 
 If a button is "pressed" and then receives the focus (due to shoddy
 mouse event handling), need to clear the "pressed" state of the button

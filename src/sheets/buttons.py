@@ -241,10 +241,14 @@ class Button(Sheet):
         dropshadow_right = u'▄'
         dropshadow_below = u'▀'
 
+        # left, top, right + bottom are the BACKGROUND
+        # region. Dropshadow is drawn outside this region.
         if draw_dropshadow_side:
-            self.display_at((right-1, top), dropshadow_right, pen)
+            self.display_at((right, top), dropshadow_right, pen)
         if draw_dropshadow_below:
             self.move((left+1, bottom))
+            # +1 right is right of button background and drop shadow
+            # is immediately to the right of the button rhs
             self.draw_to((right+1, bottom), dropshadow_below, pen)
 
     def pen(self, role="undefined", state="default", pen="pen"):

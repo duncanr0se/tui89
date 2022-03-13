@@ -79,14 +79,16 @@ class TopLevelSheet(Sheet):
         if x == from_x:
             # vertical
             min_y = min(from_y, y)
-            max_y = max(from_y, y)-1
+            max_y = max(from_y, y)
+            # upper end of range is excluded
             for y in range(min_y, max_y):
                 self._frame._screen.print_at(char, x, y, colour=pen.fg(),
                                              attr=pen.attr(), bg=pen.bg())
         else:
             # horizontal
             min_x = min(x, from_x)
-            max_x = max(x, from_x)-1
+            max_x = max(x, from_x)
+            # upper end of range is excluded
             for x in range(min_x, max_x):
                 self._frame._screen.print_at(char, x, y, colour=pen.fg(),
                                              attr=pen.attr(), bg=pen.bg())

@@ -182,7 +182,6 @@ class Viewport(Sheet):
 
     # drawing
     def display_at(self, coord, text, pen):
-
         # capture full extents of print
         self._capture_print_at(text, coord)
         # clip to region prior to drawing
@@ -220,9 +219,16 @@ class Viewport(Sheet):
         ccoord = trans.inverse().apply(coord)
         self.update_scroll_extents(ccoord)
         (x, y) = ccoord
-        # not sure if it's safe to take the length of the text like
-        # this...
-        self.update_scroll_extents((x + len(text), y))
+
+        logger.debug(f"capture print at {ccoord}, {text} with len {len(text)}")
+
+        # scroll extents is an offset, not a size.
+        #
+        # x=0 1 2 3 4
+        #    c a t
+        #
+        # point for end of str = x + len(text)-1.
+        self.update_scroll_extents((x + len(text)-1, y))
 
     def _capture_move(self, coord):
         trans = self._scrolled_sheet._transform
