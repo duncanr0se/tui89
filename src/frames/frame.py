@@ -558,20 +558,12 @@ class Frame():
         if self._focus is None:
             raise RuntimeError("no focus! It's possible after all!")
 
-        if self._focus is None:
-            # find first focus
-            focus_sheet = focus_top_level.find_focus_candidate()
-            if focus_sheet is not None:
-                self.set_focus(focus_sheet)
-                return True
-            return False
         # repeat "find_focus_candidate" walk looking for current focus
         # and then continue to next focus candidate - set focus on
         # that candidate and return True. If run out of candidates,
         # retain current focus and return False
         (found, focus_sheet) = focus_top_level.find_next_focus(self._focus)
-        if not found or focus_sheet is None:
-            return False
+
         if found and focus_sheet is not None:
             self.set_focus(focus_sheet)
             return True
