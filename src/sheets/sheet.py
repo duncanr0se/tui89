@@ -378,7 +378,10 @@ class Sheet():
             return (True, previous_candidate)
 
         # update previous_candidate if self is not a tab stop. Don't
-        # want tab-stop to be "previous" for any of its own children.
+        # want tab-stop to be "previous" for any of its own children,
+        # so tab stops are not set as the "previous" widget until
+        # AFTER their children have been walked to find the current
+        # focus.
         if self.accepts_focus() and not self.is_tab_stop():
             previous_candidate = self
 
@@ -398,7 +401,7 @@ class Sheet():
 
         # update previous_candidate so that tab stop can be previous
         # focus for widget immediately following tab stop in tab
-        # order.
+        # order since this wasn't done earlier.
         if self.is_tab_stop() and self.accepts_focus():
             candidate = self
 
