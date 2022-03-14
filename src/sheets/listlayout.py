@@ -29,6 +29,10 @@ class ListLayout(Sheet):
     def __init__(self):
         super().__init__()
 
+    def __repr__(self):
+        (l, t, r, b) = self._region
+        return f"ListLayout({r-l}x{b-t}: {len(self._children)} entries)"
+
     def layout(self):
         offset = 0
         for child in self._children:

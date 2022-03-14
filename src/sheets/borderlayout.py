@@ -92,20 +92,23 @@ class BorderLayout(Sheet):
                 horizontal_scrollbar.attach()
 
     # specialise find_highest_sheet... to cater for scroll bars.
-    def find_highest_sheet_containing_position(self, parent_coord):
+    def find_highest_sheet_containing_position(self, parent_coord, log_indent=" "):
         coord = self._transform.inverse().apply(parent_coord)
         if self.region_contains_position(coord):
+            logger.debug("%s found sheet containing position %s %s",
+                         log_indent, coord, self)
             if self._vertical_sb is not None:
-                container = self._vertical_sb.find_highest_sheet_containing_position(coord)
+                container = self._vertical_sb.find_highest_sheet_containing_position(coord,
+                                                                                     log_indent+"  ")
                 if container is not None:
                     return container
                 if self._horizontal_sb is not None:
-                    container = self._horizontal_sb.find_highest_sheet_containing_position(coord)
+                    container = self._horizontal_sb.find_highest_sheet_containing_position(coord, log_indent+"  ")
                     if container is not None:
                         return container
             # only 1 child in a border layout
             for child in self._children:
-                container = child.find_highest_sheet_containing_position(coord)
+                container = child.find_highest_sheet_containing_position(coord, log_indent+"  ")
                 if container is not None:
                     return container
             return self

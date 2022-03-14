@@ -182,7 +182,7 @@ class Sheet():
     def top_level_sheet(self):
         return self._parent.top_level_sheet()
 
-    def find_highest_sheet_containing_position(self, parent_coord):
+    def find_highest_sheet_containing_position(self, parent_coord, log_indent="  "):
         # parent coord is in the parent's coordinate system
         # transform parent coord into this sheet's coord space.
         coord = self._transform.inverse().apply(parent_coord)
@@ -190,11 +190,14 @@ class Sheet():
         # coord then none of the child sheets will contain it, by
         # definition. Return false.
         if self.region_contains_position(coord):
+            logger.debug("%s found sheet containing position %s %s",
+                         log_indent, coord, self)
             # If this sheet has children, recurse through them from last
             # (highest in z-order) to first and test each one.
             if len(self._children) > 0:
                 for child in reversed(self._children):
-                    container = child.find_highest_sheet_containing_position(coord)
+                    container = child.find_highest_sheet_containing_position(coord,
+                                                                             log_indent+"  ")
                     if container is not None:
                         return container
             # no child contains the position, but we know we contain
@@ -203,6 +206,8 @@ class Sheet():
         # If we reached this point we either have no children, or none
         # of the children contain the position. In any case, we're not
         # returning a useful result.
+        logger.debug(f"%s sheet %s does not contain position %s",
+                     log_indent, self, coord)
         return None
 
     def region_contains_position(self, coord):

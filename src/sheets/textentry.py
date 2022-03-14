@@ -49,6 +49,11 @@ class TextEntry(Sheet):
         ty = self._transform._dy
         return "TextEntry({}@{},{}: '{}')".format(right-left, tx, ty, self._text)
 
+    def reset(self):
+        self._text = ""
+        self._text_offset = 0
+        self._insertion_point = 0
+
     def accepts_focus(self):
         return True
 

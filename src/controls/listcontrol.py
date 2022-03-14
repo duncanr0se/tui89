@@ -83,6 +83,10 @@ class ListControl(Sheet):
             child.move_to((0, 0))
             child.layout()
 
+    def render(self):
+        self.clear(self._region)
+        super().render()
+
     def activate(self):
         result = self.focus_first_child()
         if result:
@@ -264,3 +268,6 @@ class ListControl(Sheet):
         # result = super().find_next_focus(current_focus, found_current)
         # logger.debug("RESULT IS {}", result)
         # return result
+
+    def find_highest_sheet_containing_position(self, parent_coord):
+        raise RuntimeError(f"find_highest_sheet_containing_position on listcontrol {self}")

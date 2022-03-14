@@ -74,7 +74,10 @@ class Button(Sheet):
     # This might be better done in the method in sheet.py. Could set a
     # flag or something else to indicate that the sheet has a reduced
     # hit box for mouse events. For now just use this override.
-    def find_highest_sheet_containing_position(self, parent_coord):
+    #
+    # Deny containing position if not over actual button (i.e.,
+    # consider padding and shadow to be outside the sheet)
+    def find_highest_sheet_containing_position(self, parent_coord, log_indent="  "):
         coord = self._transform.inverse().apply(parent_coord)
         if self.region_contains_position(coord):
             (x, y) = coord

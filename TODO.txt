@@ -136,7 +136,7 @@ test / fix screen resize! See docs from asciimatics
 When moving up / down lines in text area if move from longer line to
 shorter line to empty line, cursor is drawn at negative offset when
 reach empty line - add "max(insertion_point|text_offset, 0)"
-somewhere.
+somewhere. THIS NO LONGER APPEARS TO HAPPEN; KEEP TRYING TO REPRODUCE.
 
 If list control contains decorated buttons the button just being
 scrolled out of view at the top is not rendering properly.
@@ -181,6 +181,9 @@ Identify which other sheet types should be "tab stops" (rename to
 "focus delegators"?) - tab navigation won't work within them, but
 arrows / ctrl-n / ctrl-p should still work. Potential candidates:
 menuboxes, buttonboxes?
+
+If embedded list layout contains decorated buttons when scrolled off
+top of list the drop shadow is not drawn properly.
 
 
 GENERAL / CODING

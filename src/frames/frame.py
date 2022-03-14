@@ -575,7 +575,7 @@ class Frame():
         logger.debug("top-level %s", focus_top_level)
 
         if self._focus is None:
-            raise RuntimError("no focus! It's possible after all!")
+            raise RuntimeError("no focus! It's possible after all!")
 
         # repeat find_focus_candidate walk looking for current focus
         # and then return that last focus candidate seen. If no
