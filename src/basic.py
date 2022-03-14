@@ -37,6 +37,7 @@ from sheets.textentry import TextEntry
 from sheets.textarea import TextArea
 from sheets.optionbox import OptionBox
 from controls.listcontrol import ListControl
+from sheets.combobox import ComboBox
 
 from dcs.ink import Pen
 
@@ -216,13 +217,31 @@ def demo(screen):
     # on their children than the children can cope with. Removing
     # spacer sheet and making the ratio 1 forces the menubar to fill
     # the available space. Seems wrong.
+    #
+    # FIXME: box layouts should error if they have more children than
+    # segments...
     green_vert = VerticalLayout([(1, "char"), 1])
     menubar = _make_menubar()
     green_border.add_child(green_vert)
     green_vert.add_child(menubar)
 
-    spacer = Sheet() #default_pen=frame.theme("focus_edit_text"))
+    spacer = ListLayout() #default_pen=frame.theme("focus_edit_text"))
     green_vert.add_child(spacer)
+
+    grow0 = HorizontalSeparator(style="spacing")
+    spacer.add_child(grow0)
+
+    #
+
+    grow1 = HorizontalLayout([])
+    spacer.add_child(grow1)
+    combo_box = ComboBox(options=["One", "Two", "Three", "Four", "Five",
+                                  "Six", "Seven", "Eight", "Nine", "Ten",
+                                  "Instead something longer than a number"])
+    label = Label("Combo box:", label_widget=combo_box)
+    grow1.add_child(label)
+    grow1.add_child(combo_box)
+
 
     #### "scrolling"
 
