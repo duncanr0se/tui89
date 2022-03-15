@@ -51,28 +51,61 @@ class ListLayout(Sheet):
         for child in self._children:
             child.render()
 
-    # give each child as much space as they want
     def allocate_space(self, allocation):
-        # height = sum of all heights
-        # width = max of all widths
-        # min = max of all mins
-        # max = FILL
         (l, t, r, b) = allocation
         self._region = allocation
 
-        # simple sauce; loop over kids and allocate them the space
-        # they want, hope they don't want too much! Use the list
-        # control (built-in scrolling) if more space is needed...
+        # meta indexes
+        (WIDGET, SPACEREQ, HEIGHT)=range(0, 3)
+
+        # Loop over children and allocate space to fixed-size items
+        # and items that can't shrink (height = 1). Then allocate
+        # remaining space to items that can shrink to make them fit.
+
+        # First: see if they fit naturally. Memoise space requirements
+        # so they don't have to be calculated again later.
+        child_meta = []
+        total_child_size = 0
+        allocated_space = 0
         for child in self._children:
             sr = child.compose_space()
+            # allocate space to widgets that won't shrink (fixed
+            # height) or that can't shrink (height=1) instead of
+            # remembering them for later
             ch = sr.y_preferred() if sr.y_preferred() < FILL else sr.y_min()
-            child.allocate_space((l, t, r, t+ch))
+            if sr.y_min() == sr.y_preferred():
+                child.allocate_space((l, t, r, t+ch))
+                allocated_space += ch
+            else:
+                child_meta.append([child, sr, ch])
+            total_child_size += ch
+
+        # fixed-height elements already have space allocated; see if
+        # there's room to allocate resizable elements directly
+        if len(child_meta) > 0:
+            if total_child_size <= self.height():
+                # there's room for all; just allocate requested sizes
+                for child in child_meta:
+                    child[WIDGET].allocate_space((l, t, r, t+child[HEIGHT]))
+                return
+
+        # work out how much to take off remaining resizable items
+        while len(child_meta) > 0:
+            remaining_space = max(0, self.height()-allocated_space)
+            space_per_item = remaining_space // len(child_meta)
+            logger.info("----> remaining_space=%s, space_per_item=%s",
+                        remaining_space, space_per_item)
+            child = child_meta.pop()
+            # allocate as much space as possible to the widget
+            # without going below its minimum
+            widget_height = max(space_per_item, child[SPACEREQ].y_min())
+            logger.info("----> widget_height=%s", widget_height)
+            child[WIDGET].allocate_space((l, t, r, t+widget_height))
+            allocated_space += widget_height
+
 
     def compose_space(self):
-        reqheight = 0
-        reqwidth = 0
-        minwidth = 0
-        minheight = 0
+        (reqheight, reqwidth, minwidth, minheight) = (0,)*4
         for child in self._children:
             sr = child.compose_space()
             minwidth = max(minwidth, sr.x_min())
