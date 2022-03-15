@@ -94,9 +94,9 @@ class ListControl(Sheet):
             True
         return False
 
-    # perhaps something like this should be the default? Perhaps a
-    # "CommandServer" mixin is needed that has this as its default
-    # method?
+    # FIXME: perhaps something like this should be the default?
+    # Perhaps a "CommandServer" mixin is needed that has this as its
+    # default method?
     def handle_key_event(self, event):
         command = find_command(event, command_table="listcontrol")
         if command is not None:
@@ -268,6 +268,3 @@ class ListControl(Sheet):
         # result = super().find_next_focus(current_focus, found_current)
         # logger.debug("RESULT IS {}", result)
         # return result
-
-    def find_highest_sheet_containing_position(self, parent_coord):
-        raise RuntimeError(f"find_highest_sheet_containing_position on listcontrol {self}")

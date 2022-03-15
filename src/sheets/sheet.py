@@ -45,13 +45,16 @@ class Sheet():
 
       + may be attached to a display device;
     """
-    def __init__(self):
+    def __init__(self, width=None, height=None):
         self._attached = False
         self._children = []
         self._parent = None
         self._pens = None
         self._region = None
         self._transform = IDENTITY_TRANSFORM
+        # explicit width+height
+        self._width = width
+        self._height = height
 
         self.on_detached_callback = None
 
@@ -240,6 +243,8 @@ class Sheet():
         # Force error if allocation is not an LTRB
         (left, top, right, bottom) = allocation
         self._region = allocation
+        for child in self._children:
+            child.allocate_space(allocation)
 
     # layout
     def compose_space(self):
@@ -252,7 +257,12 @@ class Sheet():
 
         Returns a tuple of 2 tuples of (MINIMUM, DESIRED, MAXIUMUM)
         """
-        return SpaceReq(1, FILL, FILL, 1, FILL, FILL)
+        (xmin, xpref, xmax) = \
+            (1, FILL, FILL) if self._width is None else (self._width,)*3
+        (ymin, ypref, ymax) = \
+            (1, FILL, FILL) if self._height is None else (self._height,)*3
+
+        return SpaceReq(xmin, xpref, xmax, ymin, ypref, ymax)
 
     # layout
     def layout(self):
@@ -262,8 +272,9 @@ class Sheet():
         X and Y are in the coordinate system of the child sheet
         being updated.
         """
-        # fixme: pass? really?
-        pass
+        for child in self._children:
+            child.move_to((0, 0))
+            child.layout()
 
     # layout
     def width(self):
