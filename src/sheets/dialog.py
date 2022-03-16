@@ -44,25 +44,49 @@ class Dialog(TopLevelSheet):
 
     The box layout contains the dialog content pane and button pane,
     in that order.
+
+    Dialog styles:
+
+        + info
+        + alert
+        + yes/no
     """
-    def __init__(self, title=None, text=None, style="info"):
+    def __init__(self,
+                 style="info",
+                 title=None,
+                 text=None,
+                 border_style="double",
+                 drop_shadow=True):
         super().__init__()
         self._children = []
         self._title = title if title is not None else "unnamed"
         self._style = style
-        border = BorderLayout(title=title)
-        self.add_child(border)
+        self._border_style=border_style
+
+        self._drop_shadow = drop_shadow
+        self._text = text
+
+        self._make_dialog_shell()
+
+    def _make_dialog_shell(self):
+        # FIXME: this is a bit of a mess. Allow user to specify
+        # content pane and button pane; make one or both optional; add
+        # separator if have both when rendering; make sure to relayout
+        # / recalculate sizes when either pane updated. Or - don't
+        # allow changes after dialog has already been layed out?
+
+        # FIXME: layout needs to size AND move children, not just move
+        # them. Or does it...?
+
         # FIXME: make this box layout configurable; maybe the user
         # wants a horizontal layout
-        # FILL isn't a requirement, it's a non-requirement so should
-        # be ignored for composition / allocation.
+        border = BorderLayout(title=self._title, style=self._border_style)
+        self.add_child(border)
         self._wrapper = VerticalLayout([1, (1, "char"), (3, "char")])
         border.add_child(self._wrapper)
-        # fixme: scrolling dialog content?
-        self._wrapper.add_child(self._make_content_pane(text))
+        self._wrapper.add_child(self._make_content_pane(self._text))
         self._wrapper.add_child(HorizontalSeparator())
         self._wrapper.add_child(self._make_button_pane())
-        self._text = text
 
     def __repr__(self):
         (left, top, right, bottom) = self._region
@@ -77,10 +101,13 @@ class Dialog(TopLevelSheet):
         return self._content_pane
 
     def _make_button_pane(self):
-        # fixme: should allow caller to pass in arbitrary buttons
+        # fixme: should allow caller to pass in arbitrary buttons -
+        # and arbitrary callbacks. Need a way to return values from
+        # the dialog - or make clear this is done asynchronously via a
+        # callback and make it the caller's problem.
         if self._style == "yes/no":
-            yes = Button("YES", decorated=True, width=11)
-            no = Button("NO", decorated=True, width=11)
+            yes = Button("Yes", decorated=True, width=11)
+            no = Button("No", decorated=True, width=11)
             hbox = HorizontalLayout([])
             hbox.add_child(yes)
             hbox.add_child(no)
@@ -120,13 +147,8 @@ class Dialog(TopLevelSheet):
         # this properly (make content pane some widget that
         # already knows its text) at some point.
         #
-        # fixme: need to be able to draw to a sheet before
-        # it's attached, or calculate size for text before
-        # it's attached. Going to need this for scrolling
-        # anyway...
-        #
         # fixme: deal with multi-line text
-        text_size = len(self._text)
+        text_size = 0 if self._text is None else len(self._text)
         # fixme: padding shouldn't be present (use spacing
         # pane) or at least should be configurable...
         content_pane_size = SpaceReq(text_size, text_size+4, FILL, 1, 5, FILL)
@@ -136,12 +158,13 @@ class Dialog(TopLevelSheet):
         # FIXME: hardcoded index
         button_pane = self._wrapper._children[2]
         button_pane_size = button_pane.compose_space()
-        vbox_pane_size = combine_spacereqs(content_pane_size, button_pane_size)
         # border adds +1 on each side
-        # shadow adds +1 on right + bottom
-        border_adds = SpaceReq(0, 3, 0, 0, 3, 0)
-        vbox_pane_size = combine_spacereqs(vbox_pane_size, border_adds)
-        return vbox_pane_size
+        border = 2
+        if self._drop_shadow:
+            # shadow adds +1 on right + bottom
+            border += 1
+        border_adds = SpaceReq(0, border, 0, 0, border, 0)
+        return combine_spacereqs(content_pane_size, button_pane_size)
 
     # same as space allocation for BorderLayout EXCEPT the dialog also
     # makes space for a drop shadow.  Could just use the one from the
@@ -152,7 +175,11 @@ class Dialog(TopLevelSheet):
         (width, height) = (right-left, bottom-top)
         # border layout fills whole dialog apart from space needed by
         # drop shadow
-        (border_width, border_height) = (width - 1, height - 1)
+        if self._drop_shadow:
+            (border_width, border_height) = (width-1, height-1)
+        else:
+            (border_width, border_height) = (width, height)
+
         border_layout = self._children[0]
         border_request = border_layout.compose_space()
         # give all the space to the child without allocating more than the child's maximum.
@@ -174,14 +201,24 @@ class Dialog(TopLevelSheet):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
 
+        # region includes space for the border, don't clear where the
+        # border will go if the dialog has a border.
+        (l, t, r, b) = self._region
+        if self._drop_shadow:
+            r -= 1
+            b -= 1
+        self.clear((l, t, r, b), self.pen())
+
         for child in self._children:
             child.render()
 
-        pen = self.pen()
-        # fixme: use a real pane type to hold the text
-        self._content_pane.display_at((2, 2), self._text, pen)
+        if self._text is not None:
+            pen = self.pen()
+            # fixme: use a real pane type to hold the text
+            self._content_pane.display_at((2, 2), self._text, pen)
 
-        self._draw_dropshadow()
+        if self._drop_shadow:
+            self._draw_dropshadow()
 
     def _draw_dropshadow(self):
         # fixme: shadow pen in toplevel? Or is shadow a role?
@@ -209,8 +246,59 @@ class Dialog(TopLevelSheet):
         command = find_command(key_event, command_table="dialog")
         if command is not None:
             return command.apply(self)
-
         return False
+
+
+class MultivalueDialog(Dialog):
+
+    def __init__(self, drop_shadow=False):
+        super().__init__(drop_shadow=drop_shadow)
+
+    def _make_dialog_shell(self):
+        # caller is entirely responsible for populating multivalue
+        # dialog
+        pass
+
+    def compose_space(self):
+        spacereq = None
+        # if dialog is a shell it's entire content is defined by
+        # the size of its single child
+        for child in self._children:
+            spacereq = child.compose_space()
+        # shell dialog with no children. Should probably be an
+        # error but for now return a default space requirement
+        if spacereq is None:
+            spacereq = SpaceReq(10, 10, 10, 10, 10, 10)
+
+        if self._drop_shadow:
+            border = 1
+            border_adds = SpaceReq(0, border, 0, 0, border, 0)
+            spacereq = combine_spacereqs(spacereq, border_adds)
+        return spacereq
+
+    def allocate_space(self, allocation):
+        (left, top, right, bottom) = allocation
+        self._region = allocation
+        # allocate all space to the single child
+        for child in self._children:
+            if self._drop_shadow:
+                allocation = (left, top, right-1, bottom-1)
+            child.allocate_space(allocation)
+
+    def render(self):
+        # region includes space for the border, don't clear where the
+        # border will go if the dialog has a border.
+        (l, t, r, b) = self._region
+        if self._drop_shadow:
+            r -= 1
+            b -= 1
+        self.clear((l, t, r, b), self.pen())
+
+        for child in self._children:
+            child.render()
+
+        if self._drop_shadow:
+            self._draw_dropshadow()
 
 
 def alert(frame, message):

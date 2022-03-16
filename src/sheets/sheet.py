@@ -257,10 +257,19 @@ class Sheet():
 
         Returns a tuple of 2 tuples of (MINIMUM, DESIRED, MAXIUMUM)
         """
+        # basic 10x5 default
+        spacereq = SpaceReq(10, FILL, FILL, 5, FILL, FILL)
+        for child in self._children:
+            # override default with child requirement when there's a
+            # child
+            spacereq = child.compose_space()
+        # override with fixed dimensions
         (xmin, xpref, xmax) = \
-            (1, FILL, FILL) if self._width is None else (self._width,)*3
+            (spacereq.x_min(), spacereq.x_preferred(), spacereq.x_max()) \
+            if self._width is None else (self._width,)*3
         (ymin, ypref, ymax) = \
-            (1, FILL, FILL) if self._height is None else (self._height,)*3
+            (spacereq.y_min(), spacereq.y_preferred(), spacereq.y_max()) \
+            if self._height is None else (self._height,)*3
 
         return SpaceReq(xmin, xpref, xmax, ymin, ypref, ymax)
 

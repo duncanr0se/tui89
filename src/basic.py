@@ -25,7 +25,7 @@ from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
 from sheets.buttons import Button, RadioButton, CheckBox, MenuButton
 from sheets.boxlayout import HorizontalLayout, VerticalLayout
-from sheets.dialog import Dialog, alert, yes_no
+from sheets.dialog import Dialog, alert, yes_no, MultivalueDialog
 from sheets.scrollbar import Scrollbar
 from sheets.viewport import Viewport
 from sheets.label import Label
@@ -43,6 +43,8 @@ from dcs.ink import Pen
 import sys
 import logging
 from logging import getLogger
+
+logger = getLogger(__name__)
 
 def demo(screen):
 
@@ -69,7 +71,7 @@ def demo(screen):
     oneb = BorderLayout(title="buttons", style="single")
     child_sheet.add_child(oneb)
 
-    one = VerticalLayout([(7, "%"), (7, "%"), (30, "%"), (26, "%"), 1, 1])
+    one = VerticalLayout([(7, "%"), (7, "%"), (7, "%"), (26, "%"), (23, "%"), 1, 1])
     oneb.add_child(one)
 
     button = Button(label="Pancakes!", decorated=True)
@@ -80,6 +82,10 @@ def demo(screen):
     # fixme: dialog needs to expose "button callback" which gets
     # called when one of the dialog buttons is pushed
     button.on_click_callback = _make_yesno_callback()
+    one.add_child(button)
+
+    button = Button(label="Multivalue", decorated=True)
+    button.on_click_callback = _make_multivalue_callback(frame)
     one.add_child(button)
 
     # "button box"
@@ -346,6 +352,41 @@ def _make_menubar():
     menu1.set_menu_box(file_menu)
 
     return menubar
+
+
+def _make_multivalue_callback(frame):
+    def do_it(button):
+        dialog = MultivalueDialog()
+        # because this is a sheet it does not allocate space for its
+        # children (at all). Only use as a placeholder.
+        content = Sheet(width=20, height=10)
+        layout = ListLayout()
+
+        mbar = MenubarLayout()
+        menu1 = MenuButton(label="One")
+        menu2 = MenuButton(label="Two")
+        mbar.set_children([menu1, menu2])
+
+        label = Label("01234567890123456789")
+
+        list_control = ListControl(options=["One", "Two", "Three", "Four", "Five",
+                                            "Six", "Seven", "Eight", "Nine", "Ten",
+                                            "Eleven", "Twelve", "Thirteen", "Fourteen",
+                                            "Not a number! Instead something longer"])
+
+        layout.add_child(mbar)
+        layout.add_child(HorizontalSeparator(style="spacing"))
+        layout.add_child(label)
+        layout.add_child(HorizontalSeparator(style="spacing"))
+        layout.add_child(list_control)
+
+        logger.debug("MultivalueDialog children=%s", dialog._children)
+
+        content.add_child(layout)
+
+        dialog.add_child(content)
+        frame.show_dialog(dialog)
+    return do_it
 
 
 # This isn't working, not sure why. Maybe there's a better way to deal
