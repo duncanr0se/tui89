@@ -31,6 +31,10 @@ from dcs.ink import Pen
 
 from frames.commands import find_command
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 class TextEntry(Sheet):
     """Text entry widget."""
 
@@ -85,6 +89,8 @@ class TextEntry(Sheet):
         # draw text
         self.display_at((0, 0), display_text, pen)
 
+        logger.debug("=== TEXTENTRY render() self.is_focus() = %s", self.is_focus())
+
         # draw cursor if focus
         if self.is_focus():
             visual_insertion_pt = self._insertion_point-self._text_offset
@@ -125,11 +131,14 @@ class TextEntry(Sheet):
         # CTRL+KEY_UP (up paragraph)
         # CTRL+KEY_DOWN (down paragraph)
 
+        self._insert_char_code(key_event.key_code)
+        return True
+
+    def _insert_char_code(self, key_event_code):
         pos = self._insertion_point
-        self._text = self._text[:pos] + chr(key_event.key_code) + self._text[pos:]
+        self._text = self._text[:pos] + chr(key_event_code) + self._text[pos:]
         self.move_forward()
         self.invalidate()
-        return True
 
     def activate(self):
         self.frame().set_focus(self)

@@ -416,9 +416,51 @@ def populate_listcontrol():
     register_command(keycode, Command("next", _next),
                      command_table="listcontrol")
 
+
+### Commands on combo boxes
+def populate_combobox():
+
+    # RETURN = commit
+    def _commit(combobox):
+        combobox.commit()
+        return True
+
+    keycode = [Screen.ctrl("j")]
+    register_command(keycode, Command("commit", _commit), command_table="combobox")
+
+    # DOWN-ARROW, CTRL+N - move focus to list control
+    def _move_to_list(combobox):
+        return combobox.move_to_list()
+
+    keycode = [Screen.ctrl("n"), Screen.KEY_DOWN]
+    register_command(keycode, Command("move_list", _move_to_list),
+                     command_table="combobox")
+
+    # ESC - combination of close popup + cycle next
+    def _blur(combobox):
+        combobox.close_list()
+        combobox.find_next_focus(combobox)
+        return True
+    keycode = [Screen.KEY_ESCAPE]
+    register_command(keycode, Command("quit combo", _blur),
+                     command_table="combobox")
+
+
+### Commands on option boxes
+def populate_valuelabel():
+
+    def _activate(label):
+        label.activate()
+        return True
+
+    keycode = [ord(" "),  Screen.ctrl("j")]
+    register_command(keycode, Command("activate", _activate), command_table="valuelabel")
+
+
 #
 # actually populate the command tables.
 #
+# FIXME: this is quite hacky; do this a better way.
 populate_global()
 populate_menubox()
 populate_dialog()
@@ -428,6 +470,8 @@ populate_textentry()
 populate_textarea()
 populate_optionbox()
 populate_listcontrol()
+populate_combobox()
+populate_valuelabel()
 
 # when a new TOP LEVEL SHEET type is displayed, it needs to identify
 # the FOCUS WIDGET. Until that TOP LEVEL SHEET is closed (or

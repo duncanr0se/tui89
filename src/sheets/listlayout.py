@@ -22,10 +22,11 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 
-# A layout that arranges its children in a column. Each child is
-# packed as closely as possible to its siblings
 class ListLayout(Sheet):
+    """A layout that arranges its children in a column.
 
+    Each child is packed as closely as possible to its siblings.
+    """
     def __init__(self):
         super().__init__()
 
@@ -39,6 +40,15 @@ class ListLayout(Sheet):
             child.move_to((0, offset))
             offset += child.height()
             child.layout()
+
+    # fixme: manipulating children should be done in the Sheet type I
+    # think - no need to replicate this logic all over.
+    def clear_children(self):
+        while len(self._children) > 0:
+            # pop removes last elt in list, so this detaches highest
+            # z-order first
+            child = self._children.pop()
+            child.detach()
 
     def render(self):
         if not self._region:

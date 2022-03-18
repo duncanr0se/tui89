@@ -37,7 +37,7 @@ from sheets.textentry import TextEntry
 from sheets.textarea import TextArea
 from sheets.optionbox import OptionBox
 from controls.listcontrol import ListControl
-from sheets.combobox import ComboBox
+from controls.combobox import ComboBox
 
 from dcs.ink import Pen
 

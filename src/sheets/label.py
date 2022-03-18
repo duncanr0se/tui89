@@ -22,6 +22,8 @@ from geometry.transforms import IDENTITY_TRANSFORM
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 from dcs.ink import Pen
+from mixins.valuemixin import ValueMixin
+from frames.commands import find_command
 
 from logging import getLogger
 
@@ -163,7 +165,7 @@ class Label(Sheet):
             self.frame().register_accelerator(self._label_text, self._label_widget)
 
 
-class ValueLabel(Label):
+class ValueLabel(Label, ValueMixin):
     # label that accepts focus and has a value (= the label's text)
     def __repr__(self):
         (left, top, right, bottom) = self._region
@@ -188,3 +190,14 @@ class ValueLabel(Label):
     # forgetting to implement it otherwise...
     def is_focus(self):
         return self.frame()._focus == self
+
+    def handle_key_event(self, key_event):
+        command = find_command(key_event, command_table="valuelabel")
+        if command is not None:
+            return command.apply(self)
+        return self._parent.handle_key_event(key_event)
+
+    # FIXME: should be "activatable label"? "ActiveValueLabel"?
+    def activate(self):
+        if hasattr(self, "on_activate"):
+            self.on_activate(self)

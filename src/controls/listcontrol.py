@@ -26,12 +26,14 @@ from sheets.buttons import Button
 from frames.commands import find_command
 from geometry.transforms import Transform
 
+from mixins.valuemixin import ValueMixin
+
 from logging import getLogger
 
 logger = getLogger(__name__)
 
 # A control that wraps a list layout and vertical bar in a scroller.
-class ListControl(Sheet):
+class ListControl(Sheet, ValueMixin):
 
     def __init__(self, options=[]):
         super().__init__()
@@ -41,13 +43,7 @@ class ListControl(Sheet):
 
         self._listbox = ListLayout()
         if len(options) > 0:
-            for opt in options:
-                # fixme: there's no reason these items should be
-                # restricted to just being strings wrapped in new
-                # labels... make also work with arbitrary widgets
-                self._listbox.add_child(ValueLabel(label_text=opt))
-                # self._listbox.add_child(Button(label=opt, decorated=False))
-                # self._listbox.add_child(Button(label=opt))
+            self._fab_listbox_children(options)
         self._vbar = Scrollbar(orientation="vertical")
 
         self._viewport = Viewport(self._listbox, vertical_bar=self._vbar)
@@ -55,8 +51,47 @@ class ListControl(Sheet):
         self._layout.add_child(self._viewport)
         self._layout.add_child(self._vbar)
 
+        # ValueMixin init
+        self._value = None
+
     def __repr__(self):
         return "ListControl({} entries)".format(len(self._listbox._children))
+
+    def _fab_listbox_children(self, options):
+        for opt in options:
+            # fixme: there's no reason these items should be
+            # restricted to just being strings wrapped in new
+            # labels... make also work with arbitrary widgets
+            label = ValueLabel(label_text=opt)
+            self._listbox.add_child(label)
+            # self._listbox.add_child(Button(label=opt, decorated=False))
+            # self._listbox.add_child(Button(label=opt))
+            label.on_activate = self._handle_child_activation
+
+    def _handle_child_activation(self, child):
+        self.set_value(child.value())
+
+    def update_elts(self, updated_elts):
+        """Modify list elements.
+
+        Remove children from layout that do not exist in updated_elts;
+        add elements from updated_elts that do not exist in the layout
+        to the layout.
+        """
+        # TODO: highlight list entries that match a supplied value
+
+        # TODO: bit of a hammer to crack a nut - maybe should have
+        # "filter" method and then add only new ones?
+        self._listbox.clear_children()
+        self._fab_listbox_children(updated_elts)
+        # does invalidate relayout as well as redraw? NOPE. Need a
+        # method that redoes the space calc, lays out children, and
+        # renders them ("relayout"?)
+        self._layout.allocate_space(self._region)
+        self._listbox.layout()
+        # fixme: update scrollbars; reduce size of containing dialog
+        # if list has shrunk to a point where there's empty space.
+        self.invalidate()
 
     def pen(self, role="undefined", state="default", pen="pen"):
         overridden_roles = ["undefined", "label", "button"]
@@ -121,6 +156,11 @@ class ListControl(Sheet):
                 return True
         return False
 
+    # FIXME: change this for controls; should just have focus forward
+    # / backward which works either on embedded widgets, if focus is
+    # inside a control (managed by the control) or across controls and
+    # widgets at the top level (managed by the frame) otherwise. This
+    # should supercede the "is_tabstop" hackery.
     def find_next_focus_same_level(self):
         # this is just be "find next focus" invoked on the parent
         # sheet passing "self" as current focus, and refusing to
@@ -180,6 +220,7 @@ class ListControl(Sheet):
                 return child
         return None
 
+    # FIXME: is_visible?
     def child_out_of_view(self, child):
         # returns True if child (left, top) is outside the viewport.
         # need to get child coords in viewport coord system.

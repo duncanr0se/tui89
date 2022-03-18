@@ -349,6 +349,11 @@ class Frame():
         # Check for clicks over an open menu; if clicks occur outside
         # the bounds of an active menu the menu will be closed;
 
+        # FIXME: do the same with dialogs, but need to add a dialog
+        # initarg to indicate this behaviour (wanted for dialogs that
+        # are part of comboboxes etc. but perhaps not any other
+        # dialogs).
+
         # If event not handled by a menu and there's a dialog on
         # screen, look in the dialog for the sheet that's going to
         # handle the event;
@@ -372,11 +377,13 @@ class Frame():
             # is one) or in the top level sheet otherwise
             # Dispose of menu since there was a click outside it
             self.menu_quit()
-            if self._dialog is not None:
-                event_top_level = self._dialog
-            else:
-                event_top_level = self._top_level_sheet
-            sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
+        if not sheet and event_top_level == self._dialog \
+           and self._dialog._dispose_on_click_outside:
+            self.dialog_quit()
+
+        event_top_level = self._get_focus_top_level()
+
+        sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
         if sheet:
             # mouse events come in to the event handler with screen
             # coordinates; convert to the coordinates used by the
@@ -399,7 +406,7 @@ class Frame():
         self._top_level_sheet.allocate_space((0, 0, self._screen.width, self._screen.height))
         self._top_level_sheet.layout()
 
-    def show_dialog(self, dialog):
+    def show_dialog(self, dialog, coord=None):
         if self._dialog is not None:
             raise RuntimeError("Can't have multiple dialogs currently")
         # Rename this method to "attach_dialog", or "graft_dialog" or
@@ -429,10 +436,12 @@ class Frame():
         dheight = min(dialog_spacereq.y_preferred(), dheight)
 
         dialog.allocate_space((0, 0, dwidth, dheight))
-        dx = (self._screen.width - dwidth) // 2
-        dy = (self._screen.height - dheight) // 2
+        if coord is None:
+            dx = (self._screen.width - dwidth) // 2
+            dy = (self._screen.height - dheight) // 2
+            coord = (dx, dy)
 
-        dialog.move_to((dx, dy))
+        dialog.move_to(coord)
         dialog.layout()
         self.set_focus(None)
         self.render()

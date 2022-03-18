@@ -6,7 +6,6 @@ Widgets:
        - row (✔)
        - column (✔)
        - list (✔)
-       - split pane
    - buttons
        - push button (✔)
        - radio buttons (✔)
@@ -23,27 +22,32 @@ Widgets:
        - alert (✔)
        - info (✔)
        - yes/no (✔)
-       - multivalue
+       - multivalue (✔)
    - text entry (✔)
    - multi-line text box (✔)
    - horizontal separator (✔)
    - vertical separator (✔)
    - option box (✔)
-   - combo box [needs list control]
+   - combo box
    - padding/null pane
    - progress bar
    - status bar
-   - context menu
 
 add controls:
 
    - list control (✔)
    - tree control
-   - multivalue dialog box (dialog box containing other widgets)
    - file open
    - file save
    - widget explorer - add "sheet select" mode then draw widget tree
      for selected widget
+
+potential other controls / widgets:
+
+   - split pane
+   - tab pane
+   - value boxes (sliders, dials)
+   - context menu
 
 Look at other toolkits, work out if there are any other controls or
 widgets that could be useful.
@@ -126,12 +130,21 @@ separate coord + width, height.
 
 Could use a tool that displays selected widgets in a layout that can
 have its size set, and see how different sized containers allocate and
-render different widget types.
+render different widget types - add a "samples" folder and stick a few
+sample apps in it.
 
 
 VISUAL FEEDBACK
 ===============
 test / fix screen resize! See docs from asciimatics
+
+All popup windows should have drop shadows by default, including menu
+boxes. This makes it a bit clearer that they are popup boxes (and that
+it should be possible to close them using ESC). Not sure if this means
+that buttons should NOT have drop shadows...
+
+Popup windows should be implemented as separate frames rather than as
+special top-level sheet types. Maybe.
 
 When moving up / down lines in text area if move from longer line to
 shorter line to empty line, cursor is drawn at negative offset when
@@ -152,6 +165,23 @@ offset=max for extreme ends of scroll range?
 If a button is "pressed" and then receives the focus (due to shoddy
 mouse event handling), need to clear the "pressed" state of the button
 (without activating the button).
+
+Not clear how to return values from dialogs or popups. For now expect
+to do this via some callback.
+
+list control in multivalue dialog that is component of combo box event
+handling needs sorting; selecting value in list should update combo
+value and close list, typing into combo box should filter list and
+extend list if "return" hit; ESC in list control moves to next focus
+by default but doesn't seem to be a way to close the dialog "popup"!
+
+Note that default event handling is going to be complicated because
+the combo box popup is not a child of the combo box.
+
+Should the multivalue dialog popup but then not steal focus? It makes
+it difficult to use it as a component of some control... might be good
+to have a popup type where the events are all still sent to the
+original top-level. Think about how this should work.
 
 
 List Control

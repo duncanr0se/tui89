@@ -56,15 +56,20 @@ class Dialog(TopLevelSheet):
                  title=None,
                  text=None,
                  border_style="double",
-                 drop_shadow=True):
+                 drop_shadow=True,
+                 dispose_on_click_outside=False,
+                 owner=None):
         super().__init__()
         self._children = []
         self._title = title if title is not None else "unnamed"
         self._style = style
         self._border_style=border_style
+        self._dispose_on_click_outside=dispose_on_click_outside
 
         self._drop_shadow = drop_shadow
         self._text = text
+
+        self._owner = owner
 
         self._make_dialog_shell()
 
@@ -246,13 +251,20 @@ class Dialog(TopLevelSheet):
         command = find_command(key_event, command_table="dialog")
         if command is not None:
             return command.apply(self)
+        if self._owner is not None:
+            return self._owner.handle_key_event(key_event)
         return False
 
 
 class MultivalueDialog(Dialog):
 
-    def __init__(self, drop_shadow=False):
-        super().__init__(drop_shadow=drop_shadow)
+    def __init__(self,
+                 drop_shadow=False,
+                 dispose_on_click_outside=False,
+                 owner=None):
+        super().__init__(drop_shadow=drop_shadow,
+                         dispose_on_click_outside=dispose_on_click_outside,
+                         owner=owner)
 
     def _make_dialog_shell(self):
         # caller is entirely responsible for populating multivalue
