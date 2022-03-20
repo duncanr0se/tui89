@@ -61,8 +61,8 @@ class BoxLayout(Sheet):
     # FIXME: if anything needs unit tests, it's probably the above!
     #_portions = None
 
-    def __init__(self, portions):
-        super().__init__()
+    def __init__(self, portions, owner=None):
+        super().__init__(owner=owner)
         self._portions = portions
 
     def major_size_component(self, sheet):
@@ -184,8 +184,8 @@ class BoxLayout(Sheet):
 
 class HorizontalLayout(BoxLayout):
 
-    def __init__(self, columns):
-        super().__init__(columns)
+    def __init__(self, columns, owner=None):
+        super().__init__(columns, owner=owner)
 
     def __repr__(self):
         if not self._attached or self._region is None:
@@ -236,8 +236,8 @@ class HorizontalLayout(BoxLayout):
 # A layout that arranges its children in rows
 class VerticalLayout(BoxLayout):
 
-    def __init__(self, rows):
-        super().__init__(rows)
+    def __init__(self, rows, owner=None):
+        super().__init__(rows, owner=owner)
 
     def __repr__(self):
         if not self._attached or self._region is None:

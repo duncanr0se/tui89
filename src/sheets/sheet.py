@@ -45,13 +45,18 @@ class Sheet():
 
       + may be attached to a display device;
     """
-    def __init__(self, width=None, height=None):
+    def __init__(self, width=None, height=None, owner=None):
         self._attached = False
         self._children = []
         self._parent = None
         self._pens = None
         self._region = None
         self._transform = IDENTITY_TRANSFORM
+        # specify owner to deal with focus / events. By default this
+        # is the application Frame but can be overridden by sheets
+        # that group other sheets to perform a function, i.e., by
+        # controls.
+        self._owner = owner
         # explicit width+height
         self._width = width
         self._height = height
@@ -66,6 +71,9 @@ class Sheet():
         else:
             (left, top, right, bottom) = self._region
             return "Sheet({}x{})".format(right-left, bottom-top)
+
+    def owner(self):
+        return self.frame() if self._owner is None else self._owner
 
     # drawing
     #
@@ -301,17 +309,15 @@ class Sheet():
 
     # events
     def find_focus_candidate(self):
-        logger.debug("find_focus invoked on %s", self)
-        # depth first search to find the first descendent with no
-        # children; use that as the focus. Keyboard navigation or
-        # selection with the mouse can be used to find a different
-        # focus.
+        # depth first search to find the first leaf descendent that
+        # accepts the focus; use that as the focus.
+        # Keyboard navigation or selection with the mouse can be used
+        # to find a different focus.
         for child in self._children:
             focus = child.find_focus_candidate()
             if focus is not None:
                 return focus
         if self.accepts_focus():
-            logger.debug("find_focus_candidate identified %s", self)
             return self
         return None
 
@@ -374,19 +380,8 @@ class Sheet():
         for child in self._children:
             (found_current, next) = child.find_next_focus(current_focus,
                                                           found_current=found_current)
-            # if self is a tab stop and one of the tab stop sheet's
-            # children either has the focus or is found as the next
-            # focus, want to continue walking back at the top stop
-            # level.
             if next is not None:
-                if self.is_tab_stop():
-                    # continue the walk pretending we didn't find a
-                    # next focus candidate - found a next focus but
-                    # it's within the tab stop sheet so don't want to
-                    # use it.
-                    break
-                else:
-                    return (True, next)
+                return (True, next)
 
         # failed to find anything suitable
         return (found_current, None)
@@ -407,7 +402,7 @@ class Sheet():
         # so tab stops are not set as the "previous" widget until
         # AFTER their children have been walked to find the current
         # focus.
-        if self.accepts_focus() and not self.is_tab_stop():
+        if self.accepts_focus():
             previous_candidate = self
 
         candidate = previous_candidate
@@ -417,18 +412,7 @@ class Sheet():
                                                        candidate,
                                                        indent+"__")
             if found:
-                if self.is_tab_stop():
-                    # Current focus is a child of the tab-stop. Put
-                    # focus on element before the tab stop.
-                    return (True, previous_candidate)
-                else:
-                    return (True, candidate)
-
-        # update previous_candidate so that tab stop can be previous
-        # focus for widget immediately following tab stop in tab
-        # order since this wasn't done earlier.
-        if self.is_tab_stop() and self.accepts_focus():
-            candidate = self
+                return (True, candidate)
 
         return (False, candidate)
 
@@ -438,6 +422,25 @@ class Sheet():
 
     # events
     def is_focus(self):
+        # Deal with nested control widgets; this is done by walking
+        # the "owner" hierarchy until an owner is directly owned by
+        # the Frame.
+
+        # if sheet's owner is the frame and the owner says this sheet
+        # is the focus - it's the focus.
+        #
+        # otherwise the sheet must be contained in a control; the
+        # sheet is only the focus if the sheet is the control's
+        # widget-focus and the control is the frame focus.
+        if self.accepts_focus():
+            if self.owner() == self.frame():
+                # frame is owner case
+                return self.owner().focus() == self
+            # owned sheets are not the focus if the owned sheet is not
+            # the frame focus
+            if self.owner().is_focus():
+                # ask owner if this sheet is focused within it
+                return self.owner().is_widget_focus(self)
         return False
 
     def note_focus_out(self):
@@ -448,22 +451,6 @@ class Sheet():
     def note_focus_in(self):
         # frame invokes this when the sheet is made the frame's focus
         pass
-
-    def is_tab_stop(self):
-        # If the sheet is a container that can't take focus itself but
-        # contains children that can and those children are not
-        # considered on their own merit during tab navigation (e.g.,
-        # list controls, tree controls...) this method can be used to
-        # delegate finding the focus to that control.
-
-        # This allows a singular control to be considered a single
-        # widget during tab navigation rather than it being a
-        # container of widgets.
-
-        # If this method returns True, the companion method
-        # "find_tab_stop_focus" must also be implemented. See the
-        # listcontrol implementation.
-        return False
 
     # events
     def handle_key_event(self, event):

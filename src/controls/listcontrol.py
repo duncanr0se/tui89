@@ -35,24 +35,41 @@ logger = getLogger(__name__)
 # A control that wraps a list layout and vertical bar in a scroller.
 class ListControl(Sheet, ValueMixin):
 
-    def __init__(self, options=[]):
-        super().__init__()
+    def __init__(self, options=[], owner=None):
+        super().__init__(owner=owner)
+
         self._options = options
-        self._layout = HorizontalLayout([1, (1, "char")])
+        self._layout = HorizontalLayout([1, (1, "char")], owner=self)
         self.add_child(self._layout)
 
-        self._listbox = ListLayout()
+        self._listbox = ListLayout(owner=self)
         if len(options) > 0:
             self._fab_listbox_children(options)
         self._vbar = Scrollbar(orientation="vertical")
 
-        self._viewport = Viewport(self._listbox, vertical_bar=self._vbar)
+        self._viewport = Viewport(self._listbox, vertical_bar=self._vbar, owner=self)
 
         self._layout.add_child(self._viewport)
         self._layout.add_child(self._vbar)
 
+        # controls contain and manage embedded child widgets; record
+        # which of them has focus.
+        self._widget_focus = None
+
         # ValueMixin init
         self._value = None
+
+    def set_focus(self, focus):
+        logger.debug("---> %s setting widget focus to %s", self, focus)
+        if self._widget_focus is not None:
+            self._widget_focus.note_focus_out()
+        self._widget_focus = focus
+        if self._widget_focus is not None:
+            self._widget_focus.note_focus_in()
+        self.frame().invalidate(self)
+
+    def is_widget_focus(self, widget):
+        return self._widget_focus == widget
 
     def __repr__(self):
         return "ListControl({} entries)".format(len(self._listbox._children))
@@ -62,10 +79,12 @@ class ListControl(Sheet, ValueMixin):
             # fixme: there's no reason these items should be
             # restricted to just being strings wrapped in new
             # labels... make also work with arbitrary widgets
-            label = ValueLabel(label_text=opt)
+            label = ValueLabel(label_text=opt, owner=self)
             self._listbox.add_child(label)
             # self._listbox.add_child(Button(label=opt, decorated=False))
             # self._listbox.add_child(Button(label=opt))
+            #
+            # FIXME: not sure this is the best way to do this...
             label.on_activate = self._handle_child_activation
 
     def _handle_child_activation(self, child):
@@ -123,11 +142,12 @@ class ListControl(Sheet, ValueMixin):
         super().render()
 
     def activate(self):
-        result = self.focus_first_child()
-        if result:
-            # callback?
-            True
-        return False
+        self.owner().set_focus(self)
+        if self._widget_focus is None:
+            result = self.control_focus_first_child()
+        else:
+            result = True
+        return result
 
     # FIXME: perhaps something like this should be the default?
     # Perhaps a "CommandServer" mixin is needed that has this as its
@@ -183,20 +203,9 @@ class ListControl(Sheet, ValueMixin):
         # call for this to work I think
         (found, widget) = self._parent.find_next_focus(self)
         if found:
-            self.frame().set_focus(widget)
+            self.owner().set_focus(widget)
             return True
         return False
-
-    def is_tab_stop(self):
-        return True
-
-    def find_tab_stop_focus(self):
-        # fixme: what if the listbox contains widgets that have
-        # children themselves? Need a "do-sheet-tree" method...
-        for child in self._listbox._children:
-            if child.accepts_focus():
-                return child
-        return None
 
     def page_up(self):
         # fixme: update focus? - yes, focus last visible item
@@ -264,12 +273,13 @@ class ListControl(Sheet, ValueMixin):
             lines = abs(delta)
             self._viewport.scroll_up_lines(lines)
 
-    def cycle_focus_backward(self, selected):
+    # moves focus within control
+    def control_cycle_focus_backward(self, selected):
         found = False
         for child in reversed(self._listbox._children):
             if found:
                 if child.accepts_focus():
-                    self.frame().set_focus(child)
+                    self.set_focus(child)
                     # fixme: maybe do this in a "note" method?
                     if self.child_out_of_view(child):
                         self.scroll_into_view(child)
@@ -279,19 +289,32 @@ class ListControl(Sheet, ValueMixin):
                 found = True
         return False
 
-    def focus_first_child(self):
-        child = self.find_tab_stop_focus()
-        if child is not None:
-            self.frame().set_focus(child)
-            return True
+    # return control's widget focus
+    def focus(self):
+        return self._widget_focus
+
+    # Focus is managed by a widget or sheets "owner". For basic
+    # widgets added to the application top level sheet the owner will
+    # be the application frame. For widgets added to controls the
+    # owner is the control containing the widget.
+    # This should be transparent to widgets or sheets that are NOT
+    # controls or frames.
+
+    # moves focus within control
+    def control_focus_first_child(self):
+        for child in self._listbox._children:
+            if child.accepts_focus():
+                self.set_focus(child)
+                return True
         return False
 
-    def cycle_focus_forward(self, selected):
+    # moves focus within control
+    def control_cycle_focus_forward(self, selected):
         found = False
         for child in self._listbox._children:
             if found:
                 if child.accepts_focus():
-                    self.frame().set_focus(child)
+                    self.set_focus(child)
                     # fixme: maybe do this in a "note" method?
                     if self.child_out_of_view(child):
                         self.scroll_into_view(child)
@@ -309,3 +332,31 @@ class ListControl(Sheet, ValueMixin):
         # result = super().find_next_focus(current_focus, found_current)
         # logger.debug("RESULT IS {}", result)
         # return result
+
+    # find focus within FRAME
+    def find_focus_candidate(self):
+        # Don't descend into children; return self if self accepts
+        # focus.
+        if self.accepts_focus():
+            return self
+        return None
+
+    # find focus within FRAME
+    def find_next_focus(self, current_focus, found_current):
+        if not found_current and self == current_focus:
+            return (True, None)
+        if found_current and self.accepts_focus():
+            return (True, self)
+        return (found_current, None)
+
+    # find focus within FRAME
+    def find_prev_focus(self, current_focus, previous_candidate, indent):
+        if self == current_focus:
+            return (True, previous_candidate)
+        if self.accepts_focus():
+            return (False, self)
+        return (False, previous_candidate)
+
+    def note_focus_in(self):
+        if self._widget_focus is None:
+            self.control_focus_first_child()

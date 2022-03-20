@@ -102,7 +102,10 @@ class OptionBox(Sheet):
         return True
 
     def is_focus(self):
-        return self.frame()._focus == self or self._has_open_popup
+        # todo: try just using the default and see what happens. Maybe
+        # it's ok for the colour scheme to be different whilst the
+        # option popup is open...
+        return super().is_focus() or self._has_open_popup
 
     def _on_menubox_detached_callback(self, arg):
         # self=OptionBox; arg=MenuBox

@@ -27,8 +27,8 @@ class ListLayout(Sheet):
 
     Each child is packed as closely as possible to its siblings.
     """
-    def __init__(self):
-        super().__init__()
+    def __init__(self, owner=None):
+        super().__init__(owner=owner)
 
     def __repr__(self):
         (l, t, r, b) = self._region

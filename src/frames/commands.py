@@ -367,13 +367,13 @@ def populate_optionbox():
 
 ### List controls
 def populate_listcontrol():
-    # ESC - exit menu
-    def _next_focus_sibling(listcontrol):
-        listcontrol.find_next_focus_same_level()
-        return True
-    keycode = [Screen.KEY_ESCAPE]
-    register_command(keycode, Command("next focus sibling", _next_focus_sibling),
-                     command_table="listcontrol")
+#    # ESC - exit menu
+#    def _next_focus_sibling(listcontrol):
+#        listcontrol.find_next_focus_same_level()
+#        return True
+#    keycode = [Screen.KEY_ESCAPE]
+#    register_command(keycode, Command("next focus sibling", _next_focus_sibling),
+#                     command_table="listcontrol")
 
     # PG_UP - up 1 page
     def _page_up(listcontrol):
@@ -393,7 +393,7 @@ def populate_listcontrol():
     def _prev(listcontrol):
         selected = listcontrol.find_focused_child()
         if selected is not None:
-            if listcontrol.cycle_focus_backward(selected):
+            if listcontrol.control_cycle_focus_backward(selected):
                 return True
 #        if menubox.has_menubar_button():
 #            # FIXME: close self, select menubar button
@@ -408,9 +408,9 @@ def populate_listcontrol():
     def _next(listcontrol):
         selected = listcontrol.find_focused_child()
         if selected is None:
-            return listcontrol.focus_first_child()
+            return listcontrol.control_focus_first_child()
         else:
-            return listcontrol.cycle_focus_forward(selected)
+            return listcontrol.control_cycle_focus_forward(selected)
 
     keycode = [Screen.ctrl("n"), Screen.KEY_DOWN]
     register_command(keycode, Command("next", _next),

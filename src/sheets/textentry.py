@@ -38,8 +38,8 @@ logger = getLogger(__name__)
 class TextEntry(Sheet):
     """Text entry widget."""
 
-    def __init__(self, text=""):
-        super().__init__()
+    def __init__(self, text="", owner=None):
+        super().__init__(owner=owner)
         self._children = []
         self._text = text
         # insertion point = where in the text the cursor is
@@ -60,9 +60,6 @@ class TextEntry(Sheet):
 
     def accepts_focus(self):
         return True
-
-    def is_focus(self):
-        return self.frame()._focus == self
 
     def compose_space(self):
         # arbitrary: assume 20x1 edit field by default
@@ -88,8 +85,6 @@ class TextEntry(Sheet):
 
         # draw text
         self.display_at((0, 0), display_text, pen)
-
-        logger.debug("=== TEXTENTRY render() self.is_focus() = %s", self.is_focus())
 
         # draw cursor if focus
         if self.is_focus():

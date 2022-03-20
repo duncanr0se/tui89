@@ -255,6 +255,11 @@ class Dialog(TopLevelSheet):
             return self._owner.handle_key_event(key_event)
         return False
 
+    def find_focus_candidate(self):
+        if self._owner is not None:
+            return self._owner.find_focus_candidate()
+        return super().find_focus_candidate()
+
 
 class MultivalueDialog(Dialog):
 

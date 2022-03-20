@@ -275,9 +275,6 @@ class Button(Sheet):
     def _draw_button_label(self):
         self._label.render()
 
-    def is_focus(self):
-        return self.frame()._focus == self
-
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
@@ -315,7 +312,6 @@ class Button(Sheet):
         return True
 
     def activate(self):
-        self.frame().set_focus(self)
         self._pressed = False
         self.invalidate()
         return self.on_click_callback and self.on_click_callback(self)

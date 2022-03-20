@@ -92,29 +92,18 @@ class ComboBox(Sheet):
             options = []
         self._options = options
         self._children = []
-        self._entry = TextEntry(text=ComboBox.default_text)
+        self._entry = TextEntry(text=ComboBox.default_text, owner=self)
         self.add_child(self._entry)
 
-        self._drop_label = Label(u'▼', align="left")
+        self._drop_label = Label(u'▼', align="left", owner=self)
         self.add_child(self._drop_label)
-
-        # FIXME: ugh, how horrible... there must be a better way to
-        # structure widgets+controls so that the control can mediate
-        # events over different widgets. Maybe set the control as the
-        # focus?
-        #
-        # Hierarchy would be: frame->focus(control)->contained
-        #     widget->parents
-        #
-        # Send events intended for contained widgets to the
-        # encompassing control
-#        self._entry.handle_key_event = self.handle_key_event
-        # Send mouse events on the drop label to the control
-#        self._drop_label.handle_event = self.handle_event
 
         self._option_list = None
         self._has_open_popup = False
         self._pressed = False
+        #
+        # FIXME: THIS ISN'T USED ANYWHERE, IS IT NEEDED?
+        #
         # when one of the options in the combo box is selected this
         # value is used to indicate which option it is. When new text
         # is added to the combo box, that text is added as an option
@@ -142,11 +131,29 @@ class ComboBox(Sheet):
         self._options = options
         self.invalidate()
 
+    #####                                                   LAYOUT #
+
     def layout(self):
         self._entry.move_to((0, 0))
         (left, _, right, _) = self._region
         w = right-left
         self._drop_label.move_to((w-2, 0))
+
+    def allocate_space(self, region):
+        (l, t, r, b) = region
+        self._region = region
+        # give last 2 chars of width to the "|v| button" and the rest
+        # to the label
+        self._entry.allocate_space((l, t, r-2, b))
+        self._drop_label.allocate_space((l, t, l+2, t+1))
+
+    def compose_space(self):
+        label_sr = self._entry.compose_space()
+        # +2 is for the |v| "button"
+        return SpaceReq(label_sr.x_min()+2, label_sr.x_preferred()+2, FILL,
+                        1, 1, FILL)
+
+    #####                                                   EVENT HANDLING #
 
     # if events are not handled, send them to the "textentry" and
     # handle them there.
@@ -289,11 +296,7 @@ class ComboBox(Sheet):
                 return self.activate()
         return False
 
-    def accepts_focus(self):
-        return True
-
-    def is_focus(self):
-        return self.frame()._focus == self or self._has_open_popup
+    #####                                                   MISCELLANEOUS #
 
     def _on_menubox_detached_callback(self, arg):
         # self=ComboBox; arg=Dialog
@@ -309,30 +312,62 @@ class ComboBox(Sheet):
     def option_select_callback(self, from_value=None, to_value=None):
         self._entry.reset()
         self._entry._text = to_value
-        self.frame().set_focus(self)
+        self.owner().set_focus(self)
+
+    #####                                                   FOCUS HANDLING #
+
+    def accepts_focus(self):
+        return True
+
+    def is_focus(self):
+        # fixme: this _has_open_popup thing feels like a hack
+        return super().is_focus() or self._has_open_popup
+
+    # "control" protocol
+    def is_widget_focus(self, widget):
+        # all children of the combobox should appear like they have
+        # the focus if the combobox is the frame focus.
+        return self.is_focus()
+
+    def find_focus_candidate(self):
+        # Do not descend into children; we know the control accepts
+        # the focus and deals with key events on behalf of its
+        # children.
+        return self
+
+    def find_next_focus(self, current_focus, found_current=False):
+        # Due to the nature of the control it is known that self
+        # accepts focus.
+        if not found_current and self == current_focus:
+            return (True, None)
+        if found_current:
+            return (True, self)
+        return (False, None)
+
+    def find_prev_focus(self, current_focus, previous_candidate=None, indent="__"):
+        if self == current_focus:
+            return (True, previous_candidate)
+        return (False, self)
+
+    def note_focus_in(self):
+        if not self._has_open_popup:
+            self.show_popup_box()
+
+    def note_focus_out(self):
+        if self._has_open_popup:
+            self.frame().dialog_quit()
+            self._has_open_popup = False
+
+    #####
 
     def activate(self):
         self._pressed = False
-        # focus is set on self but then immediately moved to the
-        # popup. Keep focus l&f for main control even when popup is
-        # present.
-        #
-        # Always clear the text. It's either already saved in the
-        # valid options (return pressed) or it isn't wanted?
-        #
-        # Reset control to default text if it loses the focus without
-        # the entered text (if any) being committed.
-        if self._selected_option_index < 0:
-            self._entry.reset()
-        self.show_popup_box()
-        self.frame().set_focus(self)
+        self.owner().set_focus(self)
 
     # command handlers
     def move_to_list(self):
         if self._has_open_popup:
-            candidate = self.frame()._dialog.find_focus_candidate()
-            self.frame().set_focus(candidate)
-            return True
+            return self._option_list.control_focus_first_child()
         else:
             return False
 
@@ -347,10 +382,17 @@ class ComboBox(Sheet):
         # FIXME: is some event needed here? value-changed?
         return True
 
+    def focus(self):
+        return self
+
     def show_popup_box(self):
         # fixme: could cache the popup instead of rebuilding it each
         # time
-        self._option_list = ListControl(options=self._options)
+        self._option_list = ListControl(options=self._options, owner=self)
+
+        logger.debug("ooooo ListControl for %s with owner=%s",
+                     self, self._option_list.owner())
+
         self._option_list.on_value_changed = self.option_select_callback
         # The menubox is not a child of the optionbox so doesn't
         # inherit pens in the usual way.
@@ -359,6 +401,11 @@ class ComboBox(Sheet):
         # fixme: add a "delegated parent" or similar for this case?
         # Perhaps everything should have a "colour delegate" that
         # defaults to the parent?
+        # fixme: get pen from the OWNER instead of from the PARENT?
+        # This will eventually get back to the frame still... perhaps
+        # an extra level in the pen structure is needed so the colours
+        # can be defined externally completely; instead of "role,
+        # style, pen" could have "control, role, style, pen"
         self._force_popup_colours(self._option_list)
         # adding a child with a specific height to the dialog forces
         # the dialog to take the size of the child. FIXME: would it be
@@ -395,15 +442,13 @@ class ComboBox(Sheet):
         menubox.set_pen(force_pen, role="menubox", state="default", which="pen")
         menubox.set_pen(force_pen, role="menubox", state="border", which="pen")
 
+    #####                                                   PENS + DRAWING #
+
     def pen(self, role="undefined", state="default", pen="pen"):
         # "label" consists of labels making up "non-popup" parts of
         # optionbox
         if role == "undefined" or role == "label":
-            # role = "editable"
-            role, state = "button", "transient"
-        # FIXME: pretty sure focus is generally set to the textentry,
-        # NOT this widget. Which is a bit sucky. This widget needs to
-        # take the focus.
+            role = "editable"
         if self.is_focus():
             state = "focus"
         if self._pressed:
@@ -429,16 +474,3 @@ class ComboBox(Sheet):
         # this isn't taking widget's focus into account
         self._drop_label.render()
 
-    def allocate_space(self, region):
-        (l, t, r, b) = region
-        self._region = region
-        # give last 2 chars of width to the "|v| button" and the rest
-        # to the label
-        self._entry.allocate_space((l, t, r-2, b))
-        self._drop_label.allocate_space((l, t, l+2, t+1))
-
-    def compose_space(self):
-        label_sr = self._entry.compose_space()
-        # +2 is for the |v| "button"
-        return SpaceReq(label_sr.x_min()+2, label_sr.x_preferred()+2, FILL,
-                        1, 1, FILL)

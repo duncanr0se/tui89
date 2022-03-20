@@ -42,8 +42,9 @@ class Label(Sheet):
                  label_text="",
                  align=None,
                  valign=None,
-                 label_widget=None):
-        super().__init__()
+                 label_widget=None,
+                 owner=None):
+        super().__init__(owner=owner)
         self._accelerator_char = None
         self._label_text = label_text
         valid_aligns = { None, "left", "right", "center", "centre" }
@@ -185,11 +186,6 @@ class ValueLabel(Label, ValueMixin):
         role="label" if role=="undefined" else role
         state = "focus" if self.is_focus() else state
         return super().pen(role=role, state=state, pen=pen)
-
-    # fixme: make this the default method in sheet.py to prevent
-    # forgetting to implement it otherwise...
-    def is_focus(self):
-        return self.frame()._focus == self
 
     def handle_key_event(self, key_event):
         command = find_command(key_event, command_table="valuelabel")

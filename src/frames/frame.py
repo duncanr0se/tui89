@@ -292,6 +292,7 @@ class Frame():
             if command.apply(self):
                 return True
 
+        # fixme: just use the focus widget? What if there isn't one?
         focus_top_level = self._get_focus_top_level()
 
         # Do what if there is no focus?
@@ -443,7 +444,11 @@ class Frame():
 
         dialog.move_to(coord)
         dialog.layout()
-        self.set_focus(None)
+        # fixme: where should the focus go, really? Should NOT be set
+        # to none here.
+        # fixme: perhaps need to make use of dialog owner here?
+        if dialog._owner is None:
+            self.set_focus(None)
         self.render()
 
     def dialog_quit(self):
@@ -541,10 +546,6 @@ class Frame():
         if self._focus is not None and not self._focus.is_detached():
             self._focus.note_focus_out()
             self._focus.invalidate()
-
-        if focus is not None and focus.is_tab_stop():
-            logger.debug(f"focus {focus} is tab stop, looking for child delegate")
-            focus = focus.find_tab_stop_focus()
 
         self._focus = focus
         if self._focus is not None:

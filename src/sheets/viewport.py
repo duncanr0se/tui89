@@ -36,8 +36,12 @@ class Viewport(Sheet):
     # fixme: scrolled_sheet, or just use _children?
     # _scrolled_sheet = None
 
-    def __init__(self, contentpane, vertical_bar=None, horizontal_bar=None):
-        super().__init__()
+    def __init__(self,
+                 contentpane,
+                 vertical_bar=None,
+                 horizontal_bar=None,
+                 owner=None):
+        super().__init__(owner=owner)
         self._scrolled_sheet = contentpane
         self.add_child(contentpane)
         self._vertical_sb = vertical_bar
