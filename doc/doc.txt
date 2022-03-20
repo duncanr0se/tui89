@@ -1,69 +1,205 @@
 
-SHEETS
-======
+1. SHEETS
+=========
 
-parent
-region
-transform
+A rectangular area on screen portraying part of the UI. Sheets may be
+nested and form a tree where sheets earlier in the tree (= lower
+z-order) are rendered before sheets later in the tree.
 
-children
+    + parent :: the sheet in the sheet tree that contains this sheet
+    as one of its children.
 
-contained in frame
-top level sheet
+    + region :: describes the extent of the sheet as left, top, right,
+    and bottom values.
 
-Drawing
--------
-have drawing ops: [rename all these to sheet specific things to avoid confusion]
-    clear
-    print_at
-    move
-    draw
+    + transform :: converts coordinate values in the sheet's
+    coordinate system into values in the parent's coordinate
+    system. By performing this transform through all parents of the
+    sheet eventually coordinates will be expressed in the coordinate
+    system of the screen.
 
-render [rename to "paint"?]
+    + children :: enumerates all child sheets that have this sheet as
+    a parent. A sheet may have 0, 1, or many children.
 
-Genealogy
----------
-add child
-top-level-sheet
-frame
+A sheet may be attached or detached; if the sheet is attached then it
+appears on the display device.
 
-Layout
-------
-allocate-space
-layout
-compose-space
-move-to
-width
-height
+CALLBACK: "on_attached", "on_detached".
 
-Other
------
-get-screen-transform
+1.1. SHEETS - GENEALOGY
+=======================
 
-Events
-------
-handle-event
-find-highest-sheet-containing-position
-region-contains-position
+    + add_child()
+    + set_children()
+    + note_child_added()
+    + note_child_removed()
+    + find_widget() :: finds a descendent sheet in the sheet's hierarchy
+
+1.2. SHEETS - SIZING AND LAYOUT
+===============================
+
+    + find_hightest_sheet_containing_position()
+    + region_contains_position()
+    + get_screen_transform()
+    + delta_transform()
+    + allocate_space()
+    + compose_space()
+    + layout()
+    + width()
+    + height()
+
+1.3. SHEETS - ATTACHMENT
+========================
+
+    + frame()
+    + note_sheet_attached()
+    + note_sheet_detached()
+    + is_attached()
+    + is_detached()
+    + top_level_sheet()
+    + detach()
+    + attach()
+
+1.4. SHEETS - DRAWING
+=====================
+
+    + pen()
+    + set_pen()
+    + clear()
+    + display_at()
+    + move()
+    + draw_to()
+    + render()
+    + invalidate()
+
+1.5. SHEETS - EVENTS
+====================
+
+    + find_focus_candidate()
+    + find_next_focus()
+    + find_prev_focus()
+    + accepts_focus()
+    + is_focus()
+    + note_focus_out()
+    + note_focus_in()
+    + handle_key_event()
+    + handle_event()
+
+1.6. SHEETS - MISC
+==================
+
+    + is_tab_stop()
+
 
 Specific sheets have specific callbacks when events occur:
   Button::on_click
 
 
-FRAMES
-======
-top-level-sheet
-theme
-start-frame
-lay-out-frame
-render [move into event loop, doesn't need to be exposed]
+2. FRAMES
+=========
+
+A frame represents an application. It presents a sheet hierarchy to
+the user and manages an event loop for the application.
+
+2.1. FRAMES - THEMES
+====================
+
+2.2. FRAMES - DRAWING
+=====================
+
+    + pen()
+    + render()
+    + invalidate()
+    + render_invalidated_sheets()
+
+2.3. FRAMES - TOP LEVEL SHEETS
+==============================
+
+    + set_top_level_sheet()
+    + top_level_sheet()
+    + show_dialog()
+    + dialog_quit()
+    + show_popup()
+    + menu_quit()
+
+2.4. FRAMES - EVENTS
+====================
+
+    + start_frame()
+    + _process_event()
+    + _handle_key_event()
+    + _handle_mouse_event()
+
+2.5. FRAMES - LAYOUT
+====================
+
+    + lay_out_frame() :: allocates size of "screen" to the top level
+    sheet, then invokes "layout" on top level sheet so that children
+    are moved to the correct on-screen location
+
+2.6. FRAMES - FOCUS
+===================
+
+    + focus()
+    + set_focus()
+    + _get_focus_top_level()
+    + cycle_focus_forward()
+    + cycle_focus_backward()
+
+2.7. FRAMES - ACCELERATORS
+==========================
+
+    + accelerator_table()
+    + register_accelerator()
+    + discard_accelerator()
+    + accelerator_for_widget()
+    + accelerator_from_widget()
+    + accelerator_from_label()
+
+
+3. TOP LEVEL SHEETS
+===================
+
+Where frames and sheet hierarchies join. An instance of a Sheet, so
+implements all the methods described there.
+
+    + pen()
+    + clear()
+    + display_at()
+    + move()
+    + draw_to()
+    + add_child() :: error if sheet already has a child
+    + top_level_sheet()
+    + frame()
+    + allocate_space()
+    + layout()
+    + get_screen_transform()
+    + handle_event()
+    + graft()
+    + attach()
+    + detach()
+    + is_detached()
+    + is_attached()
+    + handle_key_event()
+
+4. DIALOGS
+==========
+
+    + _make_dialog_shell()
+    + _make_content_pane()
+    + _make_button_pane()
+    + compose_space()
+    + allocate_space()
+    + pen()
+    + render()
+    + _draw_dropshadow()
+    + handle_key_event()
+
+    + alert()
+    + info()
+    + yes_no()
 
 show-dialog
-
-  - this breaks top-level-sheet contract of only having a single
-    child. Does that matter? Maybe it should be the frame that manages
-    dialogs... then the render() method renders the top-level-sheet
-    then renders the dialog(s?).
 
   - dialog is just a border layout really that gets drawn in a funny
     colour scheme and just shows child widgets. Not quite sure how to
@@ -71,10 +207,8 @@ show-dialog
 
   - also - dialog needs to be centered on the screen
 
-Perhaps the dialog *should* be a Frame? Or a top level sheet? Can
-always move it later, just make it the same as a border layout for
-now. Make a "FloatingFrame" type?
-
+THINK DIALOGS NEED AN OWNER (OR ABSENCE OF AN OWNER) TO MANAGE THE
+DIALOG / MEDIATE DIALOG EVENTS.
 
 DIALOGS
 =======
@@ -88,3 +222,79 @@ event loop + handling
 painting / drawing updates
 transforms / parents / position in sheet stuff
 
+
+"PROTOCOLS"
+===========
+
+FOCUS
+=====
+
+    + find_focus_candidate()
+    + find_next_focus()
+    + find_previous_focus()
+    + accepts_focus()
+    + is_focus()
+    + note_focus_out()
+    + note_focus_in()
+
+    + is_tab_stop()
+
+Navigate focus within a "focus level" using TAB / S+TAB
+
+Escape from "tab capturing" element (e.g., text entry widgets) using
+ESC.
+
+Within a control use next / prev navigation instead (arrow keys,
+ctrl+n, ctrl+p)
+
+"Frame focus" indicates where key events are sent. If this indicates a
+"control" rather than a "widget", the control is responsible for
+passing the events on to its child widgets as it deems suitable.
+
+Focus is handled by the frame or by the "owner" of a sheet which may
+perform bespoke focus handling, or just act as a delegate for the
+frame. Control sheets are the owning sheet for their contained
+children (which may themselves be controls). Widgets (and controls) at
+the top level have focus managed by the frame.
+
+TODO: perhaps all sheets should have an owner to deal with focus,
+which is the application frame by default. Not sure what this would do
+to the code.
+
+Focus handling:
+
+  1. when frame is started, it walks its child widgets to find a focus
+  widget or control and sets that widget to be the frame focus.
+
+  2. when key events are received, the frame checks for frame-level
+  commands and invokes any found. The result of the command indicates
+  if the event is handled or not. If the event was handled the event
+  handler returns True.
+
+  3. if the key event has not been handled by the frame, they
+  "handle_key_event" of the frame focus sheet is invoked. This method
+  returns True if the event was handled.
+
+  4. if the event is still not handled the frame looks for an
+  accelerator that matches the key event. If found focus is moved to
+  the widget or control associated with the accelerator and True is
+  returned to indicate the event is handled.
+
+  5. otherwise the event is not handled and is dropped.
+
+  6. if a mouse click is received over a widget or control that
+  accepts the focus then the frame focus is set to that widget.
+
+QUERY: HOW TO DECIDE TO SEND EVENTS TO POPUPS / DIALOGS? SINCE THOSE
+ARE FRAMES IN THEIR OWN RIGHT MAYBE THEY JUST NEED TO BE SENT ALL
+EVENTS WHEN THEY ARE ON SCREEN (MODAL)? SHOULD MODALITY BE HANDLED?
+
+FORMALISE THE EVENT LOOP IN THE FRAME (AND PORT)
+
+The *PORT* should manage the frames and make the determination of a
+dialog is modal or not. For now the FRAME does this, maybe just keep
+it like that for now - keep the current "top level sheet is special"
+implementation.
+
+If a dialog has an owner, does the owner get to see the events on the
+dialog before the dialog does? Probably it should not.
