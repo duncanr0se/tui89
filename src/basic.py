@@ -62,7 +62,7 @@ def demo(screen):
     border_layout = BorderLayout(title="Basic")
     top_level_sheet.add_child(border_layout)
 
-    child_sheet = HorizontalLayout([(18, "char"), (20, "%"), 1, 1])
+    child_sheet = HorizontalLayout([(18, "char"), (25, "%"), 1, 1])
     border_layout.add_child(child_sheet)
 
     #### "buttons"

@@ -85,7 +85,7 @@ introduce a bunch of mixin types, "ValueMixin", "FocusMixin",
 "CommandServerMixin"...
 
 Need proper events - key event, mouse button events, resize events,
-value changed events, function events.
+value changed events, function events. Also event loops and handlers.
 
 "Multivalue" dialog box in basic.py doesn't give focus to embedded
 list control. Expect that "owner" is not set up properly - this works
@@ -96,6 +96,15 @@ If a list control has had the focus and then lost it, the selected
 child of the list control has no apparent UI change to indicate it is
 the "value" of the list control (if indeed it is). Need to have a
 different visual for this case, and capture the state for it.
+
+    - owner :: default, combobox, dialog
+    - role :: toplevel, shadow, border, button, buttonbox, editable,
+             label, menubar, menubox, menubutton, optionbox, undefined,
+	     shadow, scroll
+    - state :: default, alert, info, yes/no, composite, focus,
+             transient, border
+    - pen :: focus, disabled, selected, default, accelerator, area_pen,
+             cursor
 
 If a button creates a dialog when the dialog is closed the focus goes
 back to the default instead of to the previously focused widget. Can
@@ -160,9 +169,6 @@ LAYOUT IMPROVEMENTS
 ===================
 TEXT ALIGNMENT and truncation ON BORDER TITLES
 
-Measuring text needs to be better; len(str) might not be effective for
-multibyte characters. Need to try a few and see what breaks.
-
 Move drawing ops to use LTRB regions where appropriate instead of
 separate coord + width, height.
 
@@ -174,11 +180,6 @@ sample apps in it.
 
 VISUAL FEEDBACK
 ===============
-All popup windows should have drop shadows by default, including menu
-boxes. This makes it a bit clearer that they are popup boxes (and that
-it should be possible to close them using ESC). Not sure if this means
-that buttons should NOT have drop shadows...
-
 Popup windows should be implemented as separate frames rather than as
 special top-level sheet types. Maybe.
 

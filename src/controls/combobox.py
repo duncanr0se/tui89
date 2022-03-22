@@ -137,20 +137,20 @@ class ComboBox(Sheet):
         self._entry.move_to((0, 0))
         (left, _, right, _) = self._region
         w = right-left
-        self._drop_label.move_to((w-2, 0))
+        self._drop_label.move_to((w-3, 0))
 
     def allocate_space(self, region):
         (l, t, r, b) = region
         self._region = region
-        # give last 2 chars of width to the "|v| button" and the rest
-        # to the label
-        self._entry.allocate_space((l, t, r-2, b))
+        # give last char of the width to the drop shadow, the next 2
+        # chars of width to the "|v| button" and the rest to the label
+        self._entry.allocate_space((l, t, r-3, b))
         self._drop_label.allocate_space((l, t, l+2, t+1))
 
     def compose_space(self):
         label_sr = self._entry.compose_space()
-        # +2 is for the |v| "button"
-        return SpaceReq(label_sr.x_min()+2, label_sr.x_preferred()+2, FILL,
+        # +2 is for the |v| "button", +1 is for the drop shadow
+        return SpaceReq(label_sr.x_min()+2+1, label_sr.x_preferred()+2+1, FILL,
                         1, 1, FILL)
 
     #####                                                   EVENT HANDLING #
@@ -414,7 +414,8 @@ class ComboBox(Sheet):
         # the dialog to take the size of the child. FIXME: would it be
         # better to be able to force a specific size on the dialog?
         (l, _, r, _) = self._region
-        content = Sheet(width=r-l, height=5)
+        # extra -1 to account for drop shadow around the dialog
+        content = Sheet(width=r-l-1, height=5)
         content.add_child(self._option_list)
         dialog = MultivalueDialog(dispose_on_click_outside=True, owner=self)
 
@@ -464,7 +465,9 @@ class ComboBox(Sheet):
         self._draw_button()
 
     def _draw_background(self, pen):
-        self.clear(self._region, pen)
+        (l, t, r, b) = self._region
+        # leave space for the popup drop shadow
+        self.clear((l, t, r-1, b), pen)
 
     # fixme: when the widget is selected via mouse click, for now, it
     # is given focus but when drawn the default text is not

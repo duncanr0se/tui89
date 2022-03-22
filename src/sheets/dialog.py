@@ -288,7 +288,7 @@ class Dialog(TopLevelSheet):
 class MultivalueDialog(Dialog):
 
     def __init__(self,
-                 drop_shadow=False,
+                 drop_shadow=True,
                  dispose_on_click_outside=False,
                  owner=None):
         super().__init__(drop_shadow=drop_shadow,

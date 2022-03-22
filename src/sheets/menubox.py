@@ -61,25 +61,38 @@ class MenuBox(TopLevelSheet):
     def render(self):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
-        self.clear(self._region, self.pen())
+        # don't clear the edges where the dropshadow will be drawn
+        (l, t, r, b) = self._region
+        self.clear((l, t, r-1, b-1), self.pen())
         for child in self._children:
             child.render()
+        self._draw_dropshadow()
+
+    def _draw_dropshadow(self):
+        shadow_pen = self.pen(role="shadow", state="default")
+        default_pen = self.pen()
+        shadow_pen = shadow_pen.merge(default_pen)
+        (left, top, right, bottom) = self._region
+        dropshadow_right = u'█'
+        dropshadow_below = u'█'
+        self.move((right-1, 1))
+        # drawing vertical line so max y is not included in the
+        # render, so "bottom" is the correct max extent.
+        self.draw_to((right-1, bottom), dropshadow_right, shadow_pen)
+        self.move((left+1, bottom-1))
+        # drawing left->right, high x value is excluded but high y
+        # value is included.
+        self.draw_to((right, bottom-1), dropshadow_below, shadow_pen)
 
     # allocate smallest space possible to fit children - probably need
     # some extra parameter to say we're trying to minimise
     def allocate_space(self, allocation):
         (l, t, r, b) = allocation
-        (awidth, aheight) = (r-l, b-t)
-        cw = awidth
-        ch = aheight
-        # single child - the border layout.
+        self._region = allocation
+        # single child - the border layout. Save space for the
+        # dropshadow.
         for child in self._children:
-            sr = child.compose_space()
-            ch = sr.y_preferred()
-            if self._width_override is None:
-                cw = sr.x_preferred()
-            child.allocate_space((l, t, l+cw, t+ch))
-            self._region = (l, t, l+min(cw, awidth), t+min(ch, aheight))
+            child.allocate_space((l, t, r-1, b-1))
 
     def compose_space(self):
         # Sheet hierarchy is:
@@ -97,6 +110,9 @@ class MenuBox(TopLevelSheet):
             sr = child.compose_space()
             reqwidth = max(reqwidth, sr.x_preferred())
             reqheight += sr.y_preferred()
+        # add space for the dropshadow
+        reqwidth += 1
+        reqheight += 1
         if self._width_override is not None:
             reqwidth = self._width_override
         return SpaceReq(reqwidth, reqwidth, reqwidth, reqheight, reqheight, reqheight)

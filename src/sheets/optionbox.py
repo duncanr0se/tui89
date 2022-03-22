@@ -80,7 +80,7 @@ class OptionBox(Sheet):
         self._label.move_to((0, 0))
         (left, _, right, _) = self._region
         w = right-left
-        self._drop_label.move_to((w-2, 0))
+        self._drop_label.move_to((w-3, 0))
 
     def handle_key_event(self, kevent):
         command = find_command(kevent, command_table="optionbox")
@@ -179,7 +179,10 @@ class OptionBox(Sheet):
         self._draw_button()
 
     def _draw_background(self, pen):
-        self.clear(self._region, pen)
+        (l, t, r, b) = self._region
+        # don't clear the space that will be used by the dropshadow of
+        # the popup
+        self.clear((l, t, r-1, b), pen)
 
     def _draw_label(self):
         self._label.render()
@@ -190,13 +193,13 @@ class OptionBox(Sheet):
     def allocate_space(self, region):
         (l, t, r, b) = region
         self._region = region
-        # give last 2 chars of width to the "|v| button" and the rest
-        # to the label
-        self._label.allocate_space((l, t, r-2, b))
+        # give last 1 char of width to the drop shadow, the next 2
+        # chars of width to the "|v| button" and the rest to the label
+        self._label.allocate_space((l, t, r-3, b))
         self._drop_label.allocate_space((l, t, l+2, t+1))
 
     def compose_space(self):
         label_sr = self._label.compose_space()
-        # +2 is for the |v| "button"
-        return SpaceReq(label_sr.x_min()+2, label_sr.x_preferred()+2, FILL,
+        # +2 is for the |v| "button", +1 is for drop shadow
+        return SpaceReq(label_sr.x_min()+2+1, label_sr.x_preferred()+2+1, FILL,
                         1, 1, FILL)
