@@ -73,13 +73,22 @@ widgets that could be useful.
 
 USABILITY
 =========
+
+Border widgets (pretty much all widgets except viewports actually)
+don't clip their contents so when space for widgets is below those
+widgets minimum space requirement they overflow the container
+boundaries - need drawing contexts that perform clipping.
+
 Widgets (and dialogs) should have a "value" that can be queried -
 introduce a bunch of mixin types, "ValueMixin", "FocusMixin",
 "LayoutMixin", "MultipleChildMixin", "SingleChildMixin",
 "CommandServerMixin"...
 
-alert + info dialogs are not being sized properly; the message is
-being overwritten by the separator and/or button.
+Need proper events - key event, mouse button events, resize events,
+value changed events, function events.
+
+"Multivalue" dialog box in basic.py doesn't give focus to embedded
+list control. Expect that "owner" is not set up properly.
 
 If a list control has had the focus and then lost it, the selected
 child of the list control has no apparent UI change to indicate it is

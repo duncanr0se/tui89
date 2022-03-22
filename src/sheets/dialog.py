@@ -156,20 +156,43 @@ class Dialog(TopLevelSheet):
         text_size = 0 if self._text is None else len(self._text)
         # fixme: padding shouldn't be present (use spacing
         # pane) or at least should be configurable...
-        content_pane_size = SpaceReq(text_size, text_size+4, FILL, 1, 5, FILL)
-        #
+        (cp_minx, cp_prefx, cp_maxx) = (text_size, text_size+4, FILL)
+        (cp_miny, cp_prefy, cp_maxy) = (1, 5, FILL)
+        # Include size for the separator
+        cp_miny = min(cp_miny+1, FILL)
+        cp_prefy = min(cp_prefy+1, FILL)
+        cp_maxy = min(cp_maxy+1, FILL)
+        # Space req for label+separator
+        content_pane_size = SpaceReq(cp_minx, cp_prefx, cp_maxx,
+                                     cp_miny, cp_prefy, cp_maxy)
         # Also hard-code the button pane (minimum + preferred)
         # sizes for now
         # FIXME: hardcoded index
         button_pane = self._wrapper._children[2]
         button_pane_size = button_pane.compose_space()
+        # combine content pane sr + button pane sr
+        # FIXME: tidy this by passing the combining fn for each
+        # component of the sr to the combine_spacereqs method. For the
+        # below that would be "max" and "operator.add".
+        minx = max(content_pane_size.x_min(), button_pane_size.x_min())
+        prefx = max(content_pane_size.x_preferred(), button_pane_size.x_preferred())
+        maxx = max(content_pane_size.x_max(), button_pane_size.x_max())
+        miny = content_pane_size.y_min()+button_pane_size.y_min()
+        prefy = content_pane_size.y_preferred()+button_pane_size.y_preferred()
+        maxy = content_pane_size.y_max()+button_pane_size.y_max()
+        sr = SpaceReq(minx, prefx, maxx, miny, prefy, maxy)
+
         # border adds +1 on each side
         border = 2
         if self._drop_shadow:
             # shadow adds +1 on right + bottom
             border += 1
         border_adds = SpaceReq(0, border, 0, 0, border, 0)
-        return combine_spacereqs(content_pane_size, button_pane_size)
+        sr = combine_spacereqs(sr, border_adds)
+
+        logger.debug("DIALOG DIALOG DIALOG: cp sr=%s, button sr=%s, combind sr=%s",
+                     content_pane_size, button_pane_size, sr)
+        return sr
 
     # same as space allocation for BorderLayout EXCEPT the dialog also
     # makes space for a drop shadow.  Could just use the one from the
@@ -220,7 +243,11 @@ class Dialog(TopLevelSheet):
         if self._text is not None:
             pen = self.pen()
             # fixme: use a real pane type to hold the text
-            self._content_pane.display_at((2, 2), self._text, pen)
+            cp_height = self._content_pane.height()
+            cp_width = self._content_pane.width()
+            cp_yoffset = cp_height // 2
+            cp_xoffset = (cp_width-len(self._text)) // 2
+            self._content_pane.display_at((cp_xoffset, cp_yoffset), self._text, pen)
 
         if self._drop_shadow:
             self._draw_dropshadow()
