@@ -14,11 +14,14 @@
 # limitations under the License.
 #
 
+import signal
+
 from collections import deque
 
 from asciimatics.screen import Screen
 from asciimatics.widgets.utilities import THEMES
 from asciimatics.event import KeyboardEvent, MouseEvent
+from asciimatics.exceptions import ResizeScreenError
 
 from sheets.sheet import Sheet
 from dcs.ink import Pen
@@ -194,7 +197,21 @@ class Frame():
         }
     }
 
+    def _resize_handler(self, *_):
+        # Could just do a "lay_out_frame" call? Seems unnecessarily
+        # wasteful to kill and recreate the Screen.
+
+        # The only thing we need to know from the Screen are the
+        # dimensions which are set when the screen is
+        # instantiated. Should be able to update those values here and
+        # then call "lay_out_frame()" followed by "render()" on the
+        # top sheet.
+        raise ResizeScreenError("resize!!")
+
     def __init__(self, screen):
+        # override screen resized handler from asciimatics for
+        # immediate handling
+        screen._signal_state.set(signal.SIGWINCH, self._resize_handler)
         self._delayed_calls = []
         self._dialog = None
         self._focus = None

@@ -78,6 +78,9 @@ introduce a bunch of mixin types, "ValueMixin", "FocusMixin",
 "LayoutMixin", "MultipleChildMixin", "SingleChildMixin",
 "CommandServerMixin"...
 
+alert + info dialogs are not being sized properly; the message is
+being overwritten by the separator and/or button.
+
 If a list control has had the focus and then lost it, the selected
 child of the list control has no apparent UI change to indicate it is
 the "value" of the list control (if indeed it is). Need to have a
@@ -95,6 +98,8 @@ the list.
 Navigating into the combobox or selecting one of the items in the
 combo listcontrol is not reflected in the visual representation of the
 combobox.
+
+Combobox list navigation is not working currently.
 
 Dialogs are only pseudo-modal; can't interact with other components
 whilst popup is up but they are still receiving events and
@@ -158,8 +163,6 @@ sample apps in it.
 
 VISUAL FEEDBACK
 ===============
-test / fix screen resize! See docs from asciimatics
-
 All popup windows should have drop shadows by default, including menu
 boxes. This makes it a bit clearer that they are popup boxes (and that
 it should be possible to close them using ESC). Not sure if this means

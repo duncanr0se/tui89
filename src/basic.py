@@ -49,8 +49,6 @@ logger = getLogger(__name__)
 
 def demo(screen):
 
-    logging.basicConfig(filename="tui.log", level=logging.DEBUG)
-
     frame = Frame(screen)
     # FIXME: should top-level-sheets be special? They really aren't in
     # this implementation.
@@ -407,12 +405,18 @@ def _make_multivalue_callback(frame):
         frame.show_dialog(dialog)
     return do_it
 
+logging.basicConfig(filename="tui.log", level=logging.DEBUG)
 
 # This isn't working, not sure why. Maybe there's a better way to deal
 # with screen resize...
 while True:
     try:
-        Screen.wrapper(demo, unicode_aware=True)
+        screen = Screen.open(unicode_aware=True)
+        logger.debug("========= Created screen with dimensions %s", screen.dimensions)
+        demo(screen)
         sys.exit(0)
     except ResizeScreenError:
-        pass
+        screen.close()
+    except StopApplication:
+        screen.close()
+        sys.exit(0)
