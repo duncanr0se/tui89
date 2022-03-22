@@ -350,6 +350,9 @@ class ComboBox(Sheet):
         return (False, self)
 
     def note_focus_in(self):
+        # If the _pressed flag hasn't been cleared already, clear it
+        # now
+        self._pressed = False
         if not self._has_open_popup:
             self.show_popup_box()
 

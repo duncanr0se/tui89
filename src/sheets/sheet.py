@@ -450,7 +450,9 @@ class Sheet():
 
     def note_focus_in(self):
         # frame invokes this when the sheet is made the frame's focus
-        pass
+        if hasattr(self, "_pressed"):
+            # If "pressed" flag is not cleared, clear it now
+            self._pressed = False
 
     # events
     def handle_key_event(self, event):
