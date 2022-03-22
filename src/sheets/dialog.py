@@ -32,6 +32,7 @@ from dcs.ink import Pen
 from frames.commands import find_command
 
 from logging import getLogger
+import operator
 
 logger = getLogger(__name__)
 
@@ -174,13 +175,9 @@ class Dialog(TopLevelSheet):
         # FIXME: tidy this by passing the combining fn for each
         # component of the sr to the combine_spacereqs method. For the
         # below that would be "max" and "operator.add".
-        minx = max(content_pane_size.x_min(), button_pane_size.x_min())
-        prefx = max(content_pane_size.x_preferred(), button_pane_size.x_preferred())
-        maxx = max(content_pane_size.x_max(), button_pane_size.x_max())
-        miny = content_pane_size.y_min()+button_pane_size.y_min()
-        prefy = content_pane_size.y_preferred()+button_pane_size.y_preferred()
-        maxy = content_pane_size.y_max()+button_pane_size.y_max()
-        sr = SpaceReq(minx, prefx, maxx, miny, prefy, maxy)
+        all_max = (max, max, max)
+        all_add = (operator.add, operator.add, operator.add)
+        sr = combine_spacereqs(content_pane_size, button_pane_size, all_max, all_add)
 
         # border adds +1 on each side
         border = 2
@@ -188,7 +185,7 @@ class Dialog(TopLevelSheet):
             # shadow adds +1 on right + bottom
             border += 1
         border_adds = SpaceReq(0, border, 0, 0, border, 0)
-        sr = combine_spacereqs(sr, border_adds)
+        sr = combine_spacereqs(sr, border_adds, all_add, all_add)
 
         logger.debug("DIALOG DIALOG DIALOG: cp sr=%s, button sr=%s, combind sr=%s",
                      content_pane_size, button_pane_size, sr)
@@ -317,7 +314,8 @@ class MultivalueDialog(Dialog):
         if self._drop_shadow:
             border = 1
             border_adds = SpaceReq(0, border, 0, 0, border, 0)
-            spacereq = combine_spacereqs(spacereq, border_adds)
+            all_add = (operator.add, operator.add, operator.add)
+            spacereq = combine_spacereqs(spacereq, border_adds, all_add, all_add)
         return spacereq
 
     def allocate_space(self, allocation):

@@ -58,13 +58,13 @@ class SpaceReq():
 def _fill_or(n):
     return n if n < FILL else FILL
 
-def combine_spacereqs(sr1, sr2):
-    min_x = _fill_or(sr1._xmin + sr2._xmin)
-    pref_x = _fill_or(sr1._xpref + sr2._xpref)
-    max_x = _fill_or(sr1._xmax + sr2._xmax)
+def combine_spacereqs(sr1, sr2, xcombiners, ycombiners):
+    min_x = _fill_or(xcombiners[0](sr1._xmin, sr2._xmin))
+    pref_x = _fill_or(xcombiners[1](sr1._xpref, sr2._xpref))
+    max_x = _fill_or(xcombiners[2](sr1._xmax, sr2._xmax))
 
-    min_y = _fill_or(sr1._ymin + sr2._ymin)
-    pref_y = _fill_or(sr1._ypref + sr2._ypref)
-    max_y = _fill_or(sr1._ymax + sr2._ymax)
+    min_y = _fill_or(ycombiners[0](sr1._ymin, sr2._ymin))
+    pref_y = _fill_or(ycombiners[1](sr1._ypref, sr2._ypref))
+    max_y = _fill_or(ycombiners[2](sr1._ymax, sr2._ymax))
 
     return SpaceReq(min_x, pref_x, max_x, min_y, pref_y, max_y)

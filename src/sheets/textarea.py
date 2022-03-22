@@ -18,7 +18,7 @@ from asciimatics.screen import Screen
 
 from sheets.sheet import Sheet
 
-from sheets.spacereq import SpaceReq, FILL, combine_spacereqs
+from sheets.spacereq import SpaceReq, FILL
 
 from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
