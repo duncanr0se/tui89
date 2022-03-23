@@ -220,6 +220,8 @@ it difficult to use it as a component of some control... might be good
 to have a popup type where the events are all still sent to the
 original top-level. Think about how this should work.
 
+Optionbox should be a control and manage the menu popup accordingly.
+
 
 List Control
 ============
@@ -328,3 +330,47 @@ and "focused" are the same thing.
 
 Is "pressed" feedback needed? Maybe but can be subtler than it is
 currently.
+
+================================================
+
+1. EVENT -> FRAME -> FRAME-FOCUS
+
+2. FRAME-FOCUS is either a WIDGET or a CONTROL
+
+3. If WIDGET, invoke handle_key_event on WIDGET.
+
+4. If CONTROL, invoke handle_key_event on CONTROL WIDGET-FOCUS.
+
+5. WIDGET-FOCUS is either a WIDGET or a CONTROL
+
+4. If CONTROL, invoke handle_key_event on CONTROL WIDGET-FOCUS.
+
+...
+
+Steps 4 and 5 repeat until something handles the key event or there
+are no more widgets / controls to pass the event through.
+
+Identify CONTROLS because they have a WIDGET-FOCUS.
+
+Controls can nest. When setting focus on a widget, it is set either as
+the WIDGET-FOCUS for its OWNER and the OWNER is set as the FOCUS for
+its OWNER in turn, or directly on the frame (that is the OWNER for
+vanilla WIDGETS).
+
+A FRAME can have a single FOCUS; a CONTROL can have a single
+WIDGET-FOCUS, although many widgets within a control may be rendered
+AS THOUGH they are the focus.
+
+SETTING FOCUS also needs to walk through all the OWNERS until reaches
+the FRAME. Each owner in turn is set as the focus of its owner and so
+on.
+
+Controls MUST have an OWNER, or the OWNER is the FRAME. What about
+DIALOGS? Just another CONTROL I think.
+
+Key events start at the frame and travel UP the sheet hierarchy from
+lowest sheet to highest -- OR -- start at frame then go to highest
+sheet and travel DOWN the sheet hierarchy.
+
+Pass to focus then to focus then to focus until no focus, then chase
+owners back down the hierarchy until end up back at the sheet.

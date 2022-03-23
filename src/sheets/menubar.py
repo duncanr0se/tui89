@@ -90,7 +90,7 @@ class MenubarLayout(Sheet):
         command = find_command(key_event, command_table="menubar")
         if command is not None:
             return command.apply(self)
-        return self._parent.handle_key_event(key_event)
+        return False
 
     def find_focused_child(self):
         for child in self._children:

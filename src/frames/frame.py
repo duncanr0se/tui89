@@ -302,8 +302,6 @@ class Frame():
 
     def _handle_key_event(self, event):
         # Handle accelerators from the "command table"
-        # Who handles navigation? The frame or the sheets?
-
         command = find_command(event)
         if command is not None:
             if command.apply(self):
@@ -312,24 +310,25 @@ class Frame():
         # fixme: just use the focus widget? What if there isn't one?
         focus_top_level = self._get_focus_top_level()
 
-        # Do what if there is no focus?
-        if self.focus() is None:
-            # Pass event to top level sheet to pass down the sheet
-            # hierarchy (start at bottom of z-order). Layouts can deal
-            # with keyboard navigation if appropriate before passing
-            # finally to leaf sheet.
-
-            # Set the focus to the highest priority top level
-            # sheet. When it is asked to deal with an event it can
-            # identify a more specific focus, if it is coded to.
-            focus_sheet = focus_top_level.find_focus_candidate()
-            self.set_focus(focus_sheet)
+#        # Do what if there is no focus?
+#        if self.focus() is None:
+#            # Pass event to top level sheet to pass down the sheet
+#            # hierarchy (start at bottom of z-order). Layouts can deal
+#            # with keyboard navigation if appropriate before passing
+#            # finally to leaf sheet.
+#
+#            # Set the focus to the highest priority top level
+#            # sheet. When it is asked to deal with an event it can
+#            # identify a more specific focus, if it is coded to.
+#            focus_sheet = focus_top_level.find_focus_candidate()
+#            self.set_focus(focus_sheet)
 
         # When a top level sheet, a dialog, or a menu is displayed it
         # takes control of the current focus. When a menu or dialog is
         # closed, the frame focus is cleared and the branch above is
         # entered so the next highest priority focus can be selected.
-        handled = self.focus().handle_key_event(event)
+        if self.focus() is not None:
+            handled = self.focus().handle_key_event(event)
         # If the key event wasn't handled yet look for the key in the
         # accelerator table and if the active top-level contains the
         # identified widget, activate that widget.

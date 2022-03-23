@@ -151,7 +151,3 @@ class TopLevelSheet(Sheet):
 
     def is_attached(self):
         return self._frame is not None
-
-    # events
-    def handle_key_event(self, event):
-        return False

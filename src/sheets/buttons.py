@@ -306,7 +306,7 @@ class Button(Sheet):
         command = find_command(event, command_table="button")
         if command is not None:
             return command.apply(self)
-        return self._parent.handle_key_event(event)
+        return False
 
     def accepts_focus(self):
         return True

@@ -268,15 +268,16 @@ class Dialog(TopLevelSheet):
         # value is included.
         self.draw_to((right, bottom-1), dropshadow_below, shadow_pen)
 
-    # events - top level sheets don't pass event on to a parent,
-    # instead they return False to indicate the event is not handled
-    # and expect the Frame to take any further necessary action
     def handle_key_event(self, key_event):
+        # send to widget focus
+        if self._widget_focus is not None:
+            result = self._widget_focus.handle_key_event(key_event)
+            if result:
+                return result
+        # no dice, handle it ourselves
         command = find_command(key_event, command_table="dialog")
         if command is not None:
             return command.apply(self)
-        if self._owner is not None:
-            return self._owner.handle_key_event(key_event)
         return False
 
     def find_focus_candidate(self):

@@ -456,10 +456,8 @@ class Sheet():
 
     # events
     def handle_key_event(self, event):
-        # by default pass event to the next sheet in the hierarchy to
-        # deal with. Top level sheet types terminate this walk by
-        # returning False to their caller (= the Frame)
-        return self._parent.handle_key_event(event)
+        # No handler by default
+        return False
 
     # FIXME: rename to "handle-mouse-event"?
     # events

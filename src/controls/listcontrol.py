@@ -59,11 +59,15 @@ class ListControl(Sheet, ValueMixin):
         # ValueMixin init
         self._value = None
 
+    # fixme: this focus handling is still terrible. Think about it
+    # more.
     def set_focus(self, focus):
         logger.debug("---> %s setting widget focus to %s", self, focus)
         if self._widget_focus is not None:
             self._widget_focus.note_focus_out()
         self._widget_focus = focus
+        if self._owner:
+            self._owner.set_focus(self)
         if self._widget_focus is not None:
             self._widget_focus.note_focus_in()
         self.frame().invalidate(self)
@@ -149,14 +153,25 @@ class ListControl(Sheet, ValueMixin):
             result = True
         return result
 
-    # FIXME: perhaps something like this should be the default?
-    # Perhaps a "CommandServer" mixin is needed that has this as its
-    # default method?
     def handle_key_event(self, event):
+        # If there's a widget higher in the z-order that can handle
+        # the event let it do so.
+        # It is only controls that have a widget focus.
+        if self._widget_focus is not None:
+            result = self._widget_focus.handle_key_event(event)
+            if result:
+                return True
+        # Try to handle the event ourselves
         command = find_command(event, command_table="listcontrol")
         if command is not None:
-            return command.apply(self)
-        return self._parent.handle_key_event(event)
+            result = command.apply(self)
+            if result:
+                return True
+        # It was the owner's handle_key_event method that called this
+        # one! There's nothing higher in the z-order to pass the event
+        # to and 'self' doesn't want to deal with it, so indicate it's
+        # unhandled.
+        return False
 
     def accepts_focus(self):
         # True if there are children and any of the children accept

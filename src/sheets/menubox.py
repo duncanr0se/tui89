@@ -129,10 +129,8 @@ class MenuBox(TopLevelSheet):
         # FIXME: not necessary and adds nothing - for now at least.
         return True
 
-    # events - top level sheets don't pass event on to a parent,
-    # instead they return False to indicate the event is not handled
-    # and expect the Frame to take any further necessary action
     def handle_key_event(self, key_event):
+        # fixme: do menubox types need widget focus?
         command = find_command(key_event, command_table="menubox")
         if command is not None:
             return command.apply(self)

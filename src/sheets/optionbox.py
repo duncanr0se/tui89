@@ -86,7 +86,7 @@ class OptionBox(Sheet):
         command = find_command(kevent, command_table="optionbox")
         if command is not None:
             return command.apply(self)
-        return self._parent.handle_key_event(kevent)
+        return False
 
     def handle_event(self, mevent):
         if mevent.buttons == MouseEvent.LEFT_CLICK:

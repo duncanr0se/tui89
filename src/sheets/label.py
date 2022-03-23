@@ -191,7 +191,7 @@ class ValueLabel(Label, ValueMixin):
         command = find_command(key_event, command_table="valuelabel")
         if command is not None:
             return command.apply(self)
-        return self._parent.handle_key_event(key_event)
+        return False
 
     # FIXME: should be "activatable label"? "ActiveValueLabel"?
     def activate(self):

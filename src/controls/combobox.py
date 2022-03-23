@@ -101,6 +101,8 @@ class ComboBox(Sheet):
         self._option_list = None
         self._has_open_popup = False
         self._pressed = False
+
+        self._widget_focus = None
         #
         # FIXME: THIS ISN'T USED ANYWHERE, IS IT NEEDED?
         #
@@ -208,57 +210,40 @@ class ComboBox(Sheet):
     # for handling;
 
     def handle_key_event(self, kevent):
-        # nearly all the events we might be interested in here are
-        # already dealt with by the other widgets within the
-        # control. Need to make THIS widget the control and then it
-        # can override the default behaviours of its contained
-        # widgets.
-        #
-        # FIXME: combo box needs to handle TAB/S-TAB and close the
-        # list control, and then pass the TAB/S-TAB on to the
-        # frame. What a mess!
-
-        # FIXME: PRETTY SURE THIS CAN ALL BE MADE TO WORK BUT IT'S A
-        # HORRIBLE MESS. THE CONTROLS WANT TO HANDLE THE SAME KEY
-        # EVENTS IN DIFFERENT WAYS AND IN DIFFERENT ORDERS.
-        #
-        # DRAW THE DIFFERENT ACTORS OUT ON PAPER, DECIDE ON HOW EVENTS
-        # SHOULD BE SENT TO WIDGETS AND WHAT COMMANDS ARE NEEDED.
-
-        #   +-----------------+
-        #   | TEXT ENTRY | DL |
-        #   +-----------------+
-        #   |+---------------+|
-        #   || LABEL         ||
-        #   |+----           +|
-        #   || ...           ||
-        #   |+--             +|
-        #   ||LIST CONTROL   ||
-        #   |+---------------+|
-        #   |DIALOG           |
-        #   +-----------------+
-
-        # COMBOBOX CONTROL HAS FOCUS; IF POPUP IS OPEN, POPUP CAN HAVE
-        # FOCUS. NEED A WAY TO ESCAPE THE POPUP (UPWARDS, OPPOSITE OF
-        # CTRL+N). FIXME: FOR NOW THIS IS A BUG IN MULTIVALUE DIALOGS
-        # THAT CONTAIN LIST CONTROLS.
-
-        # Combobox does not receive or interpret key or mouse events
-        # on the popup.
-
-        # See if there's a combobox specific command for the keypress
-        logger.debug("=== COMBOBOX handle_key_event for event %s", kevent)
+        logger.debug("----combobox handling key event %s with widget focus %s",
+                     kevent,
+                     self._widget_focus)
+        # pass event to the _widget_focus if there is one
+        prev_text = self._entry._text
+        if self._widget_focus is not None:
+            if self._widget_focus != self._entry:
+                result = self._widget_focus.handle_key_event(kevent)
+                if result:
+                    return True
+            else:
+                # widget focus is the text entry; use the updated
+                # value to filter the list of options
+                result = self._widget_focus.handle_key_event(kevent)
+                if result:
+                    if self._has_open_popup:
+                        text = self._entry._text
+                        if text != prev_text:
+                            text = text.upper()
+                            update_elts = [elt for elt in self._options \
+                                           if text in elt.upper()]
+                            self._option_list.update_elts(update_elts)
+                    # fixme: is this invalidation necessary?
+                    self._entry.invalidate()
+                    return True
+        # Try to handle the event ourselves
         command = find_command(kevent, command_table="combobox")
         if command is not None:
-            logger.debug("=== COMBOBOX got command for event %s", command)
-            return command.apply(self)
-
-        # see if textentry wants to handle the event...
-        command = find_command(kevent, command_table="textentry")
-        if command is not None:
-            prev_text = self._entry._text
-            result = command.apply(self._entry)
-            # update dropdown if there has been a change in the text
+            result = command.apply(self)
+            if result:
+                return True
+        # Always send otherwise unhandled key events to the text entry
+        result = self._entry.handle_key_event(kevent)
+        if result:
             if self._has_open_popup:
                 text = self._entry._text
                 if text != prev_text:
@@ -266,25 +251,10 @@ class ComboBox(Sheet):
                     update_elts = [elt for elt in self._options \
                                    if text in elt.upper()]
                     self._option_list.update_elts(update_elts)
+            # fixme: is this invalidation necessary?
             self._entry.invalidate()
-            return result
-
-        # FIXME: this is probably not quite right if the list control
-        # actually has the focus.
-        if kevent.key_code >= 0:
-            self._entry._insert_char_code(kevent.key_code)
-            # use the value of the textentry to filter the elements in
-            # the list control popup
-            # fixme: really this filtering also needs to be done when
-            # any change to the textentry occurs. IMPLEMENT
-            # "VALUE-CHANGED" callback
-            if self._has_open_popup:
-                text = self._entry._text.upper()
-                update_elts = [elt for elt in self._options \
-                               if text in elt.upper()]
-                self._option_list.update_elts(update_elts)
             return True
-        return self._parent.handle_key_event(kevent)
+        return False
 
     def handle_event(self, mevent):
         if mevent.buttons == MouseEvent.LEFT_CLICK:
@@ -321,7 +291,14 @@ class ComboBox(Sheet):
 
     def is_focus(self):
         # fixme: this _has_open_popup thing feels like a hack
+        # fixme: what if the control is not a direct descendent of the
+        # frame?
         return super().is_focus() or self._has_open_popup
+
+    def set_focus(self, widget_focus):
+        # fixme: are note-focus-in/out calls needed here?
+        logger.debug("----> %s setting widget focus to %s", self, widget_focus)
+        self._widget_focus = widget_focus
 
     # "control" protocol
     def is_widget_focus(self, widget):
