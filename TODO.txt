@@ -220,7 +220,15 @@ it difficult to use it as a component of some control... might be good
 to have a popup type where the events are all still sent to the
 original top-level. Think about how this should work.
 
-Optionbox should be a control and manage the menu popup accordingly.
+Optionbox should be a control and manage the menu popup accordingly -
+or should it? Maybe not.
+
+What's the key event handling story for dialogs / menu boxes? If they
+are owned, should probably be the same as for other widgets. Otherwise
+frame needs to deal with them.
+
+EVENTS - need to formalise what events occur and how to set up event
+handlers for them.
 
 
 List Control

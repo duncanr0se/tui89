@@ -72,6 +72,8 @@ class Dialog(TopLevelSheet):
 
         self._owner = owner
 
+        self._widget_focus = None
+
         self._make_dialog_shell()
 
     def _make_dialog_shell(self):
@@ -269,15 +271,24 @@ class Dialog(TopLevelSheet):
         self.draw_to((right, bottom-1), dropshadow_below, shadow_pen)
 
     def handle_key_event(self, key_event):
+
+        # this method isn't entered for multivalue dialogs. Not sure
+        # why. Looks like the "send to menu"->"send to
+        # dialog"->"handle in frame" flow is knackered.
+
+        logger.debug("-----> DIALOG :: handle_key_event %s", key_event)
+
+        # Try to handle it ourselves
+        command = find_command(key_event, command_table="dialog")
+        if command is not None:
+            result = command.apply(self)
+            if result:
+                return True
         # send to widget focus
         if self._widget_focus is not None:
             result = self._widget_focus.handle_key_event(key_event)
             if result:
-                return result
-        # no dice, handle it ourselves
-        command = find_command(key_event, command_table="dialog")
-        if command is not None:
-            return command.apply(self)
+                return True
         return False
 
     def find_focus_candidate(self):
@@ -285,16 +296,39 @@ class Dialog(TopLevelSheet):
             return self._owner.find_focus_candidate()
         return super().find_focus_candidate()
 
+    def set_widget_focus(self, widget):
+        # fixme: note_focus_in/out?
+        if self._widget_focus != widget:
+            if self._widget_focus is not None:
+                self._widget_focus.note_focus_out()
+            self._widget_focus = widget
+            if self._widget_focus is not None:
+                self._widget_focus.note_focus_in()
+
 
 class MultivalueDialog(Dialog):
 
     def __init__(self,
                  drop_shadow=True,
+                 # fixme: vvv this is an obvious hack, get rid of it
                  dispose_on_click_outside=False,
                  owner=None):
         super().__init__(drop_shadow=drop_shadow,
                          dispose_on_click_outside=dispose_on_click_outside,
                          owner=owner)
+
+    # FIXME: this dialog needs to own any contained widgets. That
+    # would happen automatically if it was a frame, maybe make it a
+    # frame.
+
+    # For now this is NOT a frame, so use owner / widget_focus to deal
+    # with events.
+
+    # If key events don't bubble up the owner hierarchy, maybe the
+    # owner hierarchy doesn't need to be set up... however other event
+    # types are likely to bubble, so maybe it does.
+
+    # cancercaremap.org
 
     def _make_dialog_shell(self):
         # caller is entirely responsible for populating multivalue

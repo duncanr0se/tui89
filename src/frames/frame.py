@@ -212,7 +212,6 @@ class Frame():
         # override screen resized handler from asciimatics for
         # immediate handling
         screen._signal_state.set(signal.SIGWINCH, self._resize_handler)
-        self._delayed_calls = []
         self._dialog = None
         self._focus = None
         self._invalidated_sheets = deque()
@@ -259,6 +258,11 @@ class Frame():
         return self._top_level_sheet
 
     def start_frame(self):
+        # If the frame has no focus find one now. FIXME: what if there
+        # isn't a suitable focus candidate?
+        if self._focus is None:
+            focus_sheet = self._top_level_sheet.find_focus_candidate()
+            self.set_focus(focus_sheet)
         # TODO: test just running this loop, see how quickly the
         # system can respond to mouse and key events. Not sure if
         # latency is in the TUI code and need to find speedups there,
@@ -301,33 +305,53 @@ class Frame():
         self.render_invalidated_sheets()
 
     def _handle_key_event(self, event):
-        # Handle accelerators from the "command table"
+
+        logger.debug("_HANDLE_KEY_EVENT entered for frame %s and event %s",
+                     self, event)
+
+        # Handle accelerators from the default "command table". Why
+        # don't TAB / S+TAB work here?
         command = find_command(event)
         if command is not None:
+
+            logger.debug("________ got command for %s of %s", self, command)
+
             if command.apply(self):
                 return True
 
         # fixme: just use the focus widget? What if there isn't one?
         focus_top_level = self._get_focus_top_level()
 
-#        # Do what if there is no focus?
-#        if self.focus() is None:
-#            # Pass event to top level sheet to pass down the sheet
-#            # hierarchy (start at bottom of z-order). Layouts can deal
-#            # with keyboard navigation if appropriate before passing
-#            # finally to leaf sheet.
-#
-#            # Set the focus to the highest priority top level
-#            # sheet. When it is asked to deal with an event it can
-#            # identify a more specific focus, if it is coded to.
-#            focus_sheet = focus_top_level.find_focus_candidate()
-#            self.set_focus(focus_sheet)
+        logger.debug("________ key event not handled, trying to handle in top level %s",
+                     focus_top_level)
 
-        # When a top level sheet, a dialog, or a menu is displayed it
-        # takes control of the current focus. When a menu or dialog is
-        # closed, the frame focus is cleared and the branch above is
-        # entered so the next highest priority focus can be selected.
+        #
+        # FIXME: pretty sure logically if a different top level is in
+        # play the event should just be sent to that top level and
+        # then assumed to be handled. Something like:
+        #
+        #if focus_top_level != self:
+        #    handled = focus_top_level.handle_key_event(event)
+        #    logger.debug("________ top level is not frame, returning final result %s",
+        #                 handled)
+        #    return handled
+        #
+        # HOWEVER when this code is in place dialogs (for example) are
+        # never actually rendered - even though they are registered as
+        # the focus_top_level for the frame...
+        handled = focus_top_level.handle_key_event(event)
+        if handled:
+
+            logger.debug("________ key event handled by %s", focus_top_level)
+
+            return True
+
+        # Ask current frame focus to handle it
         if self.focus() is not None:
+
+            logger.debug("________ key event not handled, sending to frame focus %s",
+                         self.focus())
+
             handled = self.focus().handle_key_event(event)
         # If the key event wasn't handled yet look for the key in the
         # accelerator table and if the active top-level contains the
@@ -336,6 +360,9 @@ class Frame():
         # top-level sheet.  Can then check exactly the right accels
         # and just activate.
         if not handled:
+
+            logger.debug("________ key event not handled, looking for accelerator")
+
             if event.key_code > 0:
                 key = chr(event.key_code)
                 if key.isalpha():
@@ -347,6 +374,9 @@ class Frame():
                                 handled = True
         # Could introduce some extra steps here if handled == False
         # but for now there are none
+
+        logger.debug("________ key event handled at end: %s", handled)
+
         return handled
 
     def _handle_mouse_event(self, event):
@@ -458,14 +488,14 @@ class Frame():
             dy = (self._screen.height - dheight) // 2
             coord = (dx, dy)
 
+        if dialog._widget_focus is None:
+            focus_sheet = dialog.find_focus_candidate()
+            dialog.set_widget_focus(focus_sheet)
+
         dialog.move_to(coord)
         dialog.layout()
-        # fixme: where should the focus go, really? Should NOT be set
-        # to none here.
-        # fixme: perhaps need to make use of dialog owner here?
-        if dialog._owner is None:
-            self.set_focus(None)
-        self.render()
+        # self.render()
+        dialog.render()
 
     def dialog_quit(self):
         if self._dialog is not None:
@@ -473,7 +503,6 @@ class Frame():
             # detached state
             self._dialog.detach()
             self._dialog = None
-            self.set_focus(None)
             self.render()
 
     def show_popup(self, menu, coord):
@@ -509,8 +538,7 @@ class Frame():
 
         menu.move_to(coord)
         menu.layout()
-        self.set_focus(None)
-        self.render()
+        menu.render()
 
     def menu_quit(self):
         if self._menu is not None:
@@ -518,23 +546,14 @@ class Frame():
             # detached state
             self._menu.detach()
             self._menu = None
-            self.set_focus(None)
             self.render()
 
     def render(self):
-        # clear the screen first? Might be flickery... read the docs,
-        # work out how to do this.
-        focus_top_level = self._top_level_sheet
         self._top_level_sheet.render()
         if self._dialog is not None:
             self._dialog.render()
-            focus_top_level = self._dialog
         if self._menu is not None:
             self._menu.render()
-            focus_top_level = self._menu
-        # fixme: this really shouldn't be done on each render loop...
-        focus_sheet = focus_top_level.find_focus_candidate()
-        self.set_focus(focus_sheet)
         self._screen.refresh()
 
     def invalidate(self, sheet):
