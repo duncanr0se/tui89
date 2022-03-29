@@ -428,6 +428,15 @@ def populate_combobox():
     keycode = [Screen.ctrl("j")]
     register_command(keycode, Command("commit", _commit), command_table="combobox")
 
+    # UP-ARROW, CTRL+P - move focus to text entry if list control is
+    # on its first entry
+    def _move_to_entry(combobox):
+        return combobox.move_to_entry()
+
+    keycode = [Screen.ctrl("p"), Screen.KEY_UP]
+    register_command(keycode, Command("move_entry", _move_to_entry),
+                     command_table="combobox")
+
     # DOWN-ARROW, CTRL+N - move focus to list control
     def _move_to_list(combobox):
         return combobox.move_to_list()
@@ -436,8 +445,14 @@ def populate_combobox():
     register_command(keycode, Command("move_list", _move_to_list),
                      command_table="combobox")
 
-    # ESC - combination of close popup + cycle next
+    # ESC - combination of close popup + cycle next / cycle
+    # previous. FIXME: popup should clause always and only when the
+    # combobox loses focus.
     def _blur(combobox):
+        # if combobox is at the end of the focus chain (currently
+        # focus does not wrap), need to keep the popup open because
+        # the focus is not going anywhere... but how then to get rid
+        # of the focus?
         combobox.close_list()
         combobox.find_next_focus(combobox)
         return True

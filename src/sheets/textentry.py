@@ -30,12 +30,13 @@ from sheets.separators import HorizontalSeparator
 from dcs.ink import Pen
 
 from frames.commands import find_command
+from mixins.valuemixin import ValueMixin
 
 from logging import getLogger
 
 logger = getLogger(__name__)
 
-class TextEntry(Sheet):
+class TextEntry(Sheet, ValueMixin):
     """Text entry widget."""
 
     def __init__(self, text="", owner=None):
@@ -47,6 +48,9 @@ class TextEntry(Sheet):
         # text offset = where in the box the text is (relative to 0)
         self._text_offset = 0
 
+        # ValueMixin init
+        self._value = None
+
     def __repr__(self):
         (left, _, right, _) = self._region
         tx = self._transform._dx
@@ -57,6 +61,13 @@ class TextEntry(Sheet):
         self._text = ""
         self._text_offset = 0
         self._insertion_point = 0
+
+    def set_value(self, value):
+        self.reset()
+        super().set_value(value)
+        # fixme: just use value directly and remove _text?
+        self._text = value
+        self.invalidate()
 
     def accepts_focus(self):
         return True

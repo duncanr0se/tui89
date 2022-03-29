@@ -229,6 +229,13 @@ class Sheet():
         # right or bottom boundary.
         return left <= cx < right and top <= cy < bottom
 
+    def region_intersects_region(self, region):
+        # FIXME: move to geometry
+        (l1, t1, r1, b1) = self._region
+        (l2, t2, r2, b2) = region
+        return (l1 <= l2 < r1 or l1 < r2 <= r1) \
+            and (t1 <= t2 < b1 or t1 < b2 <= b1)
+
     def get_screen_transform(self):
         # navigate parents until get to top level sheet composing
         # transforms all the way up

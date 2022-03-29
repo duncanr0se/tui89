@@ -15,6 +15,7 @@
 #
 
 from asciimatics.event import MouseEvent
+from asciimatics.screen import Screen
 
 from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
@@ -52,39 +53,6 @@ class ComboBox(Sheet):
 
     default_text = "-- combo --"
 
-    # fixme: dropdown should always be shown when the control is the
-    # focus; typing in the combo box filters the items shown in the
-    # list to those that match the text entered. The user can then
-    # either press "return" to "commit" the text that's entered and
-    # add a new option to the box (if there isn't already an option
-    # matching that text) or can select from the list.
-    #
-    # Note that the "list" is actually a multivalue dialog that wraps
-    # a list control. This allows the "list" to appear over its
-    # background without causing a relayout and redraw of the parent
-    # container of the combo box.
-    #
-    # fixme: think this is a control rather than a widget. It mediates
-    # the behaviour of a bunch of contained widgets in a non-trivial
-    # way...
-    #
-    # fixme: maybe this shouldn't be a drop down; maybe it should just
-    # be a list control selector that can sometimes also update the
-    # list. Then it could also be used to identify leaf nodes in tree
-    # controls?
-    #
-    # + combo box - shows selected item, list pops up, text entry can
-    # update or filter list. If text does not match anything in list,
-    # display "return to add" prompt (where? in status bar? would be
-    # best).
-    #
-    # + fixed combo box - as above except list is always shown as a
-    # fixed list, not a popup
-    #
-    # + filter combo box - as above except list could be a tree, and
-    # combo text is used to highlight and navigate to existing entries
-    # not to add new entries.
-
     def __init__(self,
                  options=None):
         super().__init__()
@@ -103,19 +71,6 @@ class ComboBox(Sheet):
         self._pressed = False
 
         self._widget_focus = None
-        #
-        # FIXME: THIS ISN'T USED ANYWHERE, IS IT NEEDED?
-        #
-        # when one of the options in the combo box is selected this
-        # value is used to indicate which option it is. When new text
-        # is added to the combo box, that text is added as an option
-        # when it is committed and that option's index is captured
-        # here.
-        #
-        # The allows the code to differentiate between an untouched
-        # combo box, a combox box where text has been entered but not
-        # committed, and a combo box holding a valid selection.
-        self._selected_option_index = -1
 
     def __repr__(self):
         (left, top, right, bottom) = self._region
@@ -126,6 +81,8 @@ class ComboBox(Sheet):
                                                      self._entry._text)
 
     def value(self):
+        if self._entry is None:
+            return None
         value = self._entry._text
         return value if value != ComboBox.default_text else None
 
@@ -157,103 +114,51 @@ class ComboBox(Sheet):
 
     #####                                                   EVENT HANDLING #
 
-    # if events are not handled, send them to the "textentry" and
-    # handle them there.
-
-    # events by type:
-    # GLOBAL
-    # ctrl+w, tab, shift+tab
-    #
-    # DIALOG
-    # esc
-    #
-    # TEXT ENTRY
-    # ctrl+a, home, ctrl+e, end, ctrl+f, →, ctrl+b, ←, ctrl+d, del,
-    # backspace, newline, esc
-    #
-    # LIST CONTROL
-    # esc, pgup, pgdn, ctrl+p, ↑, cltr+n, ↓
-    #
-    # OPTION BOX [NOT ACTUALLY USED, BUT FYI]
-    # return
-
-    # Note that even when the popup is on screen the text entry has
-    # the focus. This confuses the "cycle_focus" methods on the frame
-    # which expects the focus to be in the active popup, if there is
-    # an active popup...
-
-    # Perhaps need some way to feed all the events through to the
-    # control and treat all parts of the control as atomic parts when
-    # viewed outside the control for tabbing and propagation to parent
-    # behaviours. Not sure quite how to do that. Add more hacks to
-    # support it, for now.
-
-    # Should the control take over handling of all the events for its
-    # region? Probably yes it should - including deciding on where the
-    # focus is. How would this work?
-
-    # Is it enough to set the control as the parent of the dialog box?
-
-    # Perhaps the popup needs an "owner" to send events to?
-
-    # DEAL WITH BEHAVIOURS ONE BY ONE AND RATIONALISE THEM BETTER
-    # LATER.
-
-    # handle key events indicating commands in the "combobox" command
-    # table, this is automatic as long as the handle_key_event method
-    # is implemented here because it is the parent of the textentry;
-
-    # if (keyboard) events are still not handled, send them to the
-    # multivalue dialog and handle them there;
-
-    # if they still are not handled, pass them on to the parent sheet
-    # for handling;
-
     def handle_key_event(self, kevent):
-        logger.debug("----combobox handling key event %s with widget focus %s",
-                     kevent,
-                     self._widget_focus)
-        # pass event to the _widget_focus if there is one
-        prev_text = self._entry._text
-        if self._widget_focus is not None:
-            if self._widget_focus != self._entry:
-                result = self._widget_focus.handle_key_event(kevent)
+
+        # FIXME: if the combobox value is not the default value when
+        # the list is constructed and shown due to the control gaining
+        # focus then the list contents should be restricted to those
+        # that match the combobox value. Add a "More..." note to the
+        # drop down when it is filtered... also shrink the dropdown
+        # when there are few entries to display...
+
+        ignored_combobox_keys = []
+        if self._widget_focus is not None \
+           and self._widget_focus == self._option_list:
+            ignored_combobox_keys = [Screen.ctrl("j"),
+                                     Screen.ctrl("n"),
+                                     Screen.KEY_DOWN]
+
+        if kevent.key_code not in ignored_combobox_keys:
+            command = find_command(kevent, command_table="combobox")
+            if command is not None:
+                result = command.apply(self)
                 if result:
                     return True
-            else:
-                # widget focus is the text entry; use the updated
-                # value to filter the list of options
-                result = self._widget_focus.handle_key_event(kevent)
-                if result:
-                    if self._has_open_popup:
-                        text = self._entry._text
-                        if text != prev_text:
-                            text = text.upper()
-                            update_elts = [elt for elt in self._options \
-                                           if text in elt.upper()]
-                            self._option_list.update_elts(update_elts)
-                    # fixme: is this invalidation necessary?
-                    self._entry.invalidate()
-                    return True
-        # Try to handle the event ourselves
-        command = find_command(kevent, command_table="combobox")
-        if command is not None:
-            result = command.apply(self)
+
+        if self._widget_focus == self._entry:
+            if not self._has_open_popup:
+                self.show_popup_box()
+            # deal with text entry events
+            prev_text = self._entry._text
+            result = self._entry.handle_key_event(kevent)
             if result:
-                return True
-        # Always send otherwise unhandled key events to the text entry
-        result = self._entry.handle_key_event(kevent)
-        if result:
-            if self._has_open_popup:
                 text = self._entry._text
                 if text != prev_text:
-                    text = text.upper()
-                    update_elts = [elt for elt in self._options \
-                                   if text in elt.upper()]
-                    self._option_list.update_elts(update_elts)
-            # fixme: is this invalidation necessary?
-            self._entry.invalidate()
-            return True
+                    if self._has_open_popup:
+                        text = text.upper()
+                        update_elts = [elt for elt in self._options \
+                                       if text in elt.upper()]
+                        self._option_list.update_elts(update_elts)
+                # fixme: is this invalidation necessary?
+                self._entry.invalidate()
+                return True
+
+        # send to list control to deal with navigation and value changes
+        if self._option_list is not None and self._option_list.is_attached():
+            return self._option_list.handle_key_event(kevent)
+
         return False
 
     def handle_event(self, mevent):
@@ -271,6 +176,7 @@ class ComboBox(Sheet):
     def _on_menubox_detached_callback(self, arg):
         # self=ComboBox; arg=Dialog
         self._has_open_popup = False
+        self._widget_focus = self._entry
 
     def open_popup(self):
         self._has_open_popup = True
@@ -280,9 +186,8 @@ class ComboBox(Sheet):
         self._option_list.frame().dialog_quit()
 
     def option_select_callback(self, from_value=None, to_value=None):
-        self._entry.reset()
-        self._entry._text = to_value
-        self.owner().set_focus(self)
+        logger.debug("     setting entry value to %s", to_value)
+        self._entry.set_value(to_value)
 
     #####                                                   FOCUS HANDLING #
 
@@ -302,9 +207,7 @@ class ComboBox(Sheet):
 
     # "control" protocol
     def is_widget_focus(self, widget):
-        # all children of the combobox should appear like they have
-        # the focus if the combobox is the frame focus.
-        return self.is_focus()
+        return self.is_focus() and widget == self._widget_focus
 
     def find_focus_candidate(self):
         # Do not descend into children; we know the control accepts
@@ -350,6 +253,26 @@ class ComboBox(Sheet):
             return self._option_list.control_focus_first_child()
         else:
             return False
+
+    def move_to_entry(self):
+        # fixme: this works but the visual cues as to what has focus
+        # inside the control are not clear.
+        logger.debug("___ move to entry entered")
+
+        if self._has_open_popup and self._option_list.is_attached():
+            first_child = None
+            for child in self._option_list._listbox._children:
+                if child.accepts_focus():
+                    first_child = child
+                    break
+
+            logger.debug("___ first child of %s is %s", self._option_list, first_child)
+
+            if first_child is not None:
+                if self._option_list._widget_focus == first_child:
+                    self._widget_focus = self._entry
+                    return True
+        return False
 
     def commit(self):
         if self._has_open_popup:

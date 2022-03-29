@@ -76,7 +76,11 @@ class ListControl(Sheet, ValueMixin):
         return self._widget_focus == widget
 
     def __repr__(self):
-        return "ListControl({} entries)".format(len(self._listbox._children))
+        num_children = len(self._listbox._children)
+        if self._value is not None:
+            return "ListControl(value='{}', {} entries)".format(self._value, num_children)
+        else:
+            return "ListControl({} entries)".format(num_children)
 
     def _fab_listbox_children(self, options):
         for opt in options:
@@ -92,7 +96,10 @@ class ListControl(Sheet, ValueMixin):
             label.on_activate = self._handle_child_activation
 
     def _handle_child_activation(self, child):
+        logger.debug("   _handle_child_activation entered for child %s with value %s of control %s",
+                     child, child.value(), self)
         self.set_value(child.value())
+        logger.debug("   value of %s updated to %s", self, child.value())
 
     def update_elts(self, updated_elts):
         """Modify list elements.
@@ -154,9 +161,14 @@ class ListControl(Sheet, ValueMixin):
         return result
 
     def handle_key_event(self, event):
+
+        logger.debug("   handle_key_event entered for event %s", event)
+
         # If there's a widget higher in the z-order that can handle
         # the event let it do so.
         # It is only controls that have a widget focus.
+        # FIXME: this is now the wrong way around - should be control
+        # then focus
         if self._widget_focus is not None:
             result = self._widget_focus.handle_key_event(event)
             if result:
@@ -256,9 +268,8 @@ class ListControl(Sheet, ValueMixin):
         #             + listbox
         #                 + items
         child_to_viewport_transform = child.delta_transform(self._viewport)
-        (child_left, child_top, _, _) = child._region
-        position = child_to_viewport_transform.apply((child_left, child_top))
-        in_view = self._viewport.region_contains_position(position)
+        region = child_to_viewport_transform.transform_region(child._region)
+        in_view = self._viewport.region_intersects_region(region)
         logger.debug(f"***** IN_VIEW={in_view}")
         return not in_view
 
@@ -295,11 +306,11 @@ class ListControl(Sheet, ValueMixin):
             if found:
                 if child.accepts_focus():
                     self.set_focus(child)
-                    # fixme: maybe do this in a "note" method?
-                    if self.child_out_of_view(child):
-                        self.scroll_into_view(child)
-                        self._vbar.invalidate()
-                    return True
+                # fixme: maybe do this in a "note" method?
+                if self.child_out_of_view(child):
+                    self.scroll_into_view(child)
+                    self._vbar.invalidate()
+                return True
             if child == selected:
                 found = True
         return False
@@ -330,11 +341,11 @@ class ListControl(Sheet, ValueMixin):
             if found:
                 if child.accepts_focus():
                     self.set_focus(child)
-                    # fixme: maybe do this in a "note" method?
-                    if self.child_out_of_view(child):
-                        self.scroll_into_view(child)
-                        self._vbar.invalidate()
-                    return True
+                # fixme: maybe do this in a "note" method?
+                if self.child_out_of_view(child):
+                    self.scroll_into_view(child)
+                    self._vbar.invalidate()
+                return True
             if child == selected:
                 found = True
         return False

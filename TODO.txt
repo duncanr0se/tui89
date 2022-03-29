@@ -28,7 +28,7 @@ Widgets:
    - horizontal separator (✔)
    - vertical separator (✔)
    - option box (✔)
-   - combo box
+   - combo box (✔)
    - padding/null pane
    - progress bar
    - status bar
@@ -79,6 +79,20 @@ don't clip their contents so when space for widgets is below those
 widgets minimum space requirement they overflow the container
 boundaries - need drawing contexts that perform clipping.
 
+Not sure exactly the steps to reproduce but there are circumstances
+after the popup displayed by the option box is closed where it retains
+the focus and key events then cause errors because the sheets in the
+popup are detached.
+Same issue happens in the combobox, I think.
+
+If navigate to option box and hit 'space' to open the popup, then hit
+'space' again without navigating onto the popup already, get an error
+saying can't have multiple popups.
+
+After opening and closing a dialog (such as in basic.py File -> any)
+the frame ends up with no focus. Probably the focus should remain on
+the menu button.
+
 Widgets (and dialogs) should have a "value" that can be queried -
 introduce a bunch of mixin types, "ValueMixin", "FocusMixin",
 "LayoutMixin", "MultipleChildMixin", "SingleChildMixin",
@@ -114,12 +128,6 @@ main frame keeps the focus reference when other frames are created).
 
 Combobox should skrink dialog window when items are filtered out of
 the list.
-
-Navigating into the combobox or selecting one of the items in the
-combo listcontrol is not reflected in the visual representation of the
-combobox.
-
-Combobox list navigation is not working currently.
 
 Dialogs are only pseudo-modal; can't interact with other components
 whilst popup is up but they are still receiving events and
@@ -193,7 +201,9 @@ drawn at the scroll origin, not taking into account the current
 offset.
 
 If list control contains decorated buttons the button just being
-scrolled out of view at the top is not rendering properly.
+scrolled out of view at the top is not rendering properly. THIS MIGHT
+BE FIXED NOW THE VIEWPORT USES REGION INTERSECTION TO DECIDE IF CHILD
+IS VISIBLE INSTEAD OF TL POINT.
 
 Slug + offset calculations mean that the slug is drawn up against
 scrollbar buttons when there is still movement range. Clicking
@@ -206,22 +216,10 @@ offset=max for extreme ends of scroll range?
 Not clear how to return values from dialogs or popups. For now expect
 to do this via some callback.
 
-list control in multivalue dialog that is component of combo box event
-handling needs sorting; selecting value in list should update combo
-value and close list, typing into combo box should filter list and
-extend list if "return" hit; ESC in list control moves to next focus
-by default but doesn't seem to be a way to close the dialog "popup"!
-
-Note that default event handling is going to be complicated because
-the combo box popup is not a child of the combo box.
-
 Should the multivalue dialog popup but then not steal focus? It makes
 it difficult to use it as a component of some control... might be good
 to have a popup type where the events are all still sent to the
 original top-level. Think about how this should work.
-
-Optionbox should be a control and manage the menu popup accordingly -
-or should it? Maybe not.
 
 What's the key event handling story for dialogs / menu boxes? If they
 are owned, should probably be the same as for other widgets. Otherwise

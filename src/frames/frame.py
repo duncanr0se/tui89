@@ -590,9 +590,13 @@ class Frame():
 
     def _get_focus_top_level(self):
         focus_top_level = self._top_level_sheet
-        if self._dialog is not None:
+
+        # if the popup is owned its owner is responsible for
+        # distributing events to it
+
+        if self._dialog is not None and self._dialog.owner() is self:
             focus_top_level = self._dialog
-        if self._menu is not None:
+        if self._menu is not None and self._menu.owner() is self:
             focus_top_level = self._menu
         return focus_top_level
 
