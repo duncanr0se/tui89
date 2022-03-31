@@ -29,8 +29,7 @@ class TopLevelSheet(Sheet):
         self._frame = None
 
     def __repr__(self):
-        (left, top, right, bottom) = self._region
-        return "TopLevelSheet({}x{})".format(right-left, bottom-top)
+        return "TopLevelSheet({}x{})".format(self.width(), self.height())
 
     def pen(self, role="undefined", state="default", pen="pen"):
         if role == "undefined":
@@ -51,7 +50,7 @@ class TopLevelSheet(Sheet):
     def clear(self, region_ltrb, pen):
         # top level transform = top level -> "screen"
         transformed_region = self._transform.transform_region(region_ltrb)
-        (l, t, r, b) = transformed_region
+        (l, t, r, b) = transformed_region.ltrb()
         # Python range() does not include the upper bound
         for line in range(t, b):
             self._frame._screen.move(l, line)
@@ -109,7 +108,6 @@ class TopLevelSheet(Sheet):
     # Pretty sure the below is wrong! How to constrain children to fit
     # in available space (or to overflow)?
     def allocate_space(self, allocation):
-        (left, top, right, bottom) = allocation
         self._region = allocation
         for child in self._children:
             # child of top level sheet MAY NOT have a transform

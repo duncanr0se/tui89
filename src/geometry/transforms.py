@@ -14,10 +14,10 @@
 # limitations under the License.
 #
 
+from geometry.regions import Region
+
 class Transform:
     """Transform coordinates by a translation."""
-    _dx = 0
-    _dy = 0
 
     def __init__(self, dx, dy):
         self._dx = dx
@@ -40,10 +40,10 @@ class Transform:
         return self.apply(point)
 
     def transform_region(self, region):
-        (l, t, r, b) = region
+        (l, t, r, b) = region.ltrb()
         (l, t) = self.apply((l, t))
         (r, b) = self.apply((r, b))
-        return (l, t, r, b)
+        return Region(l, t, r, b)
 
 # no-op transform
 IDENTITY_TRANSFORM = Transform(0, 0)

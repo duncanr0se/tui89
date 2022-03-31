@@ -16,8 +16,8 @@
 
 from asciimatics.event import MouseEvent
 
-from geometry.transforms import Transform
-from geometry.transforms import IDENTITY_TRANSFORM
+from geometry.transforms import Transform, IDENTITY_TRANSFORM
+from geometry.regions import Region
 
 from sheets.spacereq import FILL, SpaceReq
 from dcs.ink import Pen
@@ -69,8 +69,7 @@ class Sheet():
         if self._region is None:
             return "Sheet(=unallocated= {})".format(type(self))
         else:
-            (left, top, right, bottom) = self._region
-            return "Sheet({}x{})".format(right-left, bottom-top)
+            return "Sheet({}x{})".format(self.width(), self.height())
 
     def owner(self):
         return self.frame() if self._owner is None else self._owner
@@ -200,7 +199,7 @@ class Sheet():
         # If this sheet's region does not contain the transformed
         # coord then none of the child sheets will contain it, by
         # definition. Return false.
-        if self.region_contains_position(coord):
+        if self._region.region_contains_position(coord):
             logger.debug("%s found sheet containing position %s %s",
                          log_indent, coord, self)
             # If this sheet has children, recurse through them from last
@@ -221,21 +220,6 @@ class Sheet():
                      log_indent, self, coord)
         return None
 
-    def region_contains_position(self, coord):
-        # coord is in the sheet's coordinate system
-        (left, top, right, bottom) = self._region
-        (cx, cy) = coord
-        # yes if its on the left or top boundary, no if it's on the
-        # right or bottom boundary.
-        return left <= cx < right and top <= cy < bottom
-
-    def region_intersects_region(self, region):
-        # FIXME: move to geometry
-        (l1, t1, r1, b1) = self._region
-        (l2, t2, r2, b2) = region
-        return (l1 <= l2 < r1 or l1 < r2 <= r1) \
-            and (t1 <= t2 < b1 or t1 < b2 <= b1)
-
     def get_screen_transform(self):
         # navigate parents until get to top level sheet composing
         # transforms all the way up
@@ -255,8 +239,9 @@ class Sheet():
 
         Coordinates are in the coordinate system of the sheet.
         """
-        # Force error if allocation is not an LTRB
-        (left, top, right, bottom) = allocation
+        if not isinstance(allocation, Region):
+            raise TypeError("sheet allocation must be a Region, was", allocation)
+
         self._region = allocation
         for child in self._children:
             child.allocate_space(allocation)
@@ -304,15 +289,13 @@ class Sheet():
     def width(self):
         if not self._region:
             raise RuntimeError(f"Width of sheet {self} queried before region set")
-        (left, _, right, _) = self._region
-        return right-left
+        return self._region.region_width()
 
     # layout
     def height(self):
         if not self._region:
             raise RuntimeError(f"Height of sheet {self} queried before region set")
-        (_, top, _, bottom) = self._region
-        return bottom-top
+        return self._region.region_height()
 
     # events
     def find_focus_candidate(self):

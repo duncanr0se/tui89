@@ -21,6 +21,7 @@ from sheets.separators import Separator
 from sheets.buttons import Button
 from frames.frame import Frame
 from frames.commands import find_command
+from geometry.regions import Region
 
 from logging import getLogger
 
@@ -31,8 +32,7 @@ logger = getLogger(__name__)
 class MenubarLayout(Sheet):
 
     def __repr__(self):
-        (l, t, r, b) = self._region
-        (w, h) = (r-l, b-t)
+        (w, h) = (self._region.region_width(), self._region.region_height())
         tx = self._transform._dx
         ty = self._transform._dy
         return f"Menubar({w}x{h}@{tx},{ty})"
@@ -51,7 +51,7 @@ class MenubarLayout(Sheet):
         # choose to do so if they need to but most will fill their
         # region anyway and they can rely on empty space being the
         # default background colour.
-        (left, top, right, bottom) = self._region
+        (left, top, right, _) = self._region.ltrb()
         self.clear(self._region)
         logger.info("render on menubar %s", self)
         self.move((left, top))
@@ -63,7 +63,7 @@ class MenubarLayout(Sheet):
     def allocate_space(self, allocation):
         # height = 1
         # width = sum of all widths
-        (left, top, right, bottom) = allocation
+        (left, top, right, bottom) = allocation.ltrb()
         # make scrollbar as wide as its parent allows
         self._region = allocation
 
@@ -75,7 +75,7 @@ class MenubarLayout(Sheet):
             sr = child.compose_space()
             cw = sr.x_preferred()
             # fixme: take the minimum of the button?
-            child.allocate_space((left, top, left+cw, bottom))
+            child.allocate_space(Region(left, top, left+cw, bottom))
 
     def compose_space(self):
         return SpaceReq(1, FILL, FILL, 1, 1, 1)

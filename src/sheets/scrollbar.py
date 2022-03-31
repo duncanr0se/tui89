@@ -84,8 +84,7 @@ class Scrollbar(Sheet):
     def _draw_trough(self):
         trough = u'░'
         pen = self.pen()
-        (l, t, r, b) = self._region
-        (rw, rh) = (r-l, b-t)
+        (rw, rh) = (self._region.region_width(), self._region.region_height())
         size = rw if self._orientation == "horizontal" else rh
         if self._orientation == "horizontal":
             self.move((1, 0))
@@ -100,8 +99,7 @@ class Scrollbar(Sheet):
         terminal_arrow = arrow_right if self._orientation == "horizontal" else arrow_down
         pen = self.pen()
         button_click_pen = self.pen("button", "transient", "pen")
-        (l, t, r, b) = self._region
-        (rw, rh) = (r-l, b-t)
+        (rw, rh) = (self._region.region_width(), self._region.region_height())
         size = rw if self._orientation == "horizontal" else rh
         if self._orientation == "horizontal":
             # "terminal" = right button (horiz bar) or bottom button
@@ -229,8 +227,7 @@ class Scrollbar(Sheet):
         logger.debug("slug_ratio = %s, slug_size = %s", slug_ratio, self._slug_size)
 
     def _trough_size(self):
-        (l, t, r, b) = self._region
-        (w, h) = (r-l, b-t)
+        (w, h) = (self._region.region_width(), self._region.region_height())
         return w-2 if self._orientation == "horizontal" else h-2
 
     def update_scroll_offset(self, scrolled_sheet):

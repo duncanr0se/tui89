@@ -16,9 +16,8 @@
 
 from asciimatics.event import MouseEvent
 
-from geometry.transforms import Transform
-from geometry.transforms import IDENTITY_TRANSFORM
-
+from geometry.transforms import Transform, IDENTITY_TRANSFORM
+from geometry.regions import Region
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 from dcs.ink import Pen
@@ -48,9 +47,8 @@ class OptionBox(Sheet):
     def __init__(self,
                  options=None):
         super().__init__()
-        if options is None:
-            options = []
-        self._options = options
+
+        self._options = [] if options is None else options
         self._children = []
         self._label = Label(OptionBox.default_text, align="center")
         self.add_child(self._label)
@@ -61,10 +59,10 @@ class OptionBox(Sheet):
         self._pressed = False
 
     def __repr__(self):
-        (left, top, right, bottom) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "OptionBox({}x{}@{},{}: '{}')".format(right-left, bottom-top,
+        return "OptionBox({}x{}@{},{}: '{}')".format(self._region.region_width(),
+                                                     self._region.region_height(),
                                                      tx, ty,
                                                      self._label._label_text)
 
@@ -78,7 +76,7 @@ class OptionBox(Sheet):
 
     def layout(self):
         self._label.move_to((0, 0))
-        (left, _, right, _) = self._region
+        (left, _, right, _) = self._region.ltrb()
         w = right-left
         self._drop_label.move_to((w-3, 0))
 
@@ -179,10 +177,10 @@ class OptionBox(Sheet):
         self._draw_button()
 
     def _draw_background(self, pen):
-        (l, t, r, b) = self._region
+        (l, t, r, b) = self._region.ltrb()
         # don't clear the space that will be used by the dropshadow of
         # the popup
-        self.clear((l, t, r-1, b), pen)
+        self.clear(Region(l, t, r-1, b), pen)
 
     def _draw_label(self):
         self._label.render()
@@ -191,12 +189,12 @@ class OptionBox(Sheet):
         self._drop_label.render()
 
     def allocate_space(self, region):
-        (l, t, r, b) = region
+        (l, t, r, b) = region.ltrb()
         self._region = region
         # give last 1 char of width to the drop shadow, the next 2
         # chars of width to the "|v| button" and the rest to the label
-        self._label.allocate_space((l, t, r-3, b))
-        self._drop_label.allocate_space((l, t, l+2, t+1))
+        self._label.allocate_space(Region(l, t, r-3, b))
+        self._drop_label.allocate_space(Region(l, t, l+2, t+1))
 
     def compose_space(self):
         label_sr = self._label.compose_space()

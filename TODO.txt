@@ -73,6 +73,14 @@ widgets that could be useful.
 
 USABILITY
 =========
+Support specifying accelerators for commands and displaying those
+somewhere.
+
+No longer possible to navigate in multivalue dialog.
+
+Also if open a dialog it retains the focus after it is closed but
+retains the focus so the next key event generates a "not attached"
+error.
 
 Border widgets (pretty much all widgets except viewports actually)
 don't clip their contents so when space for widgets is below those
@@ -201,9 +209,7 @@ drawn at the scroll origin, not taking into account the current
 offset.
 
 If list control contains decorated buttons the button just being
-scrolled out of view at the top is not rendering properly. THIS MIGHT
-BE FIXED NOW THE VIEWPORT USES REGION INTERSECTION TO DECIDE IF CHILD
-IS VISIBLE INSTEAD OF TL POINT.
+scrolled out of view at the top is not rendering properly.
 
 Slug + offset calculations mean that the slug is drawn up against
 scrollbar buttons when there is still movement range. Clicking

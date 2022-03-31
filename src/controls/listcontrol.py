@@ -61,6 +61,7 @@ class ListControl(Sheet, ValueMixin):
 
     # fixme: this focus handling is still terrible. Think about it
     # more.
+    # fixme: this should be "set_widget_focus" maybe?
     def set_focus(self, focus):
         logger.debug("---> %s setting widget focus to %s", self, focus)
         if self._widget_focus is not None:
@@ -87,8 +88,10 @@ class ListControl(Sheet, ValueMixin):
             # fixme: there's no reason these items should be
             # restricted to just being strings wrapped in new
             # labels... make also work with arbitrary widgets
+
             label = ValueLabel(label_text=opt, owner=self)
             self._listbox.add_child(label)
+
             # self._listbox.add_child(Button(label=opt, decorated=False))
             # self._listbox.add_child(Button(label=opt))
             #
@@ -130,7 +133,6 @@ class ListControl(Sheet, ValueMixin):
         return super().pen(role, state, pen)
 
     def allocate_space(self, allocation):
-        (l, t, r, b) = allocation
         self._region = allocation
         for child in self._children:
             child.allocate_space(allocation)
@@ -269,7 +271,7 @@ class ListControl(Sheet, ValueMixin):
         #                 + items
         child_to_viewport_transform = child.delta_transform(self._viewport)
         region = child_to_viewport_transform.transform_region(child._region)
-        in_view = self._viewport.region_intersects_region(region)
+        in_view = self._viewport._region.region_intersects_region(region)
         logger.debug(f"***** IN_VIEW={in_view}")
         return not in_view
 

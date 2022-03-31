@@ -16,6 +16,7 @@
 
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
+from geometry.regions import Region
 
 import math
 from logging import getLogger
@@ -59,7 +60,6 @@ class BoxLayout(Sheet):
     # percentages have been set.
 
     # FIXME: if anything needs unit tests, it's probably the above!
-    #_portions = None
 
     def __init__(self, portions, owner=None):
         super().__init__(owner=owner)
@@ -87,7 +87,6 @@ class BoxLayout(Sheet):
         #
         # What the hell, let's just be really inefficient first. Fix it
         # up to be more efficient later...
-        (left, top, right, bottom) = allocation
         self._region = allocation
 
         totalSpaceAllocated = 0
@@ -191,11 +190,12 @@ class HorizontalLayout(BoxLayout):
         if not self._attached or self._region is None:
             return "HorizontalLayout(detached: {} cols)".format(len(self._portions))
         else:
-            (left, top, right, bottom) = self._region
             tx = self._transform._dx
             ty = self._transform._dy
             return "HorizontalLayout({}x{}@{},{}: {} cols)".format(
-                right-left, bottom-top, tx, ty, len(self._portions))
+                self._region.region_width(),
+                self._region.region_height(),
+                tx, ty, len(self._portions))
 
     def compose_space(self):
         min_height = 1
@@ -213,15 +213,13 @@ class HorizontalLayout(BoxLayout):
         return SpaceReq(min_width, preferred_width, FILL, min_height, preferred_height, FILL)
 
     def _major_region_component(self, allocation):
-        (left, _, right, _) = allocation
-        return right-left
+        return allocation.region_width()
 
     def _minor_region_component(self, allocation):
-        (_, top, _, bottom) = allocation
-        return bottom-top
+        return allocation.region_height()
 
     def _make_region(self, left, top, major, minor):
-        return (left, top, left+major, top+minor)
+        return Region(left, top, left+major, top+minor)
 
     def major_size_component(self, sheet):
         return sheet.width()
@@ -243,11 +241,11 @@ class VerticalLayout(BoxLayout):
         if not self._attached or self._region is None:
             return "VerticalLayout(detached: {} cols)".format(len(self._portions))
         else:
-            (left, top, right, bottom) = self._region
             tx = self._transform._dx
             ty = self._transform._dy
             return "VerticalLayout({}x{}@{},{}: {} rows)".format(
-                right-left, bottom-top, tx, ty, len(self._portions))
+                self._region.region_width(),
+                self._region.region_height(), tx, ty, len(self._portions))
 
     def compose_space(self):
         min_height = 1
@@ -265,15 +263,13 @@ class VerticalLayout(BoxLayout):
         return SpaceReq(min_width, preferred_width, FILL, min_height, preferred_height, FILL)
 
     def _major_region_component(self, allocation):
-        (_, top, _, bottom) = allocation
-        return bottom-top
+        return allocation.region_height()
 
     def _minor_region_component(self, allocation):
-        (left, _, right, _) = allocation
-        return right-left
+        return allocation.region_width()
 
     def _make_region(self, left, top, major, minor):
-        return (left, top, left+minor, top+major)
+        return Region(left, top, left+minor, top+major)
 
     def major_size_component(self, sheet):
         return sheet.height()

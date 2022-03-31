@@ -19,7 +19,7 @@ from asciimatics.screen import Screen
 from sheets.sheet import Sheet
 
 from sheets.spacereq import SpaceReq, FILL, combine_spacereqs
-
+from geometry.regions import Region
 from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
 from sheets.boxlayout import VerticalLayout, HorizontalLayout
@@ -97,8 +97,7 @@ class Dialog(TopLevelSheet):
         self._wrapper.add_child(self._make_button_pane())
 
     def __repr__(self):
-        (left, top, right, bottom) = self._region
-        (width, height) = (right-left, bottom-top)
+        (width, height) = (self._region.region_width(), self._region.region_height())
         tx = self._transform._dx
         ty = self._transform._dy
         return "Dialog({}x{}@{},{}: '{}')".format(width, height, tx, ty, self._title)
@@ -197,9 +196,9 @@ class Dialog(TopLevelSheet):
     # makes space for a drop shadow.  Could just use the one from the
     # parent if "border width" could be specified...
     def allocate_space(self, allocation):
-        (left, top, right, bottom) = allocation
+        (left, top, _, _) = allocation.ltrb()
         self._region = allocation
-        (width, height) = (right-left, bottom-top)
+        (width, height) = (allocation.region_width(), allocation.region_height())
         # border layout fills whole dialog apart from space needed by
         # drop shadow
         if self._drop_shadow:
@@ -212,7 +211,7 @@ class Dialog(TopLevelSheet):
         # give all the space to the child without allocating more than the child's maximum.
         border_width = min(border_width, border_request.x_max())
         border_height = min(border_height, border_request.y_max())
-        border_layout.allocate_space((left, top, left+border_width, top+border_height))
+        border_layout.allocate_space(Region(left, top, left+border_width, top+border_height))
 
     def pen(self, role="undefined", state="info", pen="pen"):
         if role == "undefined":
@@ -230,11 +229,11 @@ class Dialog(TopLevelSheet):
 
         # region includes space for the border, don't clear where the
         # border will go if the dialog has a border.
-        (l, t, r, b) = self._region
+        (l, t, r, b) = self._region.ltrb()
         if self._drop_shadow:
             r -= 1
             b -= 1
-        self.clear((l, t, r, b), self.pen())
+        self.clear(Region(l, t, r, b), self.pen())
 
         for child in self._children:
             child.render()
@@ -258,7 +257,7 @@ class Dialog(TopLevelSheet):
         default_pen = self.pen()
         shadow_pen = shadow_pen.merge(default_pen)
         logger.debug("merged shadow pen is %s", shadow_pen)
-        (left, top, right, bottom) = self._region
+        (left, top, right, bottom) = self._region.ltrb()
         dropshadow_right = u'█'
         dropshadow_below = u'█'
         self.move((right-1, 1))
@@ -354,22 +353,22 @@ class MultivalueDialog(Dialog):
         return spacereq
 
     def allocate_space(self, allocation):
-        (left, top, right, bottom) = allocation
+        (left, top, right, bottom) = allocation.ltrb()
         self._region = allocation
         # allocate all space to the single child
         for child in self._children:
             if self._drop_shadow:
-                allocation = (left, top, right-1, bottom-1)
+                allocation = Region(left, top, right-1, bottom-1)
             child.allocate_space(allocation)
 
     def render(self):
         # region includes space for the border, don't clear where the
         # border will go if the dialog has a border.
-        (l, t, r, b) = self._region
+        (l, t, r, b) = self._region.ltrb()
         if self._drop_shadow:
             r -= 1
             b -= 1
-        self.clear((l, t, r, b), self.pen())
+        self.clear(Region(l, t, r, b), self.pen())
 
         for child in self._children:
             child.render()

@@ -25,6 +25,7 @@ from asciimatics.exceptions import ResizeScreenError
 
 from sheets.sheet import Sheet
 from dcs.ink import Pen
+from geometry.regions import Region
 from frames.commands import find_command
 
 from logging import getLogger
@@ -450,7 +451,8 @@ class Frame():
             sheet.handle_event(MouseEvent(sx, sy, event.buttons))
 
     def lay_out_frame(self):
-        self._top_level_sheet.allocate_space((0, 0, self._screen.width, self._screen.height))
+        region = Region(0, 0, self._screen.width, self._screen.height)
+        self._top_level_sheet.allocate_space(region)
         self._top_level_sheet.layout()
 
     def show_dialog(self, dialog, coord=None):
@@ -482,7 +484,7 @@ class Frame():
         dwidth = min(dialog_spacereq.x_preferred(), dwidth)
         dheight = min(dialog_spacereq.y_preferred(), dheight)
 
-        dialog.allocate_space((0, 0, dwidth, dheight))
+        dialog.allocate_space(Region(0, 0, dwidth, dheight))
         if coord is None:
             dx = (self._screen.width - dwidth) // 2
             dy = (self._screen.height - dheight) // 2
@@ -534,7 +536,7 @@ class Frame():
         dwidth = min(menu_spacereq.x_preferred(), dwidth)
         dheight = min(menu_spacereq.y_preferred(), dheight)
 
-        menu.allocate_space((0, 0, dwidth, dheight))
+        menu.allocate_space(Region(0, 0, dwidth, dheight))
 
         menu.move_to(coord)
         menu.layout()

@@ -15,7 +15,7 @@
 #
 
 from sheets.sheet import Sheet
-
+from geometry.regions import Region
 from sheets.spacereq import FILL, SpaceReq
 
 from logging import getLogger
@@ -31,7 +31,7 @@ class ListLayout(Sheet):
         super().__init__(owner=owner)
 
     def __repr__(self):
-        (l, t, r, b) = self._region
+        (l, t, r, b) = self._region.ltrb()
         return f"ListLayout({r-l}x{b-t}: {len(self._children)} entries)"
 
     def layout(self):
@@ -62,7 +62,7 @@ class ListLayout(Sheet):
             child.render()
 
     def allocate_space(self, allocation):
-        (l, t, r, b) = allocation
+        (l, t, r, b) = allocation.ltrb()
         self._region = allocation
 
         # meta indexes
@@ -84,7 +84,7 @@ class ListLayout(Sheet):
             # remembering them for later
             ch = sr.y_preferred() if sr.y_preferred() < FILL else sr.y_min()
             if sr.y_min() == sr.y_preferred():
-                child.allocate_space((l, t, r, t+ch))
+                child.allocate_space(Region(l, t, r, t+ch))
                 allocated_space += ch
             else:
                 child_meta.append([child, sr, ch])
@@ -96,7 +96,7 @@ class ListLayout(Sheet):
             if total_child_size <= self.height():
                 # there's room for all; just allocate requested sizes
                 for child in child_meta:
-                    child[WIDGET].allocate_space((l, t, r, t+child[HEIGHT]))
+                    child[WIDGET].allocate_space(Region(l, t, r, t+child[HEIGHT]))
                 return
 
         # work out how much to take off remaining resizable items
@@ -110,7 +110,7 @@ class ListLayout(Sheet):
             # without going below its minimum
             widget_height = max(space_per_item, child[SPACEREQ].y_min())
             logger.info("----> widget_height=%s", widget_height)
-            child[WIDGET].allocate_space((l, t, r, t+widget_height))
+            child[WIDGET].allocate_space(Region(l, t, r, t+widget_height))
             allocated_space += widget_height
 
 

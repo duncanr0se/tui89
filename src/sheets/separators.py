@@ -25,13 +25,19 @@ from dcs.ink import Pen
 
 class Separator(Sheet):
 
+    _validstyles = ["double", "single", "spacing"]
+
     def __init__(self, style="single", size=None):
         super().__init__()
-        validstyles = ["double", "single", "spacing"]
-        if style not in validstyles:
-            raise RuntimeError(f"style {style} not in {validstyles}")
+
+        self._validate_style(style)
+
         self._style = style
         self._size = size
+
+    def _validate_style(self, style):
+        if style not in Separator._validstyles:
+            raise RuntimeError(f"style {style} not in {validstyles}")
 
     def add_child(self):
         raise RuntimeError("children not allowed")
@@ -54,13 +60,12 @@ class HorizontalSeparator(Separator):
     }
 
     def __repr__(self):
-        (left, _, right, _) = self._region
-        return "HorizontalSeparator({})".format(right-left)
+        return "HorizontalSeparator({})".format(self._region.region_width())
 
     # drawing / redisplay
     def render(self):
         pen = self.pen()
-        (l, t, r, b) = self._region
+        (l, t, r, b) = self._region.ltrb()
         (w, h) = (r-l, b-t)
         self.clear(self._region)
         y = self.center(h-1)
@@ -82,13 +87,12 @@ class VerticalSeparator(Separator):
     }
 
     def __repr__(self):
-        (_, top, _, bottom) = self._region
-        return "VerticalSeparator({})".format(bottom-top)
+        return "VerticalSeparator({})".format(self._region.region_height())
 
     # drawing / redisplay
     def render(self):
         pen = self.pen()
-        (l, t, r, b) = self._region
+        (l, t, r, b) = self._region.ltrb()
         (w, h) = (r-l, b-t)
         self.clear(self._region)
         x = self.center(w-1)
@@ -97,7 +101,5 @@ class VerticalSeparator(Separator):
 
     # layout
     def compose_space(self):
-        # Prefer enough room for the label. Can take as much room as offered.
-        # Can shrink to 0 although that's probably not useful...
         length = FILL if self._size is None else self._size
         return SpaceReq(1, 1, FILL, 1, length, FILL)

@@ -20,12 +20,7 @@ from sheets.sheet import Sheet
 
 from sheets.spacereq import SpaceReq, FILL
 
-from sheets.toplevel import TopLevelSheet
-from sheets.borderlayout import BorderLayout
-from sheets.boxlayout import VerticalLayout, HorizontalLayout
-from sheets.buttons import Button
 from frames.frame import Frame
-from sheets.separators import HorizontalSeparator
 
 from dcs.ink import Pen
 
@@ -52,10 +47,10 @@ class TextEntry(Sheet, ValueMixin):
         self._value = None
 
     def __repr__(self):
-        (left, _, right, _) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "TextEntry({}@{},{}: '{}')".format(right-left, tx, ty, self._text)
+        return "TextEntry({}@{},{}: '{}')".format(self._region.region_width(),
+                                                  tx, ty, self._text)
 
     def reset(self):
         self._text = ""

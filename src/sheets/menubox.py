@@ -21,7 +21,7 @@ from sheets.listlayout import ListLayout
 from sheets.toplevel import TopLevelSheet
 from sheets.separators import Separator
 from sheets.buttons import Button
-
+from geometry.regions import Region
 from frames.commands import find_command
 
 from asciimatics.screen import Screen
@@ -62,8 +62,8 @@ class MenuBox(TopLevelSheet):
         if not self._region:
             raise RuntimeError("render invoked before space allocation")
         # don't clear the edges where the dropshadow will be drawn
-        (l, t, r, b) = self._region
-        self.clear((l, t, r-1, b-1), self.pen())
+        (l, t, r, b) = self._region.ltrb()
+        self.clear(Region(l, t, r-1, b-1), self.pen())
         for child in self._children:
             child.render()
         self._draw_dropshadow()
@@ -72,7 +72,7 @@ class MenuBox(TopLevelSheet):
         shadow_pen = self.pen(role="shadow", state="default")
         default_pen = self.pen()
         shadow_pen = shadow_pen.merge(default_pen)
-        (left, top, right, bottom) = self._region
+        (left, top, right, bottom) = self._region.ltrb()
         dropshadow_right = u'█'
         dropshadow_below = u'█'
         self.move((right-1, 1))
@@ -87,12 +87,12 @@ class MenuBox(TopLevelSheet):
     # allocate smallest space possible to fit children - probably need
     # some extra parameter to say we're trying to minimise
     def allocate_space(self, allocation):
-        (l, t, r, b) = allocation
+        (l, t, r, b) = allocation.ltrb()
         self._region = allocation
         # single child - the border layout. Save space for the
         # dropshadow.
         for child in self._children:
-            child.allocate_space((l, t, r-1, b-1))
+            child.allocate_space(Region(l, t, r-1, b-1))
 
     def compose_space(self):
         # Sheet hierarchy is:

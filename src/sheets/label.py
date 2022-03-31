@@ -61,10 +61,11 @@ class Label(Sheet):
         self._valign = valign
 
     def __repr__(self):
-        (left, top, right, bottom) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "Label({}x{}@{},{}: '{}')".format(right-left, bottom-top, tx, ty,
+        return "Label({}x{}@{},{}: '{}')".format(self._region.region_width(),
+                                                 self._region.region_height(),
+                                                 tx, ty,
                                                  self._label_text)
 
     def add_child(self):
@@ -169,10 +170,10 @@ class Label(Sheet):
 class ValueLabel(Label, ValueMixin):
     # label that accepts focus and has a value (= the label's text)
     def __repr__(self):
-        (left, top, right, bottom) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "ValueLabel({}x{}@{},{}: '{}')".format(right-left, bottom-top,
+        return "ValueLabel({}x{}@{},{}: '{}')".format(self._region.region_width(),
+                                                      self._region.region_height(),
                                                       tx, ty,
                                                       self._label_text)
 

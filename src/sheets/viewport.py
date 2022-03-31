@@ -17,6 +17,7 @@
 from sheets.sheet import Sheet
 from sheets.spacereq import FILL
 from geometry.transforms import Transform
+from geometry.regions import Region
 from sheets.dialog import alert
 
 from logging import getLogger
@@ -56,11 +57,11 @@ class Viewport(Sheet):
         if self._region is None:
             return "Viewport(=unallocated= for {})".format(self._scrolled_sheet)
         else:
-            (left, top, right, bottom) = self._region
             tx = self._transform._dx
             ty = self._transform._dy
-            return "Viewport({}x{}@{},{} for {})".format(right-left,
-                                                         bottom-top, tx, ty,
+            return "Viewport({}x{}@{},{} for {})".format(self._region.region_width(),
+                                                         self._region.region_height(),
+                                                         tx, ty,
                                                          self._scrolled_sheet)
 
     def add_child(self, child):
@@ -101,7 +102,6 @@ class Viewport(Sheet):
 
     # Give the child as much space as is available, 'cause why not?
     def allocate_space(self, allocation):
-        (l, t, r, b) = allocation
         self._region = allocation
         # the scrolled sheet has no "allocation" per se, it just accepts
         # pretty much everything.
@@ -111,9 +111,11 @@ class Viewport(Sheet):
         vert_scrolling = False if self._vertical_sb is None else True
 
         scroller_sr = self._scrolled_sheet.compose_space()
-        width = FILL if horiz_scrolling else min(scroller_sr.x_preferred(), r-l)
-        height = FILL if vert_scrolling else min(scroller_sr.y_preferred(), b-t)
-        self._scrolled_sheet.allocate_space((0, 0, width, height))
+        width = FILL if horiz_scrolling else min(scroller_sr.x_preferred(),
+                                                 allocation.region_width())
+        height = FILL if vert_scrolling else min(scroller_sr.y_preferred(),
+                                                 allocation.region_height())
+        self._scrolled_sheet.allocate_space(Region(0, 0, width, height))
 
     def layout(self):
         # single child
@@ -134,8 +136,7 @@ class Viewport(Sheet):
         # + cut off any that would be rendered after 'width'
         # coord is fixed elsewhere
         (x, y) = coord
-        (l, t, r, b) = self._region
-        (w, h) = (r-l, b-t)
+        (w, h) = (self._region.region_width(), self._region.region_height())
 
         if y < 0 or y >= h:
             return ""
@@ -149,7 +150,7 @@ class Viewport(Sheet):
 
     def _clip(self, coord):
         (x, y) = coord
-        (l, t, r, b) = self._region
+        (l, t, r, b) = self._region.ltrb()
         (w, h) = (r-l, b-t)
 
         if x >= w or y >= h:
@@ -161,8 +162,10 @@ class Viewport(Sheet):
         return (cx, cy)
 
     def _clip_region(self, region):
-        (vl, vt, vr, vb) = self._region
-        (rl, rt, rr, rb) = region
+        # FIXME: compare this intersection logic with the logic in
+        # Region and replace this with that...
+        (vl, vt, vr, vb) = self._region.ltrb()
+        (rl, rt, rr, rb) = region.ltrb()
 
         # if region does not intersect with the viewport region, the
         # resulting clipped region is empty.
@@ -173,7 +176,7 @@ class Viewport(Sheet):
         top = vt if rt < vt else rt
         right = vr if rr > vr else rr
         bottom = vb if rb > vb else rb
-        return (left, top, right, bottom)
+        return Region(left, top, right, bottom)
 
     # drawing
     def clear(self, region, pen=None):

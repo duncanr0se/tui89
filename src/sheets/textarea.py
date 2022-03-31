@@ -57,10 +57,11 @@ class TextArea(TextEntry):
         self._text_line = 0
 
     def __repr__(self):
-        (left, _, right, _) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "TextArea({}@{},{})".format(right-left, tx, ty)
+        return "TextArea({}x{}@{},{})".format(self._region.region_width(),
+                                              self._region.region_height(),
+                                              tx, ty)
 
     def compose_space(self):
         # arbitrary: assume 20xlines edit field by default

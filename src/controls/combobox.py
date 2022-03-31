@@ -17,8 +17,8 @@
 from asciimatics.event import MouseEvent
 from asciimatics.screen import Screen
 
-from geometry.transforms import Transform
-from geometry.transforms import IDENTITY_TRANSFORM
+from geometry.transforms import Transform, IDENTITY_TRANSFORM
+from geometry.regions import Region
 
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
@@ -73,12 +73,12 @@ class ComboBox(Sheet):
         self._widget_focus = None
 
     def __repr__(self):
-        (left, top, right, bottom) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "ComboBox({}x{}@{},{}: '{}')".format(right-left, bottom-top,
-                                                     tx, ty,
-                                                     self._entry._text)
+        return "ComboBox({}x{}@{},{}: '{}')".format(self._region.region_width(),
+                                                    self._region.region_height(),
+                                                    tx, ty,
+                                                    self._entry._text)
 
     def value(self):
         if self._entry is None:
@@ -94,17 +94,16 @@ class ComboBox(Sheet):
 
     def layout(self):
         self._entry.move_to((0, 0))
-        (left, _, right, _) = self._region
-        w = right-left
+        w = self._region.region_width()
         self._drop_label.move_to((w-3, 0))
 
     def allocate_space(self, region):
-        (l, t, r, b) = region
+        (l, t, r, b) = region.ltrb()
         self._region = region
         # give last char of the width to the drop shadow, the next 2
         # chars of width to the "|v| button" and the rest to the label
-        self._entry.allocate_space((l, t, r-3, b))
-        self._drop_label.allocate_space((l, t, l+2, t+1))
+        self._entry.allocate_space(Region(l, t, r-3, b))
+        self._drop_label.allocate_space(Region(l, t, l+2, t+1))
 
     def compose_space(self):
         label_sr = self._entry.compose_space()
@@ -313,9 +312,8 @@ class ComboBox(Sheet):
         # adding a child with a specific height to the dialog forces
         # the dialog to take the size of the child. FIXME: would it be
         # better to be able to force a specific size on the dialog?
-        (l, _, r, _) = self._region
         # extra -1 to account for drop shadow around the dialog
-        content = Sheet(width=r-l-1, height=5)
+        content = Sheet(width=self._region.region_width()-1, height=5)
         content.add_child(self._option_list)
         dialog = MultivalueDialog(dispose_on_click_outside=True, owner=self)
 
@@ -365,9 +363,9 @@ class ComboBox(Sheet):
         self._draw_button()
 
     def _draw_background(self, pen):
-        (l, t, r, b) = self._region
+        (l, t, r, b) = self._region.ltrb()
         # leave space for the popup drop shadow
-        self.clear((l, t, r-1, b), pen)
+        self.clear(Region(l, t, r-1, b), pen)
 
     # fixme: when the widget is selected via mouse click, for now, it
     # is given focus but when drawn the default text is not

@@ -16,7 +16,7 @@
 
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
-
+from geometry.regions import Region
 from dcs.ink import Pen
 from frames.frame import Frame
 
@@ -57,21 +57,29 @@ class BorderLayout(Sheet):
     def __init__(self,
                  title=None,
                  style="double"):
+
         super().__init__()
-        if style not in BorderLayout.supported_styles:
-            raise NotImplementedError("Border layout only supports {} style currently"
-                                      .format(supported_styles))
+
+        self._validate_style(style)
+
         self._border = style
         self._horizontal_sb = None
         self._title = title
         self._vertical_sb = None
         # todo: title align
 
+    def _validate_style(self, style):
+        if style not in BorderLayout.supported_styles:
+            raise NotImplementedError("Border layout only supports {} style currently"
+                                      .format(supported_styles))
+
     def __repr__(self):
-        (l, t, r, b) = self._region
         tx = self._transform._dx
         ty = self._transform._dy
-        return "BorderLayout({}x{}@{},{}: '{}')".format(r-l, b-t, tx, ty, self._title)
+        return "BorderLayout({}x{}@{},{}: '{}')".format(
+            self._region.region_width(),
+            self._region.region_height(),
+            tx, ty, self._title)
 
     def add_child(self, child):
         if self._children:
@@ -94,7 +102,7 @@ class BorderLayout(Sheet):
     # specialise find_highest_sheet... to cater for scroll bars.
     def find_highest_sheet_containing_position(self, parent_coord, log_indent=" "):
         coord = self._transform.inverse().apply(parent_coord)
-        if self.region_contains_position(coord):
+        if self._region.region_contains_position(coord):
             logger.debug("%s found sheet containing position %s %s",
                          log_indent, coord, self)
             if self._vertical_sb is not None:
@@ -123,10 +131,10 @@ class BorderLayout(Sheet):
             self._vertical_sb.attach()
 
     def detach(self):
-        if self._horizontal_sb is not None:
-            self._horizontal_sb.detach()
         if self._vertical_sb is not None:
             self._vertical_sb.detach()
+        if self._horizontal_sb is not None:
+            self._horizontal_sb.detach()
         super().detach()
 
     # Ask children how much space it needs, add in the border, use
@@ -152,38 +160,40 @@ class BorderLayout(Sheet):
     # their origin being (0, 0). For more flexibility add a different
     # layout type as the child of the border box.
     def allocate_space(self, allocation):
-        (left, top, right, bottom) = allocation
         self._region = allocation
-        (calloc_x, calloc_y) = (right-left-2, bottom-top-2)
+        (calloc_x, calloc_y) = (allocation.region_width()-2,
+                                allocation.region_height()-2)
         for child in self._children:
             # borderlayout has a single child - give it all the space
             # the border doesn't need for itself without allocating
             # more than the child's maximum. It doesn't matter if the
-            # child ends up too small it will just overflow it's
+            # child ends up too small it will just overflow its
             # bounds.
             child_request = child.compose_space()
             calloc_x = min(calloc_x, child_request.x_max())
             calloc_y = min(calloc_y, child_request.y_max())
-            child.allocate_space((0, 0, 0+calloc_x, 0+calloc_y))
+            child.allocate_space(Region(0, 0, 0+calloc_x, 0+calloc_y))
         # deal with scrollbars specially because they aren't treated
         # as children of the border pane.
         if self._vertical_sb is not None:
             child_request = self._vertical_sb.compose_space()
             # use the minimum width and the border pane's inner height
-            self._vertical_sb.allocate_space((0, 0, child_request.x_min(), bottom-top-2))
+            self._vertical_sb.allocate_space(Region(0, 0, child_request.x_min(),
+                                                    allocation.region_height()-2))
         if self._horizontal_sb is not None:
             child_request = self._horizontal_sb.compose_space()
             # use minimum height and border pane's width and border
             # pane's inner width; + an extra reduction because the
             # horizontal bar rhs is offset by an extra unit for L+F
-            self._horizontal_sb.allocate_space((0, 0, right-left-3, child_request.y_min()))
+            self._horizontal_sb.allocate_space(Region(0, 0, allocation.region_width()-3,
+                                                      child_request.y_min()))
 
     def layout(self):
         # single child
         for child in self._children:
             child.move_to((1, 1))
             child.layout()
-        (left, top, right, bottom) = self._region
+        (_, _, right, bottom) = self._region.ltrb()
         if self._vertical_sb is not None:
             self._vertical_sb.move_to((right-1, 1))
             self._vertical_sb.layout()
@@ -233,7 +243,7 @@ class BorderLayout(Sheet):
     def _draw_border(self):
         pen = self.pen(role="border", state="default", pen="pen")
         self._cached_pen = pen
-        (left, top, right, bottom) = self._region
+        (left, top, right, bottom) = self._region.ltrb()
 
         # todo: deal with long titles
         charset = self.border_chars[self._border]

@@ -21,7 +21,7 @@ from asciimatics.screen import Screen
 
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
-
+from geometry.regions import Region
 from frames.commands import find_command
 
 from dcs.ink import Pen
@@ -63,10 +63,11 @@ class Button(Sheet):
         if not self._attached or self._region is None:
             return "Button(detached: '{}')".format(self._label._label_text)
         else:
-            (left, top, right, bottom) = self._region
             tx = self._transform._dx
             ty = self._transform._dy
-            return "Button({}x{}@{},{}: '{}')".format(right-left, bottom-top, tx, ty,
+            return "Button({}x{}@{},{}: '{}')".format(self._region.region_width(),
+                                                      self._region.region_height(),
+                                                      tx, ty,
                                                       self._label._label_text)
 
     ####
@@ -129,10 +130,9 @@ class Button(Sheet):
                             FILL)
 
     def allocate_space(self, allocation):
-        (left, top, right, bottom) = allocation
         self._region = allocation
-        (l, t, r, b) = self._button_background_region()
-        (width, height) = (r-l, b-t)
+        bg_region = self._button_background_region()
+        (width, height) = (bg_region.region_width(), bg_region.region_height())
         # single child (the label)
         for child in self._children:
             if self._label._align == "left":
@@ -141,10 +141,10 @@ class Button(Sheet):
                 # space available to the label.
                 if width > len(self._label._label_text)+1:
                     width -= 1
-            child.allocate_space((0, 0, 0+width, 0+height))
+            child.allocate_space(Region(0, 0, 0+width, 0+height))
 
     def layout(self):
-        (l, t, r, b) = self._button_background_region()
+        (l, t, r, b) = self._button_background_region().ltrb()
         # single child (the label)
         for child in self._children:
             coord = (l, t)
@@ -173,7 +173,7 @@ class Button(Sheet):
         # a "debug" pen
         # pen = Pen(Screen.COLOUR_YELLOW, pen.attr(), Screen.COLOUR_YELLOW)
 
-        (left, top, right, bottom) = self._button_background_region()
+        (left, top, right, bottom) = self._button_background_region().ltrb()
 
         # problem is that pens are not being given the correct width +
         # it looks like there's a bug when drawing the drop shadow
@@ -184,8 +184,8 @@ class Button(Sheet):
     # gives the region of just the button background (coloured part of
     # button visual not including padding or dropshadow)
     def _button_background_region(self):
-        (left, top, right, bottom) = self._region
-        (width, height) = (right-left, bottom-top)
+        (_, _, right, _) = self._region.ltrb()
+        (width, height) = (self._region.region_width(), self._region.region_height())
 
         # If width is large enough to hold the label but not
         # the decoration, draw the button background over the whole
@@ -218,7 +218,7 @@ class Button(Sheet):
         bottom = top+1
 
         # left, bottom not included in region
-        return left, top, right, bottom
+        return Region(left, top, right, bottom)
 
     def _draw_button_dropshadow(self):
         # if the region isn't big enough for the decoration, don't
@@ -231,8 +231,8 @@ class Button(Sheet):
         #pen = shadow_pen.merge(bg_pen)
         pen = Pen(shadow_pen.fg(), shadow_pen.attr(), bg_pen.bg(), bg_pen.fill())
 
-        (wl, wt, wr, wb) = self._region
-        (left, top, right, bottom) = self._button_background_region()
+        (wl, wt, wr, wb) = self._region.ltrb()
+        (left, top, right, bottom) = self._button_background_region().ltrb()
 
         # is region wide enough to include side dropshadow? - Yes if
         # widget rhs and button background rhs leaves space for the
