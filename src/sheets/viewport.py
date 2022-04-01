@@ -18,6 +18,7 @@ from sheets.sheet import Sheet
 from sheets.spacereq import FILL
 from geometry.transforms import Transform
 from geometry.regions import Region
+from geometry.points import Point
 from sheets.dialog import alert
 
 from logging import getLogger
@@ -120,7 +121,7 @@ class Viewport(Sheet):
     def layout(self):
         # single child
         for child in self._children:
-            child.move_to((0, 0))
+            child.move_to(Point(0, 0))
             child.layout()
 
     def render(self):
@@ -135,7 +136,7 @@ class Viewport(Sheet):
         # measure text, cut off any that would be rendered before x=0
         # + cut off any that would be rendered after 'width'
         # coord is fixed elsewhere
-        (x, y) = coord
+        (x, y) = coord.xy()
         (w, h) = (self._region.region_width(), self._region.region_height())
 
         if y < 0 or y >= h:
@@ -149,7 +150,7 @@ class Viewport(Sheet):
         return text
 
     def _clip(self, coord):
-        (x, y) = coord
+        (x, y) = coord.xy()
         (l, t, r, b) = self._region.ltrb()
         (w, h) = (r-l, b-t)
 
@@ -159,7 +160,7 @@ class Viewport(Sheet):
 
         cx = max(min(x, w), 0)
         cy = max(min(y, h), 0)
-        return (cx, cy)
+        return Point(cx, cy)
 
     def _clip_region(self, region):
         # FIXME: compare this intersection logic with the logic in
@@ -196,7 +197,7 @@ class Viewport(Sheet):
         if text != '':
             coord = self._clip(coord)
             if coord is not None:
-                parent_coord = self._transform.apply(coord)
+                parent_coord = self._transform.transform_point(coord)
                 self._parent.display_at(parent_coord, text, pen)
 
     # drawing
@@ -204,7 +205,7 @@ class Viewport(Sheet):
         self._capture_move(coord)
         coord = self._clip(coord)
         if coord is not None:
-            parent_coord = self._transform.apply(coord)
+            parent_coord = self._transform.transform_point(coord)
             self._parent.move(parent_coord)
 
     # drawing
@@ -216,16 +217,16 @@ class Viewport(Sheet):
         self._capture_draw(coord, char)
         coord = self._clip(coord)
         if coord is not None:
-            parent_coord = self._transform.apply(coord)
+            parent_coord = self._transform.transform_point(coord)
             self._parent.draw_to(parent_coord, char, pen)
 
     def _capture_print_at(self, text, coord):
         # capture scroller extents in the coord system of the scrolled
         # sheet
         trans = self._scrolled_sheet._transform
-        ccoord = trans.inverse().apply(coord)
+        ccoord = trans.inverse().transform_point(coord)
         self.update_scroll_extents(ccoord)
-        (x, y) = ccoord
+        (x, y) = ccoord.xy()
 
         logger.debug(f"capture print at {ccoord}, {text} with len {len(text)}")
 
@@ -235,16 +236,16 @@ class Viewport(Sheet):
         #    c a t
         #
         # point for end of str = x + len(text)-1.
-        self.update_scroll_extents((x + len(text)-1, y))
+        self.update_scroll_extents(Point(x + len(text)-1, y))
 
     def _capture_move(self, coord):
         trans = self._scrolled_sheet._transform
-        ccoord = trans.inverse().apply(coord)
+        ccoord = trans.inverse().transform_point(coord)
         self.update_scroll_extents(ccoord)
 
     def _capture_draw(self, coord, char):
         trans = self._scrolled_sheet._transform
-        ccoord = trans.inverse().apply(coord)
+        ccoord = trans.inverse().transform_point(coord)
         self.update_scroll_extents(coord)
 
     def update_scroll_extents(self, coord):
@@ -265,7 +266,7 @@ class Viewport(Sheet):
             return
 
         (l, t, r, b) = self._scrolled_ltrb
-        (cx, cy) = coord
+        (cx, cy) = coord.xy()
 
         # Need the LTRB to contain the point; since points on the
         # right or bottom of the LTRB are not included in the LTRB,
@@ -293,8 +294,9 @@ class Viewport(Sheet):
             self._horizontal_sb.update_extents(self._scrolled_ltrb, self.width())
 
     def ltrb_contains_position(self, ltrb, position):
+        # FIXME: use region_contains_position
         (l, t, r, b) = ltrb
-        (x, y) = position
+        (x, y) = position.xy()
         return l <= x < r and t <= y < b
 
 

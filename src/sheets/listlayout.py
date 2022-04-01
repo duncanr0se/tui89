@@ -16,6 +16,7 @@
 
 from sheets.sheet import Sheet
 from geometry.regions import Region
+from geometry.points import Point
 from sheets.spacereq import FILL, SpaceReq
 
 from logging import getLogger
@@ -37,7 +38,7 @@ class ListLayout(Sheet):
     def layout(self):
         offset = 0
         for child in self._children:
-            child.move_to((0, offset))
+            child.move_to(Point(0, offset))
             offset += child.height()
             child.layout()
 

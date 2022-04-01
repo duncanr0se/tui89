@@ -17,6 +17,7 @@
 from sheets.sheet import Sheet
 from dcs.ink import Pen
 from sheets.spacereq import FILL, SpaceReq
+from geometry.points import Point
 
 from asciimatics.event import MouseEvent
 from asciimatics.screen import Screen
@@ -76,10 +77,10 @@ class Scrollbar(Sheet):
         if self._highlight == "origin":
             save_pen = pen
             pen = button_click_pen
-            self.display_at((0, 0), origin_arrow, pen)
+            self.display_at(Point(0, 0), origin_arrow, pen)
             pen = save_pen
         else:
-            self.display_at((0, 0), origin_arrow, pen)
+            self.display_at(Point(0, 0), origin_arrow, pen)
 
     def _draw_trough(self):
         trough = u'░'
@@ -87,11 +88,11 @@ class Scrollbar(Sheet):
         (rw, rh) = (self._region.region_width(), self._region.region_height())
         size = rw if self._orientation == "horizontal" else rh
         if self._orientation == "horizontal":
-            self.move((1, 0))
-            self.draw_to((size, 0), trough, pen)
+            self.move(Point(1, 0))
+            self.draw_to(Point(size, 0), trough, pen)
         else:
-            self.move((0, 1))
-            self.draw_to((0, size), trough, pen)
+            self.move(Point(0, 1))
+            self.draw_to(Point(0, size), trough, pen)
 
     def _draw_terminal_button(self):
         arrow_right = u'▶'
@@ -107,18 +108,18 @@ class Scrollbar(Sheet):
             if self._highlight == "terminal":
                 save_pen = pen
                 pen = button_click_pen
-                self.display_at((size-1, 0), terminal_arrow, pen)
+                self.display_at(Point(size-1, 0), terminal_arrow, pen)
                 pen = save_pen
             else:
-                self.display_at((size-1, 0), terminal_arrow, pen)
+                self.display_at(Point(size-1, 0), terminal_arrow, pen)
         else:
             if self._highlight == "terminal":
                 save_pen = pen
                 pen = button_click_pen
-                self.display_at((0, size-1), terminal_arrow, pen)
+                self.display_at(Point(0, size-1), terminal_arrow, pen)
                 pen = save_pen
             else:
-                self.display_at((0, size-1), terminal_arrow, pen)
+                self.display_at(Point(0, size-1), terminal_arrow, pen)
 
     def _draw_slug(self):
         slug = u'█'
@@ -128,14 +129,14 @@ class Scrollbar(Sheet):
                 self._slug_offset = 0
             if self._orientation == "horizontal":
                 # move past button
-                self.move((1 + self._slug_offset, 0))
+                self.move(Point(1 + self._slug_offset, 0))
                 # draw up to other button
-                self.draw_to((1+self._slug_offset+self._slug_size, 0), slug, pen)
+                self.draw_to(Point(1+self._slug_offset+self._slug_size, 0), slug, pen)
             else:
                 # move past buttons
-                self.move((0, 1 + self._slug_offset))
+                self.move(Point(0, 1 + self._slug_offset))
                 # draw up to other button
-                self.draw_to((0, 1+self._slug_offset+self._slug_size), slug, pen)
+                self.draw_to(Point(0, 1+self._slug_offset+self._slug_size), slug, pen)
 
     def compose_space(self):
         absolute_min = 2

@@ -19,7 +19,7 @@ from asciimatics.screen import Screen
 from sheets.sheet import Sheet
 
 from sheets.spacereq import SpaceReq, FILL
-
+from geometry.points import Point
 from frames.frame import Frame
 
 from dcs.ink import Pen
@@ -87,10 +87,10 @@ class TextEntry(Sheet, ValueMixin):
 
         # draw background
         bgpen = Pen(pen.bg(), pen.attr(), pen.bg())
-        self.display_at((0, 0), ' ' * self.width(), bgpen)
+        self.display_at(Point(0, 0), ' ' * self.width(), bgpen)
 
         # draw text
-        self.display_at((0, 0), display_text, pen)
+        self.display_at(Point(0, 0), display_text, pen)
 
         # draw cursor if focus
         if self.is_focus():
@@ -101,7 +101,7 @@ class TextEntry(Sheet, ValueMixin):
                 if self._insertion_point < len(self._text) \
                    else ' '
             cursor_pen = self.pen(role="editable", state="focus", pen="cursor")
-            self.display_at((visual_insertion_pt, 0), cursor, cursor_pen)
+            self.display_at(Point(visual_insertion_pt, 0), cursor, cursor_pen)
 
         # text entry boxes are leaf panes and don't have any children
         #for child in self._children:

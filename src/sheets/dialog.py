@@ -20,6 +20,7 @@ from sheets.sheet import Sheet
 
 from sheets.spacereq import SpaceReq, FILL, combine_spacereqs
 from geometry.regions import Region
+from geometry.points import Point
 from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
 from sheets.boxlayout import VerticalLayout, HorizontalLayout
@@ -245,7 +246,7 @@ class Dialog(TopLevelSheet):
             cp_width = self._content_pane.width()
             cp_yoffset = cp_height // 2
             cp_xoffset = (cp_width-len(self._text)) // 2
-            self._content_pane.display_at((cp_xoffset, cp_yoffset), self._text, pen)
+            self._content_pane.display_at(Point(cp_xoffset, cp_yoffset), self._text, pen)
 
         if self._drop_shadow:
             self._draw_dropshadow()
@@ -260,14 +261,14 @@ class Dialog(TopLevelSheet):
         (left, top, right, bottom) = self._region.ltrb()
         dropshadow_right = u'█'
         dropshadow_below = u'█'
-        self.move((right-1, 1))
+        self.move(Point(right-1, 1))
         # drawing vertical line so max y is not included in the
         # render, so "bottom" is the correct max extent.
-        self.draw_to((right-1, bottom), dropshadow_right, shadow_pen)
-        self.move((left+1, bottom-1))
+        self.draw_to(Point(right-1, bottom), dropshadow_right, shadow_pen)
+        self.move(Point(left+1, bottom-1))
         # drawing left->right, high x value is excluded but high y
         # value is included.
-        self.draw_to((right, bottom-1), dropshadow_below, shadow_pen)
+        self.draw_to(Point(right, bottom-1), dropshadow_below, shadow_pen)
 
     def handle_key_event(self, key_event):
 

@@ -16,6 +16,7 @@
 
 from sheets.sheet import Sheet
 from dcs.ink import Pen
+from geometry.points import Point
 
 from logging import getLogger
 
@@ -57,17 +58,17 @@ class TopLevelSheet(Sheet):
             self._frame._screen.draw(r, line, pen.fill(), colour=pen.fg(), bg=pen.bg())
 
     def display_at(self, coord, text, pen):
-        (x, y) = self._transform.apply(coord)
+        (x, y) = self._transform.transform_point(coord).xy()
         self._frame._screen.print_at(text, x, y, colour=pen.fg(), attr=pen.attr(), bg=pen.bg())
 
     def move(self, coord):
-        (x, y) = self._transform.apply(coord)
-        self._frame._screen.move(x, y)
+        point = self._transform.transform_point(coord)
+        self._frame._screen.move(point.point_x(), point.point_y())
 
     def draw_to(self, coord, char, pen):
         if len(char) > 1:
             raise RuntimeError("draw_to accepts single drawing char", char)
-        (x, y) = self._transform.apply(coord)
+        (x, y) = self._transform.transform_point(coord).xy()
         # Asciimatic's screen x/y are double the "character
         # positions". Make allowances.
         (from_x, from_y) = (self._frame._screen._x, self._frame._screen._y)
@@ -111,7 +112,7 @@ class TopLevelSheet(Sheet):
         self._region = allocation
         for child in self._children:
             # child of top level sheet MAY NOT have a transform
-            child.move_to((0, 0))
+            child.move_to(Point(0, 0))
             child.allocate_space(self._region)
 
     def layout(self):

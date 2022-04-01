@@ -22,6 +22,7 @@ from sheets.toplevel import TopLevelSheet
 from sheets.separators import Separator
 from sheets.buttons import Button
 from geometry.regions import Region
+from geometry.points import Point
 from frames.commands import find_command
 
 from asciimatics.screen import Screen
@@ -55,7 +56,7 @@ class MenuBox(TopLevelSheet):
 
     def layout(self):
         for child in self._children:
-            child.move_to((0, 0))
+            child.move_to(Point(0, 0))
             child.layout()
 
     def render(self):
@@ -75,14 +76,14 @@ class MenuBox(TopLevelSheet):
         (left, top, right, bottom) = self._region.ltrb()
         dropshadow_right = u'█'
         dropshadow_below = u'█'
-        self.move((right-1, 1))
+        self.move(Point(right-1, 1))
         # drawing vertical line so max y is not included in the
         # render, so "bottom" is the correct max extent.
-        self.draw_to((right-1, bottom), dropshadow_right, shadow_pen)
-        self.move((left+1, bottom-1))
+        self.draw_to(Point(right-1, bottom), dropshadow_right, shadow_pen)
+        self.move(Point(left+1, bottom-1))
         # drawing left->right, high x value is excluded but high y
         # value is included.
-        self.draw_to((right, bottom-1), dropshadow_below, shadow_pen)
+        self.draw_to(Point(right, bottom-1), dropshadow_below, shadow_pen)
 
     # allocate smallest space possible to fit children - probably need
     # some extra parameter to say we're trying to minimise

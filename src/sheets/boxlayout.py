@@ -17,6 +17,7 @@
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 from geometry.regions import Region
+from geometry.points import Point
 
 import math
 from logging import getLogger
@@ -228,7 +229,7 @@ class HorizontalLayout(BoxLayout):
         return sheet.height()
 
     def move_to_major_offset(self, sheet, offset):
-        sheet.move_to((offset, 0))
+        sheet.move_to(Point(offset, 0))
 
 
 # A layout that arranges its children in rows
@@ -278,4 +279,4 @@ class VerticalLayout(BoxLayout):
         return sheet.width()
 
     def move_to_major_offset(self, sheet, offset):
-        sheet.move_to((0, offset))
+        sheet.move_to(Point(0, offset))

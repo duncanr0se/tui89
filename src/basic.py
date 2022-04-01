@@ -16,8 +16,8 @@
 from asciimatics.screen import Screen
 from asciimatics.exceptions import ResizeScreenError, StopApplication
 
-from geometry.transforms import Transform
-from geometry.transforms import IDENTITY_TRANSFORM
+from geometry.transforms import Transform, IDENTITY_TRANSFORM
+from geometry.points import Point
 
 from frames.frame import Frame
 from sheets.sheet import Sheet
@@ -273,9 +273,9 @@ def demo(screen):
 
     def draw():
         pen = frame.pen("undefined", "default", "pen")
-        contentpane.display_at((0, 0), "Hello, world!", pen)
-        contentpane.display_at((10, 30), "What's the world coming to?", pen)
-        contentpane.display_at((60, 60), "Goodbye, cruel world!", pen)
+        contentpane.display_at(Point(0, 0), "Hello, world!", pen)
+        contentpane.display_at(Point(10, 30), "What's the world coming to?", pen)
+        contentpane.display_at(Point(60, 60), "Goodbye, cruel world!", pen)
     contentpane.render = draw
 
     ####

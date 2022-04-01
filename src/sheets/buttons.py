@@ -22,6 +22,7 @@ from asciimatics.screen import Screen
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 from geometry.regions import Region
+from geometry.points import Point
 from frames.commands import find_command
 
 from dcs.ink import Pen
@@ -147,13 +148,13 @@ class Button(Sheet):
         (l, t, r, b) = self._button_background_region().ltrb()
         # single child (the label)
         for child in self._children:
-            coord = (l, t)
+            coord = Point(l, t)
             # if label is left aligned and there is space to leave 1
             # char padding between the button's left side and the
             # label, then leave the space.
             if self._label._align == "left":
                 if r-l > len(self._label._label_text)+1:
-                    coord = (l+1, t)
+                    coord = Point(l+1, t)
             child.move_to(coord)
 
     # decorated buttons fill excess space with padding; undecorated
@@ -178,8 +179,8 @@ class Button(Sheet):
         # problem is that pens are not being given the correct width +
         # it looks like there's a bug when drawing the drop shadow
         # that causes it to be drawn in the wrong place.
-        self.move((left, top))
-        self.draw_to((right, top), ' ', pen)
+        self.move(Point(left, top))
+        self.draw_to(Point(right, top), ' ', pen)
 
     # gives the region of just the button background (coloured part of
     # button visual not including padding or dropshadow)
@@ -247,12 +248,12 @@ class Button(Sheet):
         # left, top, right + bottom are the BACKGROUND
         # region. Dropshadow is drawn outside this region.
         if draw_dropshadow_side:
-            self.display_at((right, top), dropshadow_right, pen)
+            self.display_at(Point(right, top), dropshadow_right, pen)
         if draw_dropshadow_below:
-            self.move((left+1, bottom))
+            self.move(Point(left+1, bottom))
             # +1 right is right of button background and drop shadow
             # is immediately to the right of the button rhs
-            self.draw_to((right+1, bottom), dropshadow_below, pen)
+            self.draw_to(Point(right+1, bottom), dropshadow_below, pen)
 
     def pen(self, role="undefined", state="default", pen="pen"):
         if role == "undefined":
@@ -460,8 +461,8 @@ class MenuButton(Button):
         def show_menu(button):
             # fixme: this should probably be done by the frame?
             # Otherwise how to do nested menus?
-            coord = (0, 1)
+            coord = Point(0, 1)
             transform = button.get_screen_transform()
-            tcoord = transform.apply(coord)
+            tcoord = transform.transform_point(coord)
             button.frame().show_popup(menubox, tcoord)
         self.on_click_callback = show_menu

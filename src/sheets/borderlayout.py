@@ -17,6 +17,7 @@
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 from geometry.regions import Region
+from geometry.points import Point
 from dcs.ink import Pen
 from frames.frame import Frame
 
@@ -101,7 +102,7 @@ class BorderLayout(Sheet):
 
     # specialise find_highest_sheet... to cater for scroll bars.
     def find_highest_sheet_containing_position(self, parent_coord, log_indent=" "):
-        coord = self._transform.inverse().apply(parent_coord)
+        coord = self._transform.inverse().transform_point(parent_coord)
         if self._region.region_contains_position(coord):
             logger.debug("%s found sheet containing position %s %s",
                          log_indent, coord, self)
@@ -191,16 +192,16 @@ class BorderLayout(Sheet):
     def layout(self):
         # single child
         for child in self._children:
-            child.move_to((1, 1))
+            child.move_to(Point(1, 1))
             child.layout()
         (_, _, right, bottom) = self._region.ltrb()
         if self._vertical_sb is not None:
-            self._vertical_sb.move_to((right-1, 1))
+            self._vertical_sb.move_to(Point(right-1, 1))
             self._vertical_sb.layout()
         if self._horizontal_sb is not None:
             # fixme: how wide should horizontal bars be? turbo vision
             # looks to give about 50% of the pane width...
-            self._horizontal_sb.move_to((1, bottom-1))
+            self._horizontal_sb.move_to(Point(1, bottom-1))
             self._horizontal_sb.layout()
 
     def render(self):
@@ -248,41 +249,41 @@ class BorderLayout(Sheet):
         # todo: deal with long titles
         charset = self.border_chars[self._border]
         # top border - make allowances for a title
-        self.display_at((left, top), charset["nw"], pen)
-        self.move((1, top))
+        self.display_at(Point(left, top), charset["nw"], pen)
+        self.move(Point(1, top))
         if self._title:
             # LHS of bar + title
             bar_width = right-left
             title = ' ' + self._title + ' '
             title_width = len(title)
             side_bar_width = (bar_width - title_width) // 2
-            self.draw_to((side_bar_width+1, top), charset["top"], pen)
-            self.display_at((side_bar_width, top), title, pen)
-            self.move((side_bar_width + title_width, top))
-            self.draw_to((right, top), charset["top"], pen)
+            self.draw_to(Point(side_bar_width+1, top), charset["top"], pen)
+            self.display_at(Point(side_bar_width, top), title, pen)
+            self.move(Point(side_bar_width + title_width, top))
+            self.draw_to(Point(right, top), charset["top"], pen)
         else:
-            self.draw_to((right, top), charset["top"], pen)
-        self.display_at((right-1, top), charset["ne"], pen)
+            self.draw_to(Point(right, top), charset["top"], pen)
+        self.display_at(Point(right-1, top), charset["ne"], pen)
 
         # left border
-        self.move((left, top+1))
-        self.draw_to((left, bottom), charset["left"], pen)
+        self.move(Point(left, top+1))
+        self.draw_to(Point(left, bottom), charset["left"], pen)
 
         # right border - might be scroll bar
         if self._vertical_sb is None:
-            self.move((right-1, top + 1))
-            self.draw_to((right-1, bottom), charset["right"], pen)
+            self.move(Point(right-1, top + 1))
+            self.draw_to(Point(right-1, bottom), charset["right"], pen)
         else:
             # scrollbar will draw itself
             pass
 
         # bottom border - might be scroll bar
-        self.display_at((left, bottom-1), charset["sw"], pen)
+        self.display_at(Point(left, bottom-1), charset["sw"], pen)
         if self._horizontal_sb is None:
-            self.move((left+1, bottom-1))
-            self.draw_to((right, bottom-1), charset["bottom"], pen)
-            self.display_at((right-1, bottom-1), charset["se"], pen)
+            self.move(Point(left+1, bottom-1))
+            self.draw_to(Point(right, bottom-1), charset["bottom"], pen)
+            self.display_at(Point(right-1, bottom-1), charset["se"], pen)
         else:
-            self.display_at((right-2, bottom-1), u'─', pen)
-            self.display_at((right-1, bottom-1), u'┘', pen)
+            self.display_at(Point(right-2, bottom-1), u'─', pen)
+            self.display_at(Point(right-1, bottom-1), u'┘', pen)
             # scrollbar will draw itself

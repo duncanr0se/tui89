@@ -18,6 +18,7 @@ from asciimatics.event import MouseEvent
 
 from geometry.transforms import Transform, IDENTITY_TRANSFORM
 from geometry.regions import Region
+from geometry.points import Point
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 from dcs.ink import Pen
@@ -75,10 +76,10 @@ class OptionBox(Sheet):
         self.invalidate()
 
     def layout(self):
-        self._label.move_to((0, 0))
+        self._label.move_to(Point(0, 0))
         (left, _, right, _) = self._region.ltrb()
         w = right-left
-        self._drop_label.move_to((w-3, 0))
+        self._drop_label.move_to(Point(w-3, 0))
 
     def handle_key_event(self, kevent):
         command = find_command(kevent, command_table="optionbox")
@@ -135,9 +136,9 @@ class OptionBox(Sheet):
         # way more knowledge of the internals than is preferable.
         self._force_popup_colours(menubox)
 
-        coord = (0, 1)
+        coord = Point(0, 1)
         transform = self.get_screen_transform()
-        tcoord = transform.apply(coord)
+        tcoord = transform.transform_point(coord)
         self.open_popup()
         menubox.on_detached_callback = self._on_menubox_detached_callback
         self.frame().show_popup(menubox, tcoord)

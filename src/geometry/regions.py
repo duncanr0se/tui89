@@ -28,7 +28,7 @@ class Region:
                                             self._right, self._bottom)
 
     def region_contains_position(self, coord):
-        (cx, cy) = coord
+        (cx, cy) = coord.xy()
         # yes if its on the left or top boundary, no if it's on the
         # right or bottom boundary.
         return self._left <= cx < self._right \

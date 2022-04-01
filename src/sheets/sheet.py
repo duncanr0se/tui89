@@ -18,7 +18,7 @@ from asciimatics.event import MouseEvent
 
 from geometry.transforms import Transform, IDENTITY_TRANSFORM
 from geometry.regions import Region
-
+from geometry.points import Point
 from sheets.spacereq import FILL, SpaceReq
 from dcs.ink import Pen
 
@@ -131,12 +131,12 @@ class Sheet():
         # invoke print_at on t-l-s. Has to be better than expecting
         # every sheet in the hierarchy to implement the drawing
         # methods... or maybe not. Hrm.
-        parent_coord = self._transform.apply(coord)
+        parent_coord = self._transform.transform_point(coord)
         self._parent.display_at(parent_coord, text, pen)
 
     # drawing
     def move(self, coord):
-        parent_coord = self._transform.apply(coord)
+        parent_coord = self._transform.transform_point(coord)
         self._parent.move(parent_coord)
 
     # drawing
@@ -147,15 +147,14 @@ class Sheet():
     # Not sure if only true when drawing ltr or ttb,
     # might not occur for rtl / btt.
     def draw_to(self, coord, char, pen):
-        parent_coord = self._transform.apply(coord)
+        parent_coord = self._transform.transform_point(coord)
         self._parent.draw_to(parent_coord, char, pen)
 
     # screenpos
     def move_to(self, coord):
         # this moves the child relative to its parent; coord is in
         # parent's coordinate space
-        (x, y) = coord
-        self._transform = Transform(x, y)
+        self._transform = Transform(coord.point_x(), coord.point_y())
 
     # drawing / redisplay
     def render(self):
@@ -195,7 +194,7 @@ class Sheet():
     def find_highest_sheet_containing_position(self, parent_coord, log_indent="  "):
         # parent coord is in the parent's coordinate system
         # transform parent coord into this sheet's coord space.
-        coord = self._transform.inverse().apply(parent_coord)
+        coord = self._transform.inverse().transform_point(parent_coord)
         # If this sheet's region does not contain the transformed
         # coord then none of the child sheets will contain it, by
         # definition. Return false.
@@ -282,7 +281,7 @@ class Sheet():
         being updated.
         """
         for child in self._children:
-            child.move_to((0, 0))
+            child.move_to(Point(0, 0))
             child.layout()
 
     # layout
@@ -458,7 +457,7 @@ class Sheet():
         # just returns None.
         # Sheets that want to do something with the event need to provide
         # their own overrides for this method.
-        (px, py) = self._transform.apply((event.x, event.y))
+        (px, py) = self._transform.transform_point(Point(event.x, event.y)).xy()
         self._parent.handle_event(MouseEvent(px, py, event.buttons))
 
     def invalidate(self):

@@ -22,6 +22,7 @@ from sheets.buttons import Button
 from frames.frame import Frame
 from frames.commands import find_command
 from geometry.regions import Region
+from geometry.points import Point
 
 from logging import getLogger
 
@@ -40,7 +41,7 @@ class MenubarLayout(Sheet):
     def layout(self):
         offset = 0
         for child in self._children:
-            child.move_to((offset, 0))
+            child.move_to(Point(offset, 0))
             offset += child.width()
             child.layout()
 
@@ -54,8 +55,9 @@ class MenubarLayout(Sheet):
         (left, top, right, _) = self._region.ltrb()
         self.clear(self._region)
         logger.info("render on menubar %s", self)
-        self.move((left, top))
-        self.draw_to((right, top), ' ', self.pen(role="menubar", state="default", pen="pen"))
+        self.move(Point(left, top))
+        self.draw_to(Point(right, top), ' ',
+                     self.pen(role="menubar", state="default", pen="pen"))
         for child in self._children:
             child.render()
 

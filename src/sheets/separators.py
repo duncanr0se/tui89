@@ -18,7 +18,7 @@ from asciimatics.event import MouseEvent
 
 from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
-
+from geometry.points import Point
 from sheets.sheet import Sheet
 from sheets.spacereq import FILL, SpaceReq
 from dcs.ink import Pen
@@ -69,8 +69,8 @@ class HorizontalSeparator(Separator):
         (w, h) = (r-l, b-t)
         self.clear(self._region)
         y = self.center(h-1)
-        self.move((l, y))
-        self.draw_to((r, y), HorizontalSeparator._line_chars[self._style], pen)
+        self.move(Point(l, y))
+        self.draw_to(Point(r, y), HorizontalSeparator._line_chars[self._style], pen)
 
     # layout
     def compose_space(self):
@@ -96,8 +96,8 @@ class VerticalSeparator(Separator):
         (w, h) = (r-l, b-t)
         self.clear(self._region)
         x = self.center(w-1)
-        self.move((x, t))
-        self.draw_to((x, h), VerticalSeparator._line_chars[self._style], pen)
+        self.move(Point(x, t))
+        self.draw_to(Point(x, h), VerticalSeparator._line_chars[self._style], pen)
 
     # layout
     def compose_space(self):

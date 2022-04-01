@@ -19,6 +19,7 @@ from asciimatics.screen import Screen
 
 from geometry.transforms import Transform, IDENTITY_TRANSFORM
 from geometry.regions import Region
+from geometry.points import Point
 
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
@@ -93,9 +94,9 @@ class ComboBox(Sheet):
     #####                                                   LAYOUT #
 
     def layout(self):
-        self._entry.move_to((0, 0))
+        self._entry.move_to(Point(0, 0))
         w = self._region.region_width()
-        self._drop_label.move_to((w-3, 0))
+        self._drop_label.move_to(Point(w-3, 0))
 
     def allocate_space(self, region):
         (l, t, r, b) = region.ltrb()
@@ -317,7 +318,7 @@ class ComboBox(Sheet):
         content.add_child(self._option_list)
         dialog = MultivalueDialog(dispose_on_click_outside=True, owner=self)
 
-        coord = self.get_screen_transform().apply((0, 1))
+        coord = self.get_screen_transform().transform_point(Point(0, 1))
 
         dialog.on_detached_callback = self._on_menubox_detached_callback
 

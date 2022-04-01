@@ -26,6 +26,7 @@ from asciimatics.exceptions import ResizeScreenError
 from sheets.sheet import Sheet
 from dcs.ink import Pen
 from geometry.regions import Region
+from geometry.points import Point
 from frames.commands import find_command
 
 from logging import getLogger
@@ -419,7 +420,7 @@ class Frame():
 
         event_top_level = self._get_focus_top_level()
 
-        sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
+        sheet = event_top_level.find_highest_sheet_containing_position(Point(event.x, event.y))
         if not sheet and event_top_level == self._menu:
             # Check if event occurred in the (modal) dialog (if there
             # is one) or in the top level sheet otherwise
@@ -431,7 +432,7 @@ class Frame():
 
         event_top_level = self._get_focus_top_level()
 
-        sheet = event_top_level.find_highest_sheet_containing_position((event.x, event.y))
+        sheet = event_top_level.find_highest_sheet_containing_position(Point(event.x, event.y))
         if sheet:
             # mouse events come in to the event handler with screen
             # coordinates; convert to the coordinates used by the
@@ -440,7 +441,7 @@ class Frame():
             # transform = sheet → screen
             transform = sheet.get_screen_transform()
             # inverse = screen → sheet
-            (sx, sy) = transform.inverse().apply((event.x, event.y))
+            (sx, sy) = transform.inverse().transform_point(Point(event.x, event.y)).xy()
             # if the child declines to deal with the event, pass it
             # back up the widget hierarchy in case a parent wants to
             # do something with the event. This allows some parents to
@@ -488,7 +489,7 @@ class Frame():
         if coord is None:
             dx = (self._screen.width - dwidth) // 2
             dy = (self._screen.height - dheight) // 2
-            coord = (dx, dy)
+            coord = Point(dx, dy)
 
         if dialog._widget_focus is None:
             focus_sheet = dialog.find_focus_candidate()

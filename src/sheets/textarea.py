@@ -19,6 +19,7 @@ from asciimatics.screen import Screen
 from sheets.sheet import Sheet
 
 from sheets.spacereq import SpaceReq, FILL
+from geometry.points import Point
 
 from sheets.toplevel import TopLevelSheet
 from sheets.borderlayout import BorderLayout
@@ -108,7 +109,7 @@ class TextArea(TextEntry):
                 break
             display_text = self._lines[line]
             display_text = display_text[self._text_offset:self._text_offset+self.width()]
-            self.display_at((0, line-self._text_line), display_text, pen)
+            self.display_at(Point(0, line-self._text_line), display_text, pen)
 
         # draw cursor if focus
         if self.is_focus():
@@ -125,7 +126,7 @@ class TextArea(TextEntry):
                 if cursor_pos < len(line) \
                    else ' '
             cursor_pen = self.pen(role="editable", state="focus", pen="cursor")
-            self.display_at((insertion_pt_x, insertion_pt_y), cursor, cursor_pen)
+            self.display_at(Point(insertion_pt_x, insertion_pt_y), cursor, cursor_pen)
 
     # events - top level sheets don't pass event on to a parent,
     # instead they return False to indicate the event is not handled

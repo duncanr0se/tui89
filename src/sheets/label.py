@@ -18,7 +18,7 @@ from asciimatics.event import MouseEvent
 
 from geometry.transforms import Transform
 from geometry.transforms import IDENTITY_TRANSFORM
-
+from geometry.points import Point
 from sheets.sheet import Sheet
 from sheets.spacereq import SpaceReq, FILL
 from dcs.ink import Pen
@@ -80,7 +80,7 @@ class Label(Sheet):
         # fixme: decide where label should be if height>1
         self._draw_background(pen)
         display_text = self.truncate_text_to_width(self._label_text, self.width())
-        coord = (self._x_align_offset(display_text), self._y_align_offset())
+        coord = Point(self._x_align_offset(display_text), self._y_align_offset())
         self.display_at(coord, display_text, pen)
         # overwrite accelerator (if present ofc) in accelerator colour scheme
         if self._label_widget is not None:
@@ -91,8 +91,8 @@ class Label(Sheet):
                                                                     accel_char)
                 if accelerator_index >= 0:
                     accelerator_pen = self.pen(role="label", state="default", pen="accelerator")
-                    (x, y) = coord
-                    self.display_at((x+accelerator_index, y),
+                    (x, y) = coord.xy()
+                    self.display_at(Point(x+accelerator_index, y),
                                     accel_char, accelerator_pen)
 
     def _x_align_offset(self, text):

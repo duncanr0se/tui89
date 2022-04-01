@@ -25,6 +25,7 @@ from sheets.label import Label, ValueLabel
 from sheets.buttons import Button
 from frames.commands import find_command
 from geometry.transforms import Transform
+from geometry.points import Point
 
 from mixins.valuemixin import ValueMixin
 
@@ -147,7 +148,7 @@ class ListControl(Sheet, ValueMixin):
 
     def layout(self):
         for child in self._children:
-            child.move_to((0, 0))
+            child.move_to(Point(0, 0))
             child.layout()
 
     def render(self):

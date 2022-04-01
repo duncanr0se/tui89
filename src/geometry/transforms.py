@@ -15,6 +15,7 @@
 #
 
 from geometry.regions import Region
+from geometry.points import Point
 
 class Transform:
     """Transform coordinates by a translation."""
@@ -26,10 +27,6 @@ class Transform:
     def __repr__(self):
         return "Transform({},{})".format(self._dx, self._dy)
 
-    def apply(self, coord):
-        (x, y) = coord
-        return (x + self._dx, y + self._dy)
-
     def inverse(self):
         return Transform(-self._dx, -self._dy)
 
@@ -37,12 +34,12 @@ class Transform:
         return Transform(self._dx + other._dx, self._dy + other._dy)
 
     def transform_point(self, point):
-        return self.apply(point)
+        return Point(point.point_x() + self._dx, point.point_y() + self._dy)
 
     def transform_region(self, region):
         (l, t, r, b) = region.ltrb()
-        (l, t) = self.apply((l, t))
-        (r, b) = self.apply((r, b))
+        (l, t) = self.transform_point(Point(l, t)).xy()
+        (r, b) = self.transform_point(Point(r, b)).xy()
         return Region(l, t, r, b)
 
 # no-op transform
