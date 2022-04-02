@@ -291,10 +291,10 @@ class Dialog(TopLevelSheet):
                 return True
         return False
 
-    def find_focus_candidate(self):
+    def find_focus_candidate(self, from_end=False):
         if self._owner is not None:
-            return self._owner.find_focus_candidate()
-        return super().find_focus_candidate()
+            return self._owner.find_focus_candidate(from_end=from_end)
+        return super().find_focus_candidate(from_end=from_end)
 
     def set_widget_focus(self, widget):
         # fixme: note_focus_in/out?

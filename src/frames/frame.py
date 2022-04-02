@@ -103,9 +103,16 @@ class Frame():
     def start_frame(self):
         # If the frame has no focus find one now. FIXME: what if there
         # isn't a suitable focus candidate?
-        if self._focus is None:
-            focus_sheet = self._top_level_sheet.find_focus_candidate()
-            self.set_focus(focus_sheet)
+
+        # Is there any need to pick a focus at all? The user can
+        # select one using keyboard navigation, or the app developer
+        # can set one if they want. I think there's no need to do
+        # this.
+
+#        if self._focus is None:
+#            focus_sheet = self._top_level_sheet.find_focus_candidate()
+#            self.set_focus(focus_sheet)
+
         # TODO: test just running this loop, see how quickly the
         # system can respond to mouse and key events. Not sure if
         # latency is in the TUI code and need to find speedups there,
@@ -449,7 +456,9 @@ class Frame():
         focus_top_level = self._get_focus_top_level()
 
         if self._focus is None:
-            raise RuntimeError("no focus! It's possible after all!")
+            widget=focus_top_level.find_focus_candidate()
+            self.set_focus(widget)
+            return True
 
         # repeat "find_focus_candidate" walk looking for current focus
         # and then continue to next focus candidate - set focus on
@@ -468,7 +477,9 @@ class Frame():
         logger.debug("top-level %s", focus_top_level)
 
         if self._focus is None:
-            raise RuntimeError("no focus! It's possible after all!")
+            widget=focus_top_level.find_focus_candidate(from_end=True)
+            self.set_focus(widget)
+            return True
 
         # repeat find_focus_candidate walk looking for current focus
         # and then return that last focus candidate seen. If no

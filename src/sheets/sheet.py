@@ -297,13 +297,14 @@ class Sheet():
         return self._region.region_height()
 
     # events
-    def find_focus_candidate(self):
+    def find_focus_candidate(self, from_end=False):
         # depth first search to find the first leaf descendent that
         # accepts the focus; use that as the focus.
         # Keyboard navigation or selection with the mouse can be used
         # to find a different focus.
-        for child in self._children:
-            focus = child.find_focus_candidate()
+        children=self._children if not from_end else reversed(self._children)
+        for child in children:
+            focus = child.find_focus_candidate(from_end=from_end)
             if focus is not None:
                 return focus
         if self.accepts_focus():

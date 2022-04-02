@@ -193,6 +193,14 @@ have its size set, and see how different sized containers allocate and
 render different widget types - add a "samples" folder and stick a few
 sample apps in it.
 
+Draw dirty sheets starting at the bottom of the z-order so that alerts
+are not overdrawn by text entry boxes, for example.
+
+Alert boxes need to do something more sensible with their size /
+showing long messages.
+
+Leaving select page up / down in text box so the issues with dialogs
+can be easily reproduced.
 
 VISUAL FEEDBACK
 ===============

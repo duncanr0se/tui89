@@ -363,7 +363,7 @@ class ListControl(Sheet, ValueMixin):
         # return result
 
     # find focus within FRAME
-    def find_focus_candidate(self):
+    def find_focus_candidate(self, from_end=False):
         # Don't descend into children; return self if self accepts
         # focus.
         if self.accepts_focus():

@@ -209,7 +209,7 @@ class ComboBox(Sheet):
     def is_widget_focus(self, widget):
         return self.is_focus() and widget == self._widget_focus
 
-    def find_focus_candidate(self):
+    def find_focus_candidate(self, from_end=False):
         # Do not descend into children; we know the control accepts
         # the focus and deals with key events on behalf of its
         # children.
