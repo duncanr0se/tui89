@@ -28,6 +28,7 @@ from dcs.ink import Pen
 from geometry.regions import Region
 from geometry.points import Point
 from frames.commands import find_command
+from frames.frame_manager import FrameManager
 
 from logging import getLogger
 
@@ -39,166 +40,6 @@ class Frame():
     Intermediary between the display (screen) and the widgets.
     Deals with event loop and redrawing damage regions.
     """
-    # Pens are fully formed and include background and fill
-    # information.
-    #
-    # They are indexed by:
-    #
-    #     "role" - which is generally the same as the name of the type
-    #     of widget;
-    #
-    #     "state" - state changes imply visual indicators. In general
-    #     only "default" and "focus" states are supported, but labels
-    #     also have a "accelerator" state indicator and some widgets
-    #     have a "pressed" state.
-    #
-    #     "pen" - usually "pen", can be "accelerator". Editable items
-    #     have a "cursor" pen providing the cursor colours.
-    #
-    # If desired pen not found in role / state, try to find it in role
-    # / default state (and log it).
-    # If desired pen not found in role / default state, log it and use
-    # role / default / "pen".
-    #
-    # FIXME: add "brush" pen for backgrounds / fills.
-    #
-    # Are menu buttons any different in any way to regular buttons,
-    # other than by colour scheme and callback? Use same role but
-    # override in menubar / menubox containers?
-    #
-    # pen method walks hierarchy until top sheet at which point
-    # default defined in frame is returned. Any level can override
-    # binding to the pen.
-    #
-    THEMES = {
-        "toplevel": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
-            },
-            "alert": {
-                "pen": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_RED, ' ')
-            },
-            "info": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
-            },
-            "yes/no": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_MAGENTA, ' ')
-            },
-            "composite": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
-            }
-         },
-        "shadow": {
-            "default": {
-                # "partial pen" - needs to be merged with some
-                # background before use
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, None, None)
-            }
-        },
-        # border role used by border panes and separator panes
-        "border": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
-            },
-            "alert": {
-                "pen": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_RED, ' ')
-            },
-            "info": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
-            },
-            "yes/no": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_MAGENTA, ' ')
-            },
-            "composite": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
-            }
-        },
-        "button": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_GREEN, ' '),
-                "accelerator": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_GREEN, ' ')
-            },
-            "focus": {
-                "pen": Pen(Screen.COLOUR_CYAN, Screen.A_BOLD, Screen.COLOUR_GREEN, ' ')
-            },
-            "transient": {
-                "pen": Pen(Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_MAGENTA, ' ')
-            }
-        },
-        "buttonbox": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_CYAN, ' '),
-                "accelerator": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
-            },
-            "focus": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_GREEN, ' '),
-            }
-        },
-        "editable": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLUE, ' '),
-                "area_pen": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_BLUE, ' ')
-            },
-            "focus": {
-                "pen": Pen(Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_CYAN, ' '),
-                "area_pen": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_CYAN, ' '),
-                "cursor": Pen(Screen.COLOUR_YELLOW, Screen.A_REVERSE, Screen.COLOUR_BLUE, ' ')
-            }
-        },
-        "label": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' '),
-                "accelerator": Pen(Screen.COLOUR_YELLOW, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
-            }
-        },
-        "menubar": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' ')
-            }
-        },
-        "menubox": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' ')
-            },
-            "border": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' ')
-            }
-        },
-        "menubutton": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE, ' '),
-                "accelerator": Pen(Screen.COLOUR_RED, Screen.A_BOLD, Screen.COLOUR_WHITE, ' ')
-            },
-            "focus": {
-                "pen": Pen(Screen.COLOUR_CYAN, Screen.A_BOLD, Screen.COLOUR_GREEN, ' '),
-                "accelerator": Pen(Screen.COLOUR_RED, Screen.A_BOLD, Screen.COLOUR_GREEN, ' ')
-            },
-            "transient": {
-                "pen": Pen(Screen.COLOUR_GREEN, Screen.A_NORMAL, Screen.COLOUR_MAGENTA, ' ')
-            }
-        },
-        "optionbox": {
-            "default": {
-                "accelerator": Pen(Screen.COLOUR_RED, Screen.A_BOLD, Screen.COLOUR_CYAN, ' ')
-            }
-        },
-        "undefined": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_GREEN, Screen.A_BOLD, Screen.COLOUR_YELLOW, 'X')
-            }
-        },
-        "shadow": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_BLACK, Screen.A_NORMAL, None, ' ')
-            }
-        },
-        "scroll": {
-            "default": {
-                "pen": Pen(Screen.COLOUR_CYAN, Screen.A_REVERSE, Screen.COLOUR_BLUE, ' ')
-            }
-        }
-    }
-
     def _resize_handler(self, *_):
         # Could just do a "lay_out_frame" call? Seems unnecessarily
         # wasteful to kill and recreate the Screen.
@@ -225,7 +66,7 @@ class Frame():
         return "Frame({}x{})".format(self._screen.width, self._screen.height)
 
     def pen(self, role, state, pen):
-        if role not in self.THEMES:
+        if role not in FrameManager.THEMES:
             logger.info(f"Role entry '{role}' not found. Using role 'undefined'")
             role = "undefined"
         # If desired pen not found in role / state, try to find it in
@@ -233,24 +74,24 @@ class Frame():
         #
         # If desired pen not found in role / default state, log it and
         # use role / default / "pen".
-        if state not in self.THEMES[role]:
+        if state not in FrameManager.THEMES[role]:
             logger.info("State entry '%s' not found for role '%s'. Using state 'default'",
                         state, role)
             state = "default"
-        if pen not in self.THEMES[role][state]:
+        if pen not in FrameManager.THEMES[role][state]:
             if state != "default":
                 logger.info("Pen type '%s' not found for theme[%s][%s]. "
                             + "Looking in state 'default'",
                             pen, role, state)
                 state = "default"
-            if pen not in self.THEMES[role][state]:
+            if pen not in FrameManager.THEMES[role][state]:
                 logger.info("Pen type '%s' not found for theme[%s][%s]. Using 'pen'",
                             pen, role, state)
                 pen = "pen"
         try:
-            return self.THEMES[role][state][pen]
+            return FrameManager.THEMES[role][state][pen]
         except KeyError:
-            raise KeyError(f"Failed to find self.THEMES[{role}][{state}][{pen}]")
+            raise KeyError(f"Failed to find FrameManager.THEMES[{role}][{state}][{pen}]")
 
     def set_top_level_sheet(self, sheet):
         self._top_level_sheet = sheet
