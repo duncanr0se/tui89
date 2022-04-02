@@ -42,6 +42,11 @@ class TextEntry(Sheet, ValueMixin):
         self._insertion_point = 0
         # text offset = where in the box the text is (relative to 0)
         self._text_offset = 0
+        # tuple of (start, end) of current text selection or None if
+        # no text is selected. This is a pair of offsets into the text
+        # value. The selection range is a half open interval which
+        # includes the start but excludes the end.
+        self._text_selection = None
 
         # ValueMixin init
         self._value = None
@@ -56,6 +61,10 @@ class TextEntry(Sheet, ValueMixin):
         self._text = ""
         self._text_offset = 0
         self._insertion_point = 0
+        self.reset_selection()
+
+    def reset_selection(self):
+        self._text_selection=None
 
     def set_value(self, value):
         self.reset()
@@ -74,7 +83,7 @@ class TextEntry(Sheet, ValueMixin):
     def pen(self, role="undefined", state="default", pen="pen"):
         if role == "undefined":
             role = "editable"
-        state = "focus" if self.is_focus() else state
+        state = "focus" if self.is_focus() and state=="default" else state
         return super().pen(role=role, state=state, pen=pen)
 
     def render(self):
@@ -90,7 +99,25 @@ class TextEntry(Sheet, ValueMixin):
         self.display_at(Point(0, 0), ' ' * self.width(), bgpen)
 
         # draw text
-        self.display_at(Point(0, 0), display_text, pen)
+        if self._text_selection is not None:
+            selected_pen = self.pen(role="editable", state="selected", pen="pen")
+            selection_start=max(self._text_selection[0]-self._text_offset, 0)
+            selection_end=max(min(self._text_selection[1]-self._text_offset,
+                                  len(display_text)),
+                              0)
+
+            pre_selection=display_text[:selection_start]
+            selected=display_text[selection_start:selection_end]
+            post_selected=display_text[selection_end:]
+
+            if pre_selection != "":
+                self.display_at(Point(0, 0), pre_selection, pen)
+            if selected != "":
+                self.display_at(Point(selection_start, 0), selected, selected_pen)
+            if post_selected != "":
+                self.display_at(Point(selection_end, 0), post_selected, pen)
+        else:
+            self.display_at(Point(0, 0), display_text, pen)
 
         # draw cursor if focus
         if self.is_focus():
@@ -123,10 +150,6 @@ class TextEntry(Sheet, ValueMixin):
 
         # FIXME: add commands to support usual editing operations:
         #
-        # SHIFT+KEY_RIGHT=402
-        # SHIFT+KEY_UP=337
-        # SHIFT+KEY_LEFT=393
-        # SHIFT+KEY_DOWN=336
         # CTRL+KEY_LEFT (back word)
         # CTRL+KEY_RIGHT (forward word)
         # CTRL+KEY_UP (up paragraph)
@@ -139,9 +162,11 @@ class TextEntry(Sheet, ValueMixin):
         pos = self._insertion_point
         self._text = self._text[:pos] + chr(key_event_code) + self._text[pos:]
         self.move_forward()
+        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         self.invalidate()
 
     def activate(self):
+        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         self.frame().set_focus(self)
 
     # _insertion_point min needs always be in visible window;
@@ -156,34 +181,96 @@ class TextEntry(Sheet, ValueMixin):
     # where in the text the cursor is placed. The display must always
     # show the cursor.
     def move_start(self):
+        self._move_start_1()
+        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
+        return True
+
+    def _move_start_1(self):
         self._insertion_point = 0
         self._text_offset = 0
-        return True
 
     def move_end(self):
-        self._insertion_point = len(self._text)
-        self._text_offset = max(len(self._text)-self.width()+1, 0)
+        self._move_end_1()
+        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         return True
 
+    def _move_end_1(self):
+        self._insertion_point = len(self._text)
+        self._text_offset = max(len(self._text)-self.width()+1, 0)
+
     def move_forward(self):
+        self._move_forward_1()
+        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
+        return True
+
+    def _move_forward_1(self):
         self._insertion_point = min(self._insertion_point+1, len(self._text))
         if self._insertion_point-self._text_offset >= self.width():
             self._text_offset += 1
-        return True
 
     def move_backward(self):
+        self._move_backward_1()
+        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
+        return True
+
+    def _move_backward_1(self):
         self._insertion_point = max(self._insertion_point-1, 0)
         if self._insertion_point < self._text_offset:
             self._text_offset -= 1
-        return True
 
     def delete(self):
         if self._insertion_point < len(self._text):
             self._text = self._text[:self._insertion_point] + self._text[self._insertion_point+1:]
+        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         return True
 
     def backspace(self):
         if self._insertion_point > 0:
             self._text = self._text[:self._insertion_point-1] + self._text[self._insertion_point:]
             self.move_backward()
+        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         return True
+
+    def extend_selection_char_left(self):
+        start = self._insertion_point
+        end = self._insertion_point
+
+        if self._text_selection is None:
+            # If no existing selection, selection start is current
+            # pos-1 and selection end is current pos
+            start=max(start-1, 0)
+        elif self._text_selection[0] < self._insertion_point:
+            # if we've selected right and now we're selecting left,
+            # need to reduce the end and leave the start
+            start=self._text_selection[0]
+            end=end-1
+        else:
+            # otherwise reduce the start by 1 and leave the end
+            start=max(start-1, 0)
+            end=self._text_selection[1]
+
+        self._text_selection=(start, end)
+        logger.debug("selection extended; current selection is %s", self._text_selection)
+        return self._move_backward_1()
+
+    def extend_selection_char_right(self):
+        start = self._insertion_point
+        end = self._insertion_point
+
+        if self._text_selection is None:
+            # If no existing selection, selection start is current pos
+            # and selection end is current pos+1
+            end = min(end+1, len(self._text))
+        elif self._text_selection[1] > self._insertion_point:
+            # if we've selected left and now we're selecting right,
+            # need to increase the start and leave the end
+            start=start+1
+            end=self._text_selection[1]
+        else:
+            # otherwise leave the start and increase the end by 1
+            start=self._text_selection[0]
+            end=min(end+1, len(self._text))
+
+        self._text_selection=(start, end)
+        logger.debug("selection extended; current selection is %s", self._text_selection)
+        return self._move_forward_1()

@@ -156,8 +156,8 @@ class Frame():
 
     def _handle_key_event(self, event):
 
-        logger.debug("_HANDLE_KEY_EVENT entered for frame %s and event %s",
-                     self, event)
+        logger.debug("_HANDLE_KEY_EVENT entered for frame %s and event %s [keycode %s]",
+                     self, event, event.key_code)
 
         # Handle accelerators from the default "command table". Why
         # don't TAB / S+TAB work here?

@@ -257,13 +257,21 @@ def populate_textentry():
     keycode = Screen.ctrl("j")
     register_command([keycode], Command("eat nl", _nop), command_table="textentry")
 
-    # NEXT FOCUS
-    def _find_next_focus(entry):
-        focus_updated = entry.frame().cycle_focus_forward()
-        return True
+    # EXTEND SELECTION CHARACTER RIGHT
+    def _extend_char_right(entry):
+        return entry.extend_selection_char_right()
+    SHIFT_KEY_RIGHT=402
+    keycode = SHIFT_KEY_RIGHT
+    register_command([keycode], Command("select char right", _extend_char_right),
+                     command_table="textentry")
 
-    keycode = Screen.KEY_ESCAPE
-    register_command([keycode], Command("next focus", _find_next_focus),
+
+    # EXTEND SELECTION CHARACTER LEFT
+    def _extend_char_left(entry):
+        return entry.extend_selection_char_left()
+    SHIFT_KEY_LEFT=393
+    keycode = SHIFT_KEY_LEFT
+    register_command([keycode], Command("select char left", _extend_char_left),
                      command_table="textentry")
 
     # PRINTING CHAR - insert char; implemented in widget itself
@@ -342,13 +350,20 @@ def populate_textarea():
     keycode = Screen.ctrl("j")
     register_command([keycode], Command("open below", _open_below), command_table="textarea")
 
-    # NEXT FOCUS
-    def _find_next_focus(entry):
-        focus_updated = entry.frame().cycle_focus_forward()
-        return True
+    # EXTEND SELECTION CHARACTER RIGHT
+    def _extend_char_right(entry):
+        return entry.extend_selection_char_right()
+    SHIFT_KEY_RIGHT=402
+    keycode = SHIFT_KEY_RIGHT
+    register_command([keycode], Command("select char right", _extend_char_right),
+                     command_table="textarea")
 
-    keycode = Screen.KEY_ESCAPE
-    register_command([keycode], Command("next focus", _find_next_focus),
+    # EXTEND SELECTION CHARACTER LEFT
+    def _extend_char_left(entry):
+        return entry.extend_selection_char_left()
+    SHIFT_KEY_LEFT=393
+    keycode = SHIFT_KEY_LEFT
+    register_command([keycode], Command("select char left", _extend_char_left),
                      command_table="textarea")
 
     # PRINTING CHAR - insert char; implemented in widget itself
