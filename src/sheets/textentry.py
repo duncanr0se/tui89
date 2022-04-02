@@ -208,6 +208,40 @@ class TextEntry(Sheet, ValueMixin):
         if self._insertion_point-self._text_offset >= self.width():
             self._text_offset += 1
 
+    def move_forward_word(self):
+        self._move_forward_word_1()
+        self.reset_selection()
+        return True
+
+    def _move_forward_word_1(self):
+        # skip whitespace before next word, if there is any.
+        start = self.skip_ws()
+        # fixme: just walk chars until hit end of text? Use a while?
+        for index in range(start, len(self._text)):
+            if not self._text[index].isalnum():
+                # found the space
+                self._insertion_point = index
+                if self._insertion_point-self._text_offset >= self.width():
+                    self._text_offset = self._insertion_point-self.width()+1
+                return
+        self._insertion_point = len(self._text)
+        if self._insertion_point-self._text_offset >= self.width():
+            self._text_offset = self._insertion_point-self.width()+1
+
+    def skip_ws(self, from_end=False):
+        index = self._insertion_point
+        if not from_end:
+            while not self._text[index].isalnum() and index < len(self._text):
+                index += 1
+        else:
+            # move index back 1 so it points between words instead of
+            # at the start of the word we want to move off (if
+            # repeated "back word" commands are received)
+            index = min(index-1, len(self._text)-1)
+            while not self._text[index].isalnum() and index > 0:
+                index -= 1
+        return index
+
     def move_backward(self):
         self._move_backward_1()
         self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
@@ -217,6 +251,23 @@ class TextEntry(Sheet, ValueMixin):
         self._insertion_point = max(self._insertion_point-1, 0)
         if self._insertion_point < self._text_offset:
             self._text_offset -= 1
+
+    def move_backward_word(self):
+        self._move_backward_word_1()
+        self.reset_selection()
+        return True
+
+    def _move_backward_word_1(self):
+        start = self.skip_ws(from_end=True)
+        while self._text[start].isalnum() and start > 0:
+            start -= 1
+        # increment start since it points at a space instead of at the
+        # start of the word. Note if the start of the text is hit the
+        # start is set to 0 (it's unlikely that there is whitespace
+        # before the first text in entry).
+        self._insertion_point = start+1 if start > 0 else 0
+        if self._insertion_point < self._text_offset:
+            self._text_offset = self._insertion_point
 
     def delete(self):
         if self._insertion_point < len(self._text):

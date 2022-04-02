@@ -242,11 +242,27 @@ def populate_textentry():
     keycode = [Screen.KEY_RIGHT, Screen.ctrl("f")]
     register_command(keycode, Command("forward", _forward), command_table="textentry")
 
+    # CTRL-KEY_RIGHT (561) - forward 1 word
+    def _forward_word(entry):
+        return entry.move_forward_word()
+    CTRL_KEY_RIGHT=561
+    keycode = [CTRL_KEY_RIGHT]
+    register_command(keycode, Command("forward word", _forward_word),
+                     command_table="textentry")
+
     # CTRL-B, KEY_LEFT - backward 1 char
     def _backward(entry):
         return entry.move_backward()
     keycode = [Screen.KEY_LEFT, Screen.ctrl("b")]
     register_command(keycode, Command("backward", _backward), command_table="textentry")
+
+    # CTRL-KEY_LEFT (546) - backward 1 word
+    def _backward_word(entry):
+        return entry.move_backward_word()
+    CTRL_KEY_LEFT=546
+    keycode = [CTRL_KEY_LEFT]
+    register_command(keycode, Command("backward word", _backward_word),
+                     command_table="textentry")
 
     # CTRL-D, DELETE - delete forward
     def _delete(entry):
