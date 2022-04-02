@@ -40,9 +40,18 @@ class Command():
         return "Command('{}')".format(self._name)
 
     def apply(self, client):
+
         dclient = "None" if client is None else client
         logger.debug("applying command %s with client %s", self, dclient)
-        return self._func(client)
+        try:
+            return self._func(client)
+        except AttributeError:
+
+            from sheets.dialog import alert
+
+            alert(client.frame(), f"{self._name} - failed to apply {self._func} "
+                  + f"for client {dclient}")
+            return False
 
 
 def register_command(keys, command, command_table="global"):
