@@ -314,9 +314,22 @@ def populate_textentry():
     register_command([keycode], Command("select word left", _extend_word_left),
                      command_table="textentry")
 
-    # FIXME: SHIFT-END, SHIFT-HOME
+    # EXTEND SELECTION TO END OF LINE
+    def _extend_to_end_of_line(entry):
+        return entry.extend_selection_end_of_line()
+    SHIFT_END=386
+    keycode = SHIFT_END
+    register_command([keycode], Command("select to end of line", _extend_to_end_of_line),
+                     command_table="textentry")
 
-    # fixme: need to turn off catching interrupts
+    # EXTEND SELECTION TO START OF LINE
+    def _extend_to_start_of_line(entry):
+        return entry.extend_selection_start_of_line()
+    SHIFT_HOME=391
+    keycode = SHIFT_HOME
+    register_command([keycode], Command("select to start fo line", _extend_to_start_of_line),
+                     command_table="textentry")
+
     # COPY
     def _copy(entry):
         return entry.clipboard_copy_to()

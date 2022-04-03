@@ -150,20 +150,16 @@ class TextEntry(Sheet, ValueMixin):
         if key_event.key_code < 0:
             return False
 
-        # FIXME: add commands to support usual editing operations:
-        #
-        # CTRL+KEY_LEFT (back word)
-        # CTRL+KEY_RIGHT (forward word)
-        # CTRL+KEY_UP (up paragraph)
-        # CTRL+KEY_DOWN (down paragraph)
-
-        self._insert_char_code(key_event.key_code)
+        self._insert_char_code(chr(key_event.key_code))
         return True
 
-    def _insert_char_code(self, key_event_code):
-        pos = self._insertion_point
-        self._text = self._text[:pos] + chr(key_event_code) + self._text[pos:]
-        self.move_forward()
+    def _insert_char_code(self, char):
+        (start, end) = (self._insertion_point, self._insertion_point)
+
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+
+        self._update_text_for_cut_or_paste(start, end, char)
         self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         self.invalidate()
 
@@ -217,8 +213,7 @@ class TextEntry(Sheet, ValueMixin):
 
     def _move_forward_word_1(self):
         # skip whitespace before next word, if there is any.
-        start = self.skip_ws()
-        # fixme: just walk chars until hit end of text? Use a while?
+        start = self.skip_start_ws()
         for index in range(start, len(self._text)):
             if not self._text[index].isalnum():
                 # found the space
@@ -230,10 +225,7 @@ class TextEntry(Sheet, ValueMixin):
         if self._insertion_point-self._text_offset >= self.width():
             self._text_offset = self._insertion_point-self.width()+1
 
-    def skip_ws(self, from_end=False):
-        return self.skip_end_ws() if from_end else self.skip_start_ws()
-
-    def skip_start_ws(self, from_end=False):
+    def skip_start_ws(self):
         index = self._insertion_point
         while index < len(self._text)-1 and not self._text[index].isalnum():
             index += 1
@@ -264,7 +256,7 @@ class TextEntry(Sheet, ValueMixin):
         return True
 
     def _move_backward_word_1(self):
-        start = self.skip_ws(from_end=True)
+        start = self.skip_end_ws()
         while self._text[start].isalnum() and start > 0:
             start -= 1
         # increment start since it points at a space instead of at the
@@ -276,13 +268,22 @@ class TextEntry(Sheet, ValueMixin):
             self._text_offset = self._insertion_point
 
     def delete(self):
-        if self._insertion_point < len(self._text):
-            self._text = self._text[:self._insertion_point] + self._text[self._insertion_point+1:]
+        # delete text selection or character to right of insertion point
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+            self._update_text_for_cut_or_paste(start, end, "")
+        elif self._insertion_point < len(self._text):
+            self._text = self._text[:self._insertion_point] \
+                + self._text[self._insertion_point+1:]
         self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         return True
 
     def backspace(self):
-        if self._insertion_point > 0:
+        # delete text selection or character to left of insertion point
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+            self._update_text_for_cut_or_paste(start, end, "")
+        elif self._insertion_point > 0:
             self._text = self._text[:self._insertion_point-1] + self._text[self._insertion_point:]
             self.move_backward()
         self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
@@ -293,6 +294,9 @@ class TextEntry(Sheet, ValueMixin):
 
     def extend_selection_word_right(self):
         self._extend_selection_right(self._move_forward_word_1)
+
+    def extend_selection_end_of_line(self):
+        self._extend_selection_right(self._move_end_1)
 
     def _extend_selection_right(self, fun):
         oip = self._insertion_point
@@ -327,6 +331,9 @@ class TextEntry(Sheet, ValueMixin):
 
     def extend_selection_word_left(self):
         self._extend_selection_left(self._move_backward_word_1)
+
+    def extend_selection_start_of_line(self):
+        self._extend_selection_left(self._move_start_1)
 
     def _extend_selection_left(self, fun):
         oip = self._insertion_point
@@ -404,5 +411,10 @@ class TextEntry(Sheet, ValueMixin):
         # insertion point needs to be at the end of "text" and
         # on-screen
         self._insertion_point=start+len(text)
-        if self._insertion_point > self.width():
+        if self._insertion_point >= self.width():
             self._text_offset=self._insertion_point-self.width()+1
+        # if deleting a selection the insertion point can end up off
+        # screen at a -ve offset. Make sure the insertion point is
+        # always visible.
+        if self._insertion_point < self._text_offset:
+            self._text_offset=self._insertion_point
