@@ -143,7 +143,7 @@ running. Work out how to get values out of a dialog box in this case;
 it's easy when they block. So either make them block (how?) or work
 out how to deal with async results.
 
-Text edit components should support select, cut, paste
+Text edit components should support select, cut, copy, paste
 
 Scroll up / down / left / right line / page commands on
 viewport. Might not be too easy to do if arrows already used to

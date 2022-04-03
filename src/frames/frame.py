@@ -51,10 +51,23 @@ class Frame():
         # top sheet.
         raise ResizeScreenError("resize!!")
 
+    def _handle_interrupt(self, signal_no, frame):
+        # the OS already caught the ctrl-c, inject it for the next
+        # input
+        # ctrl-c = 3, ctrl-z = 26
+        # fixme: maybe just deal with the interrupted signal?
+        CTRL_C=3
+        CTRL_Z=26
+        event=KeyboardEvent(3)
+        self._process_event(event)
+
     def __init__(self, screen):
         # override screen resized handler from asciimatics for
         # immediate handling
         screen._signal_state.set(signal.SIGWINCH, self._resize_handler)
+        # use ctrl+c for copy and paste
+        screen._signal_state.set(signal.SIGINT, self._handle_interrupt)
+        #screen._signal_state.set(signal.SIGSTP, self._handle_interrupt)
         self._dialog = None
         self._focus = None
         self._invalidated_sheets = deque()

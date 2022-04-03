@@ -316,6 +316,25 @@ def populate_textentry():
 
     # FIXME: SHIFT-END, SHIFT-HOME
 
+    # fixme: need to turn off catching interrupts
+    # COPY
+    def _copy(entry):
+        return entry.clipboard_copy_to()
+    keycode=Screen.ctrl('c')
+    register_command([keycode], Command("copy", _copy), command_table="textentry")
+
+    # CUT
+    def _cut(entry):
+        return entry.clipboard_cut_to()
+    keycode=Screen.ctrl('x')
+    register_command([keycode], Command("cut", _cut), command_table="textentry")
+
+    # PASTE
+    def _paste(entry):
+        return entry.clipboard_paste_from()
+    keycode=Screen.ctrl('v')
+    register_command([keycode], Command("paste", _paste), command_table="textentry")
+
     # PRINTING CHAR - insert char; implemented in widget itself
     pass
 

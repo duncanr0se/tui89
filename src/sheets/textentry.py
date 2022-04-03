@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+import pyperclip
+
 from asciimatics.screen import Screen
 
 from sheets.sheet import Sheet
@@ -353,3 +355,63 @@ class TextEntry(Sheet, ValueMixin):
             end=self._text_selection[1]
 
         self._text_selection=(start, end)
+
+    def clipboard_copy_to(self):
+        # put text covered by selection on the system clipboard
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+            text = self._text[start:end]
+            pyperclip.copy(text)
+            self.reset_selection()
+            return True
+        return False
+
+    def clipboard_cut_to(self):
+        # put the text covered by the current selection on the system
+        # clipboard and remove the text from the entry
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+            text = self._text[start:end]
+            pyperclip.copy(text)
+            pre=self._text[:start]
+            post=self._text[end:]
+            self._text=pre+post
+            self._insertion_point=start
+            self.reset_selection()
+            return True
+        return False
+
+    def clipboard_paste_from(self):
+        # replace text covered by selection with the contents of the
+        # system clipboard. If there is no selection just insert the
+        # text at the insertion point.
+        text=pyperclip.paste()
+
+        if text == "":
+            return False
+
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+            pre=self._text[:start]
+            post=self._text[end:]
+            self._text=pre+text+post
+            # insertion point needs to be at end of text
+            self._insertion_point=len(pre)+len(text)
+            # insertion point needs to be on-screen
+            if self._insertion_point > self.width():
+                self._text_offset=self._insertion_point-self.width()+1
+            self.reset_selection()
+            return True
+        else:
+            pre=self._text[:self._insertion_point]
+            post=self._text[self._insertion_point:]
+            self._text=pre+text+post
+            # insertion point needs to be at end of text
+            self._insertion_point=len(pre)+len(text)
+            # insertion point needs to be on-screen
+            if self._insertion_point > self.width():
+                self._text_offset=self._insertion_point-self.width()+1
+            self.reset_selection()
+            return True
+
+        return False
