@@ -373,10 +373,8 @@ class TextEntry(Sheet, ValueMixin):
             (start, end) = self._text_selection
             text = self._text[start:end]
             pyperclip.copy(text)
-            pre=self._text[:start]
-            post=self._text[end:]
-            self._text=pre+post
-            self._insertion_point=start
+
+            self._update_text_for_cut_or_paste(start, end, "")
             self.reset_selection()
             return True
         return False
@@ -390,28 +388,21 @@ class TextEntry(Sheet, ValueMixin):
         if text == "":
             return False
 
+        (start, end) = (self._insertion_point, self._insertion_point)
+
         if self._text_selection is not None:
             (start, end) = self._text_selection
-            pre=self._text[:start]
-            post=self._text[end:]
-            self._text=pre+text+post
-            # insertion point needs to be at end of text
-            self._insertion_point=len(pre)+len(text)
-            # insertion point needs to be on-screen
-            if self._insertion_point > self.width():
-                self._text_offset=self._insertion_point-self.width()+1
-            self.reset_selection()
-            return True
-        else:
-            pre=self._text[:self._insertion_point]
-            post=self._text[self._insertion_point:]
-            self._text=pre+text+post
-            # insertion point needs to be at end of text
-            self._insertion_point=len(pre)+len(text)
-            # insertion point needs to be on-screen
-            if self._insertion_point > self.width():
-                self._text_offset=self._insertion_point-self.width()+1
-            self.reset_selection()
-            return True
 
-        return False
+        self._update_text_for_cut_or_paste(start, end, text)
+        self.reset_selection()
+        return True
+
+    def _update_text_for_cut_or_paste(self, start, end, text):
+        pre=self._text[:start]
+        post=self._text[end:]
+        self._text=pre+text+post
+        # insertion point needs to be at the end of "text" and
+        # on-screen
+        self._insertion_point=start+len(text)
+        if self._insertion_point > self.width():
+            self._text_offset=self._insertion_point-self.width()+1

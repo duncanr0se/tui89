@@ -114,18 +114,6 @@ class Frame():
         return self._top_level_sheet
 
     def start_frame(self):
-        # If the frame has no focus find one now. FIXME: what if there
-        # isn't a suitable focus candidate?
-
-        # Is there any need to pick a focus at all? The user can
-        # select one using keyboard navigation, or the app developer
-        # can set one if they want. I think there's no need to do
-        # this.
-
-#        if self._focus is None:
-#            focus_sheet = self._top_level_sheet.find_focus_candidate()
-#            self.set_focus(focus_sheet)
-
         # TODO: test just running this loop, see how quickly the
         # system can respond to mouse and key events. Not sure if
         # latency is in the TUI code and need to find speedups there,
