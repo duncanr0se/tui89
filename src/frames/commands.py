@@ -376,11 +376,27 @@ def populate_textarea():
     keycode = [Screen.KEY_RIGHT, Screen.ctrl("f")]
     register_command(keycode, Command("forward", _forward), command_table="textarea")
 
+    # CTRL-KEY_RIGHT (561) - forward 1 word
+    def _forward_word(entry):
+        return entry.move_forward_word()
+    CTRL_KEY_RIGHT=561
+    keycode = [CTRL_KEY_RIGHT]
+    register_command(keycode, Command("forward word", _forward_word),
+                     command_table="textarea")
+
     # CTRL-B, KEY_LEFT - backward 1 char
     def _backward(entry):
         return entry.move_backward()
     keycode = [Screen.KEY_LEFT, Screen.ctrl("b")]
     register_command(keycode, Command("backward", _backward), command_table="textarea")
+
+    # CTRL-KEY_LEFT (546) - backward 1 word
+    def _backward_word(entry):
+        return entry.move_backward_word()
+    CTRL_KEY_LEFT=546
+    keycode = [CTRL_KEY_LEFT]
+    register_command(keycode, Command("backward word", _backward_word),
+                     command_table="textarea")
 
     # CTRL-N, KEY_DOWN - down 1 line
     def _down(entry):
@@ -418,7 +434,7 @@ def populate_textarea():
     keycode = Screen.KEY_BACK
     register_command([keycode], Command("backspace", _backspace), command_table="textarea")
 
-    # NEWLINE - silently ignore
+    # NEWLINE
     def _open_below(entry):
         return entry.open_below()
     keycode = Screen.ctrl("j")
@@ -432,6 +448,14 @@ def populate_textarea():
     register_command([keycode], Command("select char right", _extend_char_right),
                      command_table="textarea")
 
+    # EXTEND SELECTION WORD RIGHT
+    def _extend_word_right(entry):
+        return entry.extend_selection_word_right()
+    CTRL_SHIFT_KEY_RIGHT=562
+    keycode = CTRL_SHIFT_KEY_RIGHT
+    register_command([keycode], Command("select word right", _extend_word_right),
+                     command_table="textarea")
+
     # EXTEND SELECTION CHARACTER LEFT
     def _extend_char_left(entry):
         return entry.extend_selection_char_left()
@@ -439,6 +463,83 @@ def populate_textarea():
     keycode = SHIFT_KEY_LEFT
     register_command([keycode], Command("select char left", _extend_char_left),
                      command_table="textarea")
+
+    # EXTEND SELECTION WORD LEFT
+    def _extend_word_left(entry):
+        return entry.extend_selection_word_left()
+    CTRL_SHIFT_KEY_LEFT=547
+    keycode = CTRL_SHIFT_KEY_LEFT
+    register_command([keycode], Command("select word left", _extend_word_left),
+                     command_table="textarea")
+
+    # EXTEND SELECTION TO END OF LINE
+    def _extend_to_end_of_line(entry):
+        return entry.extend_selection_end_of_line()
+    SHIFT_END=386
+    keycode = SHIFT_END
+    register_command([keycode], Command("select to end of line", _extend_to_end_of_line),
+                     command_table="textarea")
+
+    # EXTEND SELECTION TO START OF LINE
+    def _extend_to_start_of_line(entry):
+        return entry.extend_selection_start_of_line()
+    SHIFT_HOME=391
+    keycode = SHIFT_HOME
+    register_command([keycode], Command("select to start fo line", _extend_to_start_of_line),
+                     command_table="textarea")
+
+    # FIXME: should the selection in a text area be "start + lines ->
+    # end" or should it be a rectangle?
+
+#    # EXTEND SELECTION UP
+#    def _extend_up(entry):
+#        return entry.extend_selection_up()
+#    SHIFT_KEY_UP=337
+#    keycode = SHIFT_KEY_UP
+#    register_command([keycode], Command("select up", _extend_up),
+#                     command_table="textarea")
+
+#    # EXTEND SELECTION PG_UP
+#    def _extend_pg_up(entry):
+#        return entry.extend_selection_pg_up()
+#    SHIFT_PG_UP=398
+#    keycode = SHIFT_PG_UP
+#    register_command([keycode], Command("select pg up", _extend_pg_up),
+#                     command_table="textarea")
+
+#    # EXTEND SELECTION DOWN
+#    def _extend_down(entry):
+#        return entry.extend_selection_down()
+#    SHIFT_KEY_DOWN=336
+#    keycode = SHIFT_KEY_DOWN
+#    register_command([keycode], Command("select down", _extend_down),
+#                     command_table="textarea")
+
+#    # EXTEND SELECTION PG_DOWN
+#    def _extend_pg_down(entry):
+#        return entry.extend_selection_pg_down()
+#    SHIFT_PG_DOWN=396
+#    keycode = SHIFT_PG_DOWN
+#    register_command([keycode], Command("select pg down", _extend_pg_down),
+#                     command_table="textarea")
+
+    # COPY
+    def _copy(entry):
+        return entry.clipboard_copy_to()
+    keycode=Screen.ctrl('c')
+    register_command([keycode], Command("copy", _copy), command_table="textarea")
+
+    # CUT
+    def _cut(entry):
+        return entry.clipboard_cut_to()
+    keycode=Screen.ctrl('x')
+    register_command([keycode], Command("cut", _cut), command_table="textarea")
+
+    # PASTE
+    def _paste(entry):
+        return entry.clipboard_paste_from()
+    keycode=Screen.ctrl('v')
+    register_command([keycode], Command("paste", _paste), command_table="textarea")
 
     # PRINTING CHAR - insert char; implemented in widget itself
     pass

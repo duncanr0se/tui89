@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+import pyperclip
+
 from asciimatics.screen import Screen
 
 from sheets.sheet import Sheet
@@ -61,8 +63,10 @@ class TextArea(TextEntry):
         self._text_offset = 0
         # text_line = which line of text the cursor is on (relative to 0)
         self._text_line = 0
-        # _text_selection = region of area selected
+        # _horizontal_text_selection = (left, right) of area selected
         self._text_selection = None
+        # _vertical_text_selection = (top, bottom) of area selected
+        self._vertical_text_selection = None
 
     def __repr__(self):
         tx = self._transform._dx
@@ -73,6 +77,7 @@ class TextArea(TextEntry):
 
     def reset_selection(self):
         self._text_selection=None
+        self._vertical_text_selection=None
 
     def compose_space(self):
         # arbitrary: assume 20xlines edit field by default
@@ -122,11 +127,12 @@ class TextArea(TextEntry):
 
             # if line is in selected region, draw any selected text in
             # the selection colour instead of in the default colour.
-            if self._text_selection is not None:
-                if self._text_selection.ltrb()[1] <= line < self._text_selection.ltrb()[3]:
+            if self._vertical_text_selection is not None:
+                (top, bottom) = self._vertical_text_selection
+                if top <= line < bottom:
                     selected_pen = self.pen(role="editable", state="selected", pen="area_pen")
-                    selection_start = max(self._text_selection.ltrb()[0]-self._text_offset, 0)
-                    selection_end = max(min(self._text_selection.ltrb()[2]-self._text_offset,
+                    selection_start = max(self._text_selection[0]-self._text_offset, 0)
+                    selection_end = max(min(self._text_selection[1]-self._text_offset,
                                             len(display_text)),
                                         0)
 
@@ -202,56 +208,74 @@ class TextArea(TextEntry):
     def activate(self):
         self.frame().set_focus(self)
 
-    # _insertion_point min needs always be in visible window;
-    # attempting to move left out of visible region scrolls text
-    # right; attempting to move right out of visible region scrolls
-    # text left.
-    #
-    # Move start moves start of text to start of visible region, and
-    # move end moves end of text to end of visible region.
-    #
-    # Keep cursor in visible region. self._insertion_point indicates
-    # where in the text the cursor is placed. The display must always
-    # show the cursor.
-    def move_start(self):
-        self._move_start_1()
-        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
-        return True
+    # def move_start(self): -- USE PARENT IMPLEMENTATION
+    # def _move_start_1(self):
+    # def move_end(self):
 
-    def _move_start_1(self):
-        self._insertion_point = 0
-        self._text_offset = 0
-
-    def move_end(self):
-        self._move_end_1()
-        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
-        return True
-
+    # fixme: could super method if there was a current line accessor
     def _move_end_1(self):
         line = self._lines[self._insertion_line]
         self._insertion_point = len(line)
         self._text_offset = max(len(line)-self.width()+1, 0)
 
-    def move_forward(self):
-        self._move_forward_1()
-        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
-        return True
+    # def move_forward(self):
 
+    # fixme: could super method if there was a current line accessor
     def _move_forward_1(self):
         line = self._lines[self._insertion_line]
         self._insertion_point = min(self._insertion_point+1, len(line))
         if self._insertion_point-self._text_offset >= self.width():
             self._text_offset += 1
 
-    def move_backward(self):
-        self._move_backward_1()
-        self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
-        return True
+    def _move_forward_word_1(self):
+        start = self.skip_start_ws()
+        text = self._lines[self._insertion_line]
+        for index in range(start, len(text)):
+            if not text[index].isalnum():
+                # found the space
+                self._insertion_point = index
+                if self._insertion_point-self._text_offset >= self.width():
+                    self._text_offset = self._insertion_point-self.width()+1
+                return
+        self._insertion_point = len(text)
+        if self._insertion_point-self._text_offset >= self.width():
+            self._text_offset = self._insertion_point-self.width()+1
 
-    def _move_backward_1(self):
-        self._insertion_point = max(self._insertion_point-1, 0)
+    def skip_start_ws(self):
+        text = self._lines[self._insertion_line]
+        index = self._insertion_point
+        while index < len(text)-1 and not text[index].isalnum():
+            index += 1
+        return index
+
+    def skip_end_ws(self):
+        # move index back 1 so it points between words instead of
+        # at the start of the word we want to move off (if
+        # repeated "back word" commands are received)
+        text = self._lines[self._insertion_line]
+        index = min(self._insertion_point-1, len(text)-1)
+        while index > 0 and not text[index].isalnum():
+            index -= 1
+        return index
+
+    # def move_backward(self):
+    # def _move_backward_1(self):
+
+    # fixme: move backward word
+
+    # fixme: could super method if there was a current line accessor
+    def _move_backward_word_1(self):
+        text = self._lines[self._insertion_line]
+        start = self.skip_end_ws()
+        while text[start].isalnum() and start > 0:
+            start -= 1
+        # increment start since it points at a space instead of at the
+        # start of the word. Note if the start of the text is hit the
+        # start is set to 0 (it's unlikely that there is whitespace
+        # before the first text in entry).
+        self._insertion_point = start+1 if start > 0 else 0
         if self._insertion_point < self._text_offset:
-            self._text_offset -= 1
+            self._text_offset = self._insertion_point
 
     def move_up(self):
         # vertical movement does not affect the insertion point
@@ -316,81 +340,107 @@ class TextArea(TextEntry):
         return True
 
     def delete(self):
-        line = self._lines[self._insertion_line]
-        if self._insertion_point < len(line):
-            line = line[:self._insertion_point] + line[self._insertion_point+1:]
-            self._lines[self._insertion_line] = line
+        # delete text selection or character to right of insertion point
+        text = self._lines[self._insertion_line]
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+            self._update_text_for_cut_or_paste(start, end, "")
+        if self._insertion_point < len(text):
+            text = text[:self._insertion_point] + text[self._insertion_point+1:]
+            self._lines[self._insertion_line] = text
         self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         return True
 
     def backspace(self):
-        line = self._lines[self._insertion_line]
+        # delete text selection or character to left of insertion point
+        text = self._lines[self._insertion_line]
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+            self._update_text_for_cut_or_paste(start, end, "")
         if self._insertion_point > 0:
-            line = line[:self._insertion_point-1] + line[self._insertion_point:]
-            self._lines[self._insertion_line] = line
+            text = text[:self._insertion_point-1] + text[self._insertion_point:]
+            self._lines[self._insertion_line] = text
             self.move_backward()
         self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         return True
 
-    def extend_selection_char_left(self):
-        # selection here is a 2d region
-        logger.debug("insertion line=%s", self._insertion_line)
-        self._insertion_point = min(self._insertion_point,
-                                    len(self._lines[self._insertion_line]))
-        left = self._insertion_point
-        top = self._insertion_line
-        right = self._insertion_point
-        bottom = self._insertion_line+1
+    # fixme: have 2 selections, a left-right selection that is
+    # identical to the one already implemented for textentry, and a
+    # top-bottom selection that is distict to the textarea.
 
-        if self._text_selection is None:
-            # If no existing selection, selection start is current
-            # pos-1 and selection end is current pos
-            left=max(left-1, 0)
-        elif self._text_selection.ltrb()[0] < self._insertion_point:
-            # if we've selected right and now we're selecting left,
-            # need to reduce the end and leave the start
-            left=self._text_selection.ltrb()[0]
-            top=self._text_selection.ltrb()[1]
-            right=right-1
-            bottom=self._text_selection.ltrb()[3]
+    # def extend_selection_char_right(self):
+    # def extend_selection_word_right(self):
+    # def extend_selection_end_of_line(self):
+
+    def _extend_selection_right(self, fun):
+        super()._extend_selection_right(fun)
+        if self._vertical_text_selection is None:
+            self._vertical_text_selection = (self._insertion_line,
+                                             self._insertion_line+1)
         else:
-            # otherwise reduce the start by 1 and leave the end
-            left=max(left-1, 0)
-            top=self._text_selection.ltrb()[1]
-            right=self._text_selection.ltrb()[2]
-            bottom=self._text_selection.ltrb()[3]
+            (top, bottom) = self._vertical_text_selection
+            if self._insertion_line < top:
+                top = self._insertion_line
+            if self._insertion_line >= bottom:
+                bottom = self._insertion_line+1
+            self._vertical_text_selection=(top, bottom)
 
-        self._text_selection=Region(left, top, right, bottom)
-        logger.debug("selection extended; current selection is %s", self._text_selection)
-        return self._move_backward_1()
+    # def extend_selection_char_left(self):
+    # def extend_selection_word_left(self):
+    # def extend_selection_start_of_line(self):
 
-    def extend_selection_char_right(self):
-        logger.debug("insertion line=%s", self._insertion_line)
-        self._insertion_point = min(self._insertion_point,
-                                    len(self._lines[self._insertion_line]))
-        left = self._insertion_point
-        top = self._insertion_line
-        right = self._insertion_point
-        bottom = self._insertion_line+1
-
-        if self._text_selection is None:
-            # If no existing selection, selection start is current pos
-            # and selection end is current pos+1
-            right = min(right+1, len(self._lines[self._insertion_line]))
-        elif self._text_selection.ltrb()[1] > self._insertion_point:
-            # if we've selected left and now we're selecting right,
-            # need to increase the start and leave the end
-            left=left+1
-            top=self._text_selection.ltrb()[1]
-            right=self._text_selection.ltrb()[2]
-            bottom=self._text_selection.ltrb()[3]
+    def _extend_selection_left(self, fun):
+        super()._extend_selection_left(fun)
+        if self._vertical_text_selection is None:
+            self._vertical_text_selection = (self._insertion_line,
+                                             self._insertion_line+1)
         else:
-            # otherwise leave the start and increase the end by 1
-            left=self._text_selection.ltrb()[0]
-            top=self._text_selection.ltrb()[1]
-            right=min(right+1, len(self._lines[self._insertion_line]))
-            bottom=self._text_selection.ltrb()[3]
+            (top, bottom) = self._vertical_text_selection
+            if self._insertion_line < top:
+                top = self._insertion_line
+            if self._insertion_line >= bottom:
+                bottom = self._insertion_line+1
+            self._vertical_text_selection=(top, bottom)
 
-        self._text_selection=Region(left, top, right, bottom)
-        logger.debug("selection extended; current selection is %s", self._text_selection)
-        return self._move_forward_1()
+    # fixme: could just use super's implementations if could access
+    # current line's text
+    def clipboard_copy_to(self):
+        # put text covered by selection on the system clipboard
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+            text = self._lines[self._insertion_line][start:end]
+            pyperclip.copy(text)
+            self.reset_selection()
+            return True
+        return False
+
+    def clipboard_cut_to(self):
+        # put the text covered by the current selection on the system
+        # clipboard and remove the text from the entry
+        if self._text_selection is not None:
+            (start, end) = self._text_selection
+            text = self._lines[self._insertion_line][start:end]
+            pyperclip.copy(text)
+
+            self._update_text_for_cut_or_paste(start, end, "")
+            self.reset_selection()
+            return True
+        return False
+
+    # fixme: what about cutting out a rectangle? this method needs to
+    # be way cleverer...
+    def _update_text_for_cut_or_paste(self, start, end, text):
+        _text = self._lines[self._insertion_line]
+        pre=_text[:start]
+        post=_text[end:]
+        self._lines[self._insertion_line]=pre+text+post
+        # insertion point needs to be at the end of "text" and
+        # on-screen
+        self._insertion_point=start+len(text)
+        if self._insertion_point >= self.width():
+            self._text_offset=self._insertion_point-self.width()+1
+        # if deleting a selection the insertion point can end up off
+        # screen at a -ve offset. Make sure the insertion point is
+        # always visible.
+        if self._insertion_point < self._text_offset:
+            self._text_offset=self._insertion_point

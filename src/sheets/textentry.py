@@ -167,14 +167,6 @@ class TextEntry(Sheet, ValueMixin):
         self.reset_selection()  # fixme: move to a more generic call site to avoid duplication
         self.frame().set_focus(self)
 
-    # _insertion_point min needs always be in visible window;
-    # attempting to move left out of visible region scrolls text
-    # right; attempting to move right out of visible region scrolls
-    # text left.
-    #
-    # Move start moves start of text to start of visible region, and
-    # move end moves end of text to end of visible region.
-    #
     # Keep cursor in visible region. self._insertion_point indicates
     # where in the text the cursor is placed. The display must always
     # show the cursor.
