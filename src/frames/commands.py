@@ -290,6 +290,13 @@ def populate_textentry():
     register_command([keycode], Command("select char right", _extend_char_right),
                      command_table="textentry")
 
+    # EXTEND SELECTION WORD RIGHT
+    def _extend_word_right(entry):
+        return entry.extend_selection_word_right()
+    CTRL_SHIFT_KEY_RIGHT=562
+    keycode = CTRL_SHIFT_KEY_RIGHT
+    register_command([keycode], Command("select word right", _extend_word_right),
+                     command_table="textentry")
 
     # EXTEND SELECTION CHARACTER LEFT
     def _extend_char_left(entry):
@@ -298,6 +305,16 @@ def populate_textentry():
     keycode = SHIFT_KEY_LEFT
     register_command([keycode], Command("select char left", _extend_char_left),
                      command_table="textentry")
+
+    # EXTEND SELECTION WORD LEFT
+    def _extend_word_left(entry):
+        return entry.extend_selection_word_left()
+    CTRL_SHIFT_KEY_LEFT=547
+    keycode = CTRL_SHIFT_KEY_LEFT
+    register_command([keycode], Command("select word left", _extend_word_left),
+                     command_table="textentry")
+
+    # FIXME: SHIFT-END, SHIFT-HOME
 
     # PRINTING CHAR - insert char; implemented in widget itself
     pass
