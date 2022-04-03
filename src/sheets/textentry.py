@@ -233,7 +233,7 @@ class TextEntry(Sheet, ValueMixin):
 
     def skip_start_ws(self, from_end=False):
         index = self._insertion_point
-        while not self._text[index].isalnum() and index < len(self._text):
+        while index < len(self._text)-1 and not self._text[index].isalnum():
             index += 1
         return index
 
@@ -242,7 +242,7 @@ class TextEntry(Sheet, ValueMixin):
         # at the start of the word we want to move off (if
         # repeated "back word" commands are received)
         index = min(self._insertion_point-1, len(self._text)-1)
-        while not self._text[index].isalnum() and index > 0:
+        while index > 0 and not self._text[index].isalnum():
                 index -= 1
         return index
 
@@ -287,41 +287,26 @@ class TextEntry(Sheet, ValueMixin):
         return True
 
     def extend_selection_char_right(self):
-        start = self._insertion_point
-        end = self._insertion_point
-
-        if self._text_selection is None:
-            # If no existing selection, selection start is current pos
-            # and selection end is current pos+1
-            end = min(end+1, len(self._text))
-        elif self._text_selection[1] > self._insertion_point:
-            # if we've selected left and now we're selecting right,
-            # need to increase the start and leave the end
-            start=start+1
-            end=self._text_selection[1]
-        else:
-            # otherwise leave the start and increase the end by 1
-            start=self._text_selection[0]
-            end=min(end+1, len(self._text))
-
-        self._text_selection=(start, end)
-        logger.debug("selection extended; current selection is %s", self._text_selection)
-        return self._move_forward_1()
+        self._extend_selection_right(self._move_forward_1)
 
     def extend_selection_word_right(self):
-        start = self._insertion_point
-        end = self._insertion_point
+        self._extend_selection_right(self._move_forward_word_1)
+
+    def _extend_selection_right(self, fun):
+        oip = self._insertion_point
+        (start, end) = (-1, -1)
 
         # Update insertion point to end of next word
-        self._move_forward_word_1()
+        fun()
 
         if self._text_selection is None:
+            start=oip
             end=self._insertion_point
 
         # Old insertion point is either at start or end of current
         # selection.
 
-        elif start == self._text_selection[0]:
+        elif oip == self._text_selection[0]:
             # old insertion point at start of selection, move start as
             # well as end (if insertion pt > end)
             start=min(self._insertion_point, self._text_selection[1])
@@ -336,56 +321,34 @@ class TextEntry(Sheet, ValueMixin):
         self._text_selection=(start, end)
 
     def extend_selection_char_left(self):
-        # fixme: just capture insertion point, move left, and capture
-        # insertion point again?
-        oip = self._insertion_point
-        (start, end) = (-1, -1)
-
-        if self._text_selection is None:
-            # If no existing selection, selection start is current
-            # pos-1 and selection end is current pos
-            start=max(oip-1, 0)
-            end=oip
-        elif self._text_selection[0] < oip:
-            # if we've selected right and now we're selecting left,
-            # need to reduce the end and leave the start
-            start=self._text_selection[0]
-            end=oip-1
-        else:
-            # otherwise reduce the start by 1 and leave the end
-            start=max(oip-1, 0)
-            end=self._text_selection[1]
-
-        self._text_selection=(start, end)
-        logger.debug("selection extended; current selection is %s", self._text_selection)
-        return self._move_backward_1()
+        self._extend_selection_left(self._move_backward_1)
 
     def extend_selection_word_left(self):
+        self._extend_selection_left(self._move_backward_word_1)
+
+    def _extend_selection_left(self, fun):
         oip = self._insertion_point
         (start, end) = (-1, -1)
 
-        # FIXME: logic here would work for extension by arbitrary
-        # amounts... refactor.
-
-        #Update insertion point to start of previous word
-        self._move_backward_word_1()
+        fun()
 
         if self._text_selection is None:
+            # If no existing selection, selection goes from old
+            # insertion point to updated insertion point.
             start=self._insertion_point
             end=oip
 
-        # Old insertion point is either at start or end of current
-        # selection.
-
         elif oip == self._text_selection[1]:
-            # old insertion point at end of selection, move start as
-            # well as end (if insertion pt < end)
+            # If old insertion point was at max end of existing
+            # selection, we're moving the end of the selection to the
+            # left.
             start=min(self._insertion_point, self._text_selection[0])
             end=max(self._insertion_point, self._text_selection[0])
 
         else:
-            # old insertion point at start of selection; just update
-            # start.
+            # Old insertion point was at min end of existing
+            # selection, just set start to new insertion point and
+            # leave end as it is.
             start=self._insertion_point
             end=self._text_selection[1]
 
